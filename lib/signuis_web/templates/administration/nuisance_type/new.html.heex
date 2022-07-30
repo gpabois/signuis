@@ -1,0 +1,5 @@
+<h1>New Nuisance type</h1>
+
+<%= render "form.html", Map.put(assigns, :action, Routes.administration_nuisance_type_path(@conn, :create)) %>
+
+<span><%= link "Back", to: Routes.administration_nuisance_type_path(@conn, :index) %></span>

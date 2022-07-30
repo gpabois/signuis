@@ -1,0 +1,5 @@
+<h1>Edit Facility</h1>
+
+<%= render "form.html", Map.put(assigns, :action, Routes.administration_facility_path(@conn, :update, @facility)) %>
+
+<span><%= link "Back", to: Routes.administration_facility_path(@conn, :index) %></span>

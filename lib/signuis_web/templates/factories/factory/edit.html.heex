@@ -1,0 +1,5 @@
+<h1>Edit Factory</h1>
+
+<%= render "form.html", Map.put(assigns, :action, Routes.factories_factory_path(@conn, :update, @factory)) %>
+
+<span><%= link "Back", to: Routes.factories_factory_path(@conn, :index) %></span>

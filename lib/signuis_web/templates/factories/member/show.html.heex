@@ -1,0 +1,13 @@
+<h1>Show Member</h1>
+
+<ul>
+
+  <li>
+    <strong>Roles:</strong>
+    <%= @member.roles %>
+  </li>
+
+</ul>
+
+<span><%= link "Edit", to: Routes.factories_member_path(@conn, :edit, @member) %></span> |
+<span><%= link "Back", to: Routes.factories_member_path(@conn, :index) %></span>

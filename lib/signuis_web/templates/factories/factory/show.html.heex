@@ -1,0 +1,48 @@
+<h1>Show Factory</h1>
+
+<ul>
+
+  <li>
+    <strong>Nom:</strong>
+    <%= @factory.nom %>
+  </li>
+
+  <li>
+    <strong>Description:</strong>
+    <%= @factory.description %>
+  </li>
+
+  <li>
+    <strong>Location  lat:</strong>
+    <%= @factory.location__lat %>
+  </li>
+
+  <li>
+    <strong>Location  lng:</strong>
+    <%= @factory.location__lng %>
+  </li>
+
+  <li>
+    <strong>Valid:</strong>
+    <%= @factory.valid %>
+  </li>
+
+  <li>
+    <strong>Adresse  voie:</strong>
+    <%= @factory.adresse__voie %>
+  </li>
+
+  <li>
+    <strong>Adresse  commune:</strong>
+    <%= @factory.adresse__commune %>
+  </li>
+
+  <li>
+    <strong>Adresse  code postal:</strong>
+    <%= @factory.adresse__code_postal %>
+  </li>
+
+</ul>
+
+<span><%= link "Edit", to: Routes.factories_factory_path(@conn, :edit, @factory) %></span> |
+<span><%= link "Back", to: Routes.factories_factory_path(@conn, :index) %></span>
