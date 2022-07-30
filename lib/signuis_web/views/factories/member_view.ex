@@ -1,3 +1,3 @@
-defmodule SignuisWeb.Factories.MemberView do
+defmodule SignuisWeb.Facilities.MemberView do
   use SignuisWeb, :view
 end

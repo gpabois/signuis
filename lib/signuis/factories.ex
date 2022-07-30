@@ -1,135 +1,135 @@
-defmodule Signuis.Factories do
+defmodule Signuis.Facilities do
   @moduledoc """
-  The Factories context.
+  The Facilities context.
   """
 
   import Ecto.Query, warn: false
   alias Signuis.Repo
 
-  alias Signuis.Factories.Factory
-  alias Signuis.Factories.Member
+  alias Signuis.Facilities.Facility
+  alias Signuis.Facilities.Member
 
   @doc """
-  Returns the list of factories.
+  Returns the list of facilities.
 
   ## Examples
 
-      iex> list_factories()
-      [%Factory{}, ...]
+      iex> list_facilities()
+      [%Facility{}, ...]
 
   """
-  def list_factories do
-    Repo.all(Factory)
+  def list_facilities do
+    Repo.all(Facility)
   end
 
   @doc """
-  Gets a single factory.
+  Gets a single facility.
 
-  Raises `Ecto.NoResultsError` if the Factory does not exist.
+  Raises `Ecto.NoResultsError` if the Facility does not exist.
 
   ## Examples
 
-      iex> get_factory!(123)
-      %Factory{}
+      iex> get_facility!(123)
+      %Facility{}
 
-      iex> get_factory!(456)
+      iex> get_facility!(456)
       ** (Ecto.NoResultsError)
 
   """
-  def get_factory!(id), do: Repo.get!(Factory, id)
+  def get_facility!(id), do: Repo.get!(Facility, id)
 
   @doc """
-  Creates a factory.
+  Creates a facility.
 
   ## Examples
 
-      iex> create_factory(%{field: value})
-      {:ok, %Factory{}}
+      iex> create_facility(%{field: value})
+      {:ok, %Facility{}}
 
-      iex> create_factory(%{field: bad_value})
+      iex> create_facility(%{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_factory(attrs \\ %{}) do
-    %Factory{}
-    |> Factory.changeset(attrs)
+  def create_facility(attrs \\ %{}) do
+    %Facility{}
+    |> Facility.changeset(attrs)
     |> Repo.insert()
   end
 
   @doc """
-  Register a factory.
+  Register a facility.
 
   ## Examples
 
-    iex > register_factory(%{...}, admin)
-    {:ok, %Factory{}}
+    iex > register_facility(%{...}, admin)
+    {:ok, %Facility{}}
   """
-  def register_factory(attrs \\ %{}, %Signuis.Accounts.User{} = admin) do
+  def register_facility(attrs \\ %{}, %Signuis.Accounts.User{} = admin) do
     Repo.transaction fn ->
-      with {:ok, factory} <- create_factory(attrs),
-          {:ok, _member} <- create_member([user_id: admin.id, factory_id: factory.id, roles: [:admin]] |> Enum.into(%{})) do
-        {:ok, factory}
+      with {:ok, facility} <- create_facility(attrs),
+          {:ok, _member} <- create_member([user_id: admin.id, facility_id: facility.id, roles: [:admin]] |> Enum.into(%{})) do
+        {:ok, facility}
       end
     end
   end
 
   @doc """
-  Updates a factory.
+  Updates a facility.
 
   ## Examples
 
-      iex> update_factory(factory, %{field: new_value})
-      {:ok, %Factory{}}
+      iex> update_facility(facility, %{field: new_value})
+      {:ok, %Facility{}}
 
-      iex> update_factory(factory, %{field: bad_value})
+      iex> update_facility(facility, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_factory(%Factory{} = factory, attrs) do
-    factory
-    |> Factory.changeset(attrs)
+  def update_facility(%Facility{} = facility, attrs) do
+    facility
+    |> Facility.changeset(attrs)
     |> Repo.update()
   end
 
   @doc """
-  Deletes a factory.
+  Deletes a facility.
 
   ## Examples
 
-      iex> delete_factory(factory)
-      {:ok, %Factory{}}
+      iex> delete_facility(facility)
+      {:ok, %Facility{}}
 
-      iex> delete_factory(factory)
+      iex> delete_facility(facility)
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_factory(%Factory{} = factory) do
-    Repo.delete(factory)
+  def delete_facility(%Facility{} = facility) do
+    Repo.delete(facility)
   end
 
   @doc """
-  Returns an `%Ecto.Changeset{}` for tracking factory changes.
+  Returns an `%Ecto.Changeset{}` for tracking facility changes.
 
   ## Examples
 
-      iex> change_factory(factory)
-      %Ecto.Changeset{data: %Factory{}}
+      iex> change_facility(facility)
+      %Ecto.Changeset{data: %Facility{}}
 
   """
-  def change_factory(%Factory{} = factory, attrs \\ %{}) do
-    Factory.changeset(factory, attrs)
+  def change_facility(%Facility{} = facility, attrs \\ %{}) do
+    Facility.changeset(facility, attrs)
   end
 
   @doc """
-  Returns the list of factories_members.
+  Returns the list of facilities_members.
 
   ## Examples
 
-      iex> list_factories_members()
+      iex> list_facilities_members()
       [%Member{}, ...]
 
   """
-  def list_factories_members do
+  def list_facilities_members do
     Repo.all(Member)
   end
 

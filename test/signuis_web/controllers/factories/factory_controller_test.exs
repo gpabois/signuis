@@ -1,84 +1,84 @@
-defmodule SignuisWeb.Factories.FactoryControllerTest do
+defmodule SignuisWeb.Facilities.FacilityControllerTest do
   use SignuisWeb.ConnCase
 
-  import Signuis.FactoriesFixtures
+  import Signuis.FacilitiesFixtures
 
   @create_attrs %{adresse__code_postal: "some adresse__code_postal", adresse__commune: "some adresse__commune", adresse__voie: "some adresse__voie", description: "some description", location__lat: 120.5, location__lng: 120.5, nom: "some nom", valid: true}
   @update_attrs %{adresse__code_postal: "some updated adresse__code_postal", adresse__commune: "some updated adresse__commune", adresse__voie: "some updated adresse__voie", description: "some updated description", location__lat: 456.7, location__lng: 456.7, nom: "some updated nom", valid: false}
   @invalid_attrs %{adresse__code_postal: nil, adresse__commune: nil, adresse__voie: nil, description: nil, location__lat: nil, location__lng: nil, nom: nil, valid: nil}
 
   describe "index" do
-    test "lists all factories", %{conn: conn} do
-      conn = get(conn, Routes.factories_factory_path(conn, :index))
-      assert html_response(conn, 200) =~ "Listing Factories"
+    test "lists all facilities", %{conn: conn} do
+      conn = get(conn, Routes.facilities_facility_path(conn, :index))
+      assert html_response(conn, 200) =~ "Listing Facilities"
     end
   end
 
-  describe "new factory" do
+  describe "new facility" do
     test "renders form", %{conn: conn} do
-      conn = get(conn, Routes.factories_factory_path(conn, :new))
-      assert html_response(conn, 200) =~ "New Factory"
+      conn = get(conn, Routes.facilities_facility_path(conn, :new))
+      assert html_response(conn, 200) =~ "New Facility"
     end
   end
 
-  describe "create factory" do
+  describe "create facility" do
     test "redirects to show when data is valid", %{conn: conn} do
-      conn = post(conn, Routes.factories_factory_path(conn, :create), factory: @create_attrs)
+      conn = post(conn, Routes.facilities_facility_path(conn, :create), facility: @create_attrs)
 
       assert %{id: id} = redirected_params(conn)
-      assert redirected_to(conn) == Routes.factories_factory_path(conn, :show, id)
+      assert redirected_to(conn) == Routes.facilities_facility_path(conn, :show, id)
 
-      conn = get(conn, Routes.factories_factory_path(conn, :show, id))
-      assert html_response(conn, 200) =~ "Show Factory"
+      conn = get(conn, Routes.facilities_facility_path(conn, :show, id))
+      assert html_response(conn, 200) =~ "Show Facility"
     end
 
     test "renders errors when data is invalid", %{conn: conn} do
-      conn = post(conn, Routes.factories_factory_path(conn, :create), factory: @invalid_attrs)
-      assert html_response(conn, 200) =~ "New Factory"
+      conn = post(conn, Routes.facilities_facility_path(conn, :create), facility: @invalid_attrs)
+      assert html_response(conn, 200) =~ "New Facility"
     end
   end
 
-  describe "edit factory" do
-    setup [:create_factory]
+  describe "edit facility" do
+    setup [:create_facility]
 
-    test "renders form for editing chosen factory", %{conn: conn, factory: factory} do
-      conn = get(conn, Routes.factories_factory_path(conn, :edit, factory))
-      assert html_response(conn, 200) =~ "Edit Factory"
+    test "renders form for editing chosen facility", %{conn: conn, facility: facility} do
+      conn = get(conn, Routes.facilities_facility_path(conn, :edit, facility))
+      assert html_response(conn, 200) =~ "Edit Facility"
     end
   end
 
-  describe "update factory" do
-    setup [:create_factory]
+  describe "update facility" do
+    setup [:create_facility]
 
-    test "redirects when data is valid", %{conn: conn, factory: factory} do
-      conn = put(conn, Routes.factories_factory_path(conn, :update, factory), factory: @update_attrs)
-      assert redirected_to(conn) == Routes.factories_factory_path(conn, :show, factory)
+    test "redirects when data is valid", %{conn: conn, facility: facility} do
+      conn = put(conn, Routes.facilities_facility_path(conn, :update, facility), facility: @update_attrs)
+      assert redirected_to(conn) == Routes.facilities_facility_path(conn, :show, facility)
 
-      conn = get(conn, Routes.factories_factory_path(conn, :show, factory))
+      conn = get(conn, Routes.facilities_facility_path(conn, :show, facility))
       assert html_response(conn, 200) =~ "some updated adresse__code_postal"
     end
 
-    test "renders errors when data is invalid", %{conn: conn, factory: factory} do
-      conn = put(conn, Routes.factories_factory_path(conn, :update, factory), factory: @invalid_attrs)
-      assert html_response(conn, 200) =~ "Edit Factory"
+    test "renders errors when data is invalid", %{conn: conn, facility: facility} do
+      conn = put(conn, Routes.facilities_facility_path(conn, :update, facility), facility: @invalid_attrs)
+      assert html_response(conn, 200) =~ "Edit Facility"
     end
   end
 
-  describe "delete factory" do
-    setup [:create_factory]
+  describe "delete facility" do
+    setup [:create_facility]
 
-    test "deletes chosen factory", %{conn: conn, factory: factory} do
-      conn = delete(conn, Routes.factories_factory_path(conn, :delete, factory))
-      assert redirected_to(conn) == Routes.factories_factory_path(conn, :index)
+    test "deletes chosen facility", %{conn: conn, facility: facility} do
+      conn = delete(conn, Routes.facilities_facility_path(conn, :delete, facility))
+      assert redirected_to(conn) == Routes.facilities_facility_path(conn, :index)
 
       assert_error_sent 404, fn ->
-        get(conn, Routes.factories_factory_path(conn, :show, factory))
+        get(conn, Routes.facilities_facility_path(conn, :show, facility))
       end
     end
   end
 
-  defp create_factory(_) do
-    factory = factory_fixture()
-    %{factory: factory}
+  defp create_facility(_) do
+    facility = facility_fixture()
+    %{facility: facility}
   end
 end

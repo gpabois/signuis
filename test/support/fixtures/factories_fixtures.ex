@@ -1,14 +1,14 @@
-defmodule Signuis.FactoriesFixtures do
+defmodule Signuis.FacilitiesFixtures do
   @moduledoc """
   This module defines test helpers for creating
-  entities via the `Signuis.Factories` context.
+  entities via the `Signuis.Facilities` context.
   """
 
   @doc """
-  Generate a factory.
+  Generate a facility.
   """
-  def factory_fixture(attrs \\ %{}) do
-    {:ok, factory} =
+  def facility_fixture(attrs \\ %{}) do
+    {:ok, facility} =
       attrs
       |> Enum.into(%{
         adresse__code_postal: "some adresse__code_postal",
@@ -20,9 +20,9 @@ defmodule Signuis.FactoriesFixtures do
         nom: "some nom",
         valid: true
       })
-      |> Signuis.Factories.create_factory()
+      |> Signuis.Facilities.create_facility()
 
-    factory
+    facility
   end
 
   @doc """
@@ -34,7 +34,7 @@ defmodule Signuis.FactoriesFixtures do
       |> Enum.into(%{
         roles: []
       })
-      |> Signuis.Factories.create_member()
+      |> Signuis.Facilities.create_member()
 
     member
   end

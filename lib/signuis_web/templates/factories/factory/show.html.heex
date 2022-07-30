@@ -1,48 +1,48 @@
-<h1>Show Factory</h1>
+<h1>Show Facility</h1>
 
 <ul>
 
   <li>
     <strong>Nom:</strong>
-    <%= @factory.nom %>
+    <%= @facility.nom %>
   </li>
 
   <li>
     <strong>Description:</strong>
-    <%= @factory.description %>
+    <%= @facility.description %>
   </li>
 
   <li>
     <strong>Location  lat:</strong>
-    <%= @factory.location__lat %>
+    <%= @facility.location__lat %>
   </li>
 
   <li>
     <strong>Location  lng:</strong>
-    <%= @factory.location__lng %>
+    <%= @facility.location__lng %>
   </li>
 
   <li>
     <strong>Valid:</strong>
-    <%= @factory.valid %>
+    <%= @facility.valid %>
   </li>
 
   <li>
     <strong>Adresse  voie:</strong>
-    <%= @factory.adresse__voie %>
+    <%= @facility.adresse__voie %>
   </li>
 
   <li>
     <strong>Adresse  commune:</strong>
-    <%= @factory.adresse__commune %>
+    <%= @facility.adresse__commune %>
   </li>
 
   <li>
     <strong>Adresse  code postal:</strong>
-    <%= @factory.adresse__code_postal %>
+    <%= @facility.adresse__code_postal %>
   </li>
 
 </ul>
 
-<span><%= link "Edit", to: Routes.factories_factory_path(@conn, :edit, @factory) %></span> |
-<span><%= link "Back", to: Routes.factories_factory_path(@conn, :index) %></span>
+<span><%= link "Edit", to: Routes.facilities_facility_path(@conn, :edit, @facility) %></span> |
+<span><%= link "Back", to: Routes.facilities_facility_path(@conn, :index) %></span>

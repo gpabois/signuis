@@ -20,7 +20,7 @@ defmodule SignuisWeb.Router do
   scope "/", SignuisWeb do
     pipe_through :browser
 
-    get "/", PageController, :index
+    live "/", Signuis.Reporting.HomeLive
   end
 
   # Other scopes may use custom stacks.
@@ -57,18 +57,18 @@ defmodule SignuisWeb.Router do
     end
   end
 
-  ## Factory routes
-  scope "/factories", SignuisWeb.Factories, as: :factories do
+  ## Facility routes
+  scope "/facilities", SignuisWeb.Facilities, as: :facilities do
     pipe_through [:browser, :require_authenticated_user]
 
-    resources "/factories", FactoryController
+    resources "/facilities", FacilityController
 
-    get "/factories/:factory_id/members/new", MemberController, :new
-    post "/factories/:factory_id/members", MemberController, :create
+    get "/facilities/:facility_id/members/new", MemberController, :new
+    post "/facilities/:facility_id/members", MemberController, :create
 
-    get "/factories/:factory_id/members", MemberController, :index
+    get "/facilities/:facility_id/members", MemberController, :index
 
-    resources "/factories/members", MemberController, only: [:update, :edit, :delete]
+    resources "/facilities/members", MemberController, only: [:update, :edit, :delete]
   end
 
   ## Authentication routes

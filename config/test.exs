@@ -9,13 +9,13 @@ config :pbkdf2_elixir, :rounds, 1
 # to provide built-in test partitioning in CI environment.
 # Run `mix help test` for more information.
 config :signuis, Signuis.Repo,
+  types: Signuis.PostgresTypes,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
   database: "signuis_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: 10,
-  types: Signuis.PostgresTypes
+  pool_size: 10
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.

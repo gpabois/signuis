@@ -3,7 +3,7 @@ defmodule Signuis.Reporting.Report do
   import Ecto.Changeset
 
   schema "reports" do
-    field :location, Geo.PostGIS.Geography
+    field :location, Geo.PostGIS.Geometry
     field :location__lat, :float, virtual: true
     field :location__lng, :float, virtual: true
     field :nuisance_type_id, :id
@@ -18,7 +18,7 @@ defmodule Signuis.Reporting.Report do
     report
     |> cast(attrs, [:nuisance_level, :nuisance_type_id, :user_id, :location__lat, :location__lng])
     |> validate_required([:nuisance_level, :nuisance_type_id, :location__lat, :location__lng])
-    |> cast_location(changeset)
+    |> cast_location()
   end
 
   def cast_location(changeset) do

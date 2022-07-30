@@ -2,13 +2,13 @@ import Config
 
 # Configure your database
 config :signuis, Signuis.Repo,
+  types: Signuis.PostgresTypes,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
   database: "signuis_dev",
   show_sensitive_data_on_connection_error: true,
-  pool_size: 10,
-  types: Signuis.PostgresTypes
+  pool_size: 10
 
 # For development, we disable any cache and enable
 # debugging and code reloading.

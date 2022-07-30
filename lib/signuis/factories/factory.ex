@@ -1,13 +1,13 @@
-defmodule Signuis.Factories.Factory do
+defmodule Signuis.Facilities.Facility do
   use Ecto.Schema
   import Ecto.Changeset
 
-  schema "factories" do
+  schema "facilities" do
     field :adresse__zip_code, :string
     field :adresse__city, :string
     field :adresse__street, :string
     field :description, :string
-    field :location, Geo.PostGIS.Geography
+    field :location, Geo.PostGIS.Geometry
     field :location__lat, :float, virtual: true
     field :location__lng, :float, virtual: true
     field :name, :string
@@ -17,8 +17,8 @@ defmodule Signuis.Factories.Factory do
   end
 
   @doc false
-  def changeset(factory, attrs) do
-    factory
+  def changeset(facility, attrs) do
+    facility
     |> cast(attrs, [:name, :description, :location__lat, :location__lng, :adresse__street, :adresse__city, :adresse__zip_code])
     |> validate_required([:name, :description, :location__lat, :location__lng, :adresse__street, :adresse__city, :adresse__zip_code])
     |> cast_location()

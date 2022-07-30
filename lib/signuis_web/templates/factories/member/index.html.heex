@@ -1,4 +1,4 @@
-<h1>Listing Factories members</h1>
+<h1>Listing Facilities members</h1>
 
 <table>
   <thead>
@@ -9,18 +9,18 @@
     </tr>
   </thead>
   <tbody>
-<%= for member <- @factories_members do %>
+<%= for member <- @facilities_members do %>
     <tr>
       <td><%= member.roles %></td>
 
       <td>
-        <span><%= link "Show", to: Routes.factories_member_path(@conn, :show, member) %></span>
-        <span><%= link "Edit", to: Routes.factories_member_path(@conn, :edit, member) %></span>
-        <span><%= link "Delete", to: Routes.factories_member_path(@conn, :delete, member), method: :delete, data: [confirm: "Are you sure?"] %></span>
+        <span><%= link "Show", to: Routes.facilities_member_path(@conn, :show, member) %></span>
+        <span><%= link "Edit", to: Routes.facilities_member_path(@conn, :edit, member) %></span>
+        <span><%= link "Delete", to: Routes.facilities_member_path(@conn, :delete, member), method: :delete, data: [confirm: "Are you sure?"] %></span>
       </td>
     </tr>
 <% end %>
   </tbody>
 </table>
 
-<span><%= link "New Member", to: Routes.factories_member_path(@conn, :new) %></span>
+<span><%= link "New Member", to: Routes.facilities_member_path(@conn, :new) %></span>

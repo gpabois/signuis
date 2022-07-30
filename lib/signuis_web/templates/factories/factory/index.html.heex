@@ -1,4 +1,4 @@
-<h1>Listing Factories</h1>
+<h1>Listing Facilities</h1>
 
 <table>
   <thead>
@@ -16,25 +16,25 @@
     </tr>
   </thead>
   <tbody>
-<%= for factory <- @factories do %>
+<%= for facility <- @facilities do %>
     <tr>
-      <td><%= factory.nom %></td>
-      <td><%= factory.description %></td>
-      <td><%= factory.location__lat %></td>
-      <td><%= factory.location__lng %></td>
-      <td><%= factory.valid %></td>
-      <td><%= factory.adresse__voie %></td>
-      <td><%= factory.adresse__commune %></td>
-      <td><%= factory.adresse__code_postal %></td>
+      <td><%= facility.nom %></td>
+      <td><%= facility.description %></td>
+      <td><%= facility.location__lat %></td>
+      <td><%= facility.location__lng %></td>
+      <td><%= facility.valid %></td>
+      <td><%= facility.adresse__voie %></td>
+      <td><%= facility.adresse__commune %></td>
+      <td><%= facility.adresse__code_postal %></td>
 
       <td>
-        <span><%= link "Show", to: Routes.factories_factory_path(@conn, :show, factory) %></span>
-        <span><%= link "Edit", to: Routes.factories_factory_path(@conn, :edit, factory) %></span>
-        <span><%= link "Delete", to: Routes.factories_factory_path(@conn, :delete, factory), method: :delete, data: [confirm: "Are you sure?"] %></span>
+        <span><%= link "Show", to: Routes.facilities_facility_path(@conn, :show, facility) %></span>
+        <span><%= link "Edit", to: Routes.facilities_facility_path(@conn, :edit, facility) %></span>
+        <span><%= link "Delete", to: Routes.facilities_facility_path(@conn, :delete, facility), method: :delete, data: [confirm: "Are you sure?"] %></span>
       </td>
     </tr>
 <% end %>
   </tbody>
 </table>
 
-<span><%= link "New Factory", to: Routes.factories_factory_path(@conn, :new) %></span>
+<span><%= link "New Facility", to: Routes.facilities_facility_path(@conn, :new) %></span>

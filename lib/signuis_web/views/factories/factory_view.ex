@@ -1,3 +1,3 @@
-defmodule SignuisWeb.Factories.FactoryView do
+defmodule SignuisWeb.Facilities.FacilityView do
   use SignuisWeb, :view
 end

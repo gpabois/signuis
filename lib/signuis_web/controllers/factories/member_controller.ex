@@ -1,47 +1,47 @@
-defmodule SignuisWeb.Factories.MemberController do
+defmodule SignuisWeb.Facilities.MemberController do
   use SignuisWeb, :controller
 
-  alias Signuis.Factories
-  alias Signuis.Factories.Member
+  alias Signuis.Facilities
+  alias Signuis.Facilities.Member
 
   def index(conn, _params) do
-    factories_members = Factories.list_factories_members()
-    render(conn, "index.html", factories_members: factories_members)
+    facilities_members = Facilities.list_facilities_members()
+    render(conn, "index.html", facilities_members: facilities_members)
   end
 
-  def new(conn, %{"factory_id" => factory_id}) do
-    factory = Factories.get_factory!(factory_id)
-    changeset = Factories.change_member(%Member{})
-    render(conn, "new.html", changeset: changeset, factory: factory)
+  def new(conn, %{"facility_id" => facility_id}) do
+    facility = Facilities.get_facility!(facility_id)
+    changeset = Facilities.change_member(%Member{})
+    render(conn, "new.html", changeset: changeset, facility: facility)
   end
 
-  def create(conn, %{"factory_id" => factory_id, "member" => member_params}) do
-    factory = Factories.get_factory!(factory_id)
-    case Factories.create_member(member_params) do
+  def create(conn, %{"facility_id" => facility_id, "member" => member_params}) do
+    facility = Facilities.get_facility!(facility_id)
+    case Facilities.create_member(member_params) do
       {:ok, _member} ->
         conn
         |> put_flash(:info, "Member created successfully.")
-        |> redirect(to: Routes.factories_member_path(conn, :index, factory))
+        |> redirect(to: Routes.facilities_member_path(conn, :index, facility))
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, "new.html", changeset: changeset, factory: factory)
+        render(conn, "new.html", changeset: changeset, facility: facility)
     end
   end
 
   def edit(conn, %{"id" => id}) do
-    member = Factories.get_member!(id)
-    changeset = Factories.change_member(member)
+    member = Facilities.get_member!(id)
+    changeset = Facilities.change_member(member)
     render(conn, "edit.html", member: member, changeset: changeset)
   end
 
   def update(conn, %{"id" => id, "member" => member_params}) do
-    member = Factories.get_member!(id)
+    member = Facilities.get_member!(id)
 
-    case Factories.update_member(member, member_params) do
+    case Facilities.update_member(member, member_params) do
       {:ok, member} ->
         conn
         |> put_flash(:info, "Member updated successfully.")
-        |> redirect(to: Routes.factories_member_path(conn, :index, member.factory_id))
+        |> redirect(to: Routes.facilities_member_path(conn, :index, member.facility_id))
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, "edit.html", member: member, changeset: changeset)
@@ -49,11 +49,11 @@ defmodule SignuisWeb.Factories.MemberController do
   end
 
   def delete(conn, %{"id" => id}) do
-    member = Factories.get_member!(id)
-    {:ok, _member} = Factories.delete_member(member)
+    member = Facilities.get_member!(id)
+    {:ok, _member} = Facilities.delete_member(member)
 
     conn
     |> put_flash(:info, "Member deleted successfully.")
-    |> redirect(to: Routes.factories_member_path(conn, :index, member.factory_id))
+    |> redirect(to: Routes.facilities_member_path(conn, :index, member.facility_id))
   end
 end

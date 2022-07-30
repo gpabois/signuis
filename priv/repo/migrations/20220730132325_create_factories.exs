@@ -1,8 +1,8 @@
-defmodule Signuis.Repo.Migrations.CreateFactories do
+defmodule Signuis.Repo.Migrations.CreateFacilities do
   use Ecto.Migration
 
   def change do
-    create table(:factories) do
+    create table(:facilities) do
       add :name, :string
       add :description, :text
       # add :location__lat, :float
@@ -16,9 +16,9 @@ defmodule Signuis.Repo.Migrations.CreateFactories do
     end
 
     # Add location column
-    execute("SELECT AddGeometryColumn ('factories','location', 4326,'POINT', 2);")
+    execute("SELECT AddGeometryColumn ('facilities','location', 4326,'POINT', 2);")
 
     # Create a GIST Index
-    create index(:factories, [:location], using: :gist)
+    create index(:facilities, [:location], using: :gist)
   end
 end
