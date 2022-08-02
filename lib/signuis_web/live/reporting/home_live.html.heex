@@ -1,0 +1,9 @@
+<button id="geolocation" phx-hook="Geolocation">Localiser</button>
+<.map id="map" phx-hook="Map" classes={["sg-map fullpage"]} markers={@markers} />
+
+
+<%= if "#{Mix.env}" === "dev" do %>
+  <div id="reporting-dev-toolbox" phx-hook="ReportingDevToolbox">
+    <h1>Dev Toolbox</h1>
+  </div>
+<% end %>

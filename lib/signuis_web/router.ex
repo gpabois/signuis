@@ -20,7 +20,7 @@ defmodule SignuisWeb.Router do
   scope "/", SignuisWeb do
     pipe_through :browser
 
-    live "/", Signuis.Reporting.HomeLive
+    live "/", Reporting.HomeLive
   end
 
   # Other scopes may use custom stacks.
@@ -106,11 +106,17 @@ defmodule SignuisWeb.Router do
 
   ## Administration
   scope "/administration", SignuisWeb.Administration, as: :administration do
-    pipe_through [:browser, :require_authenticated_user]
+    pipe_through [:browser]#, :require_authenticated_user]
 
     resources "/users", UserController, except: [:new, :create]
-    resources "/facilities", FacilityController, except: [:new, :create]
-    resources "/facilities/members", MemberController, except: [:new, :create]
+
+    scope "/facilities", Facilities do
+      resources "/", FacilityController
+
+      resources "/members", MemberController, except: [:new, :create, :index]
+      resources "/:facility_id/members", MemberController, only: [:new, :create, :index]
+    end
+
     resources "/nuisances/types", NuisanceTypeController
   end
 end

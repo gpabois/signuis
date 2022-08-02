@@ -13,17 +13,13 @@
   <%= textarea f, :description %>
   <%= error_tag f, :description %>
 
-  <%= label f, :location__lat %>
+  <%= label f, :location__lat, "Latitude" %>
   <%= number_input f, :location__lat, step: "any" %>
   <%= error_tag f, :location__lat %>
 
-  <%= label f, :location__lng %>
+  <%= label f, :location__lng, "Longitude" %>
   <%= number_input f, :location__lng, step: "any" %>
   <%= error_tag f, :location__lng %>
-
-  <%= label f, :valid %>
-  <%= checkbox f, :valid %>
-  <%= error_tag f, :valid %>
 
   <%= label f, :adresse__voie %>
   <%= text_input f, :adresse__voie %>

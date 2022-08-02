@@ -118,3 +118,16 @@
   0% { opacity: 1; }
   100% { opacity: 0; }
 }
+
+/* Signuis Framework */
+.sg-map-quickview {
+  display: block;
+  height: 400px;
+  width: 100%;
+}
+
+.sg-map.fullpage {
+  display: block;
+  width: 100%;
+  height: 100vh;
+}

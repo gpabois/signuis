@@ -10,6 +10,11 @@ defmodule Signuis.Reporting.NuisanceType do
     timestamps()
   end
 
+  def families, do: [
+    "Olfactive": :smell,
+    "Sonore": :sound
+  ]
+
   @doc false
   def changeset(nuisance_type, attrs) do
     nuisance_type

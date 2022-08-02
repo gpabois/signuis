@@ -1,6 +1,11 @@
 defmodule Signuis.Facilities.Member do
   use Ecto.Schema
+
   import Ecto.Changeset
+  import Ecto.Query
+
+  import Signuis.Utils
+  import Signuis.Filter
 
   schema "facilities_members" do
     field :roles, {:array, :string}, default: []
@@ -8,6 +13,17 @@ defmodule Signuis.Facilities.Member do
     field :facility_id, :id
 
     timestamps()
+  end
+
+  def list(opts \\ []) do
+    filters = Keyword.get(opts, :filter, %{}) |> Enum.into(%{}) |> keys_to_atoms
+
+    __MODULE__
+    |> filter(filters, __MODULE__)
+  end
+
+  def filter_on_attribute({:facility, facility}, query) do
+    where(query, [b], b.facility_id == ^facility.id)
   end
 
   @doc false

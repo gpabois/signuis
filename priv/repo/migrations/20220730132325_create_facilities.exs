@@ -2,6 +2,8 @@ defmodule Signuis.Repo.Migrations.CreateFacilities do
   use Ecto.Migration
 
   def change do
+    execute "CREATE EXTENSION IF NOT EXISTS postgis"
+
     create table(:facilities) do
       add :name, :string
       add :description, :text

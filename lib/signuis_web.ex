@@ -39,6 +39,7 @@ defmodule SignuisWeb do
 
       # Include shared imports and aliases for views
       unquote(view_helpers())
+      import Surface
     end
   end
 
@@ -98,6 +99,8 @@ defmodule SignuisWeb do
       import SignuisWeb.ErrorHelpers
       import SignuisWeb.Gettext
       alias SignuisWeb.Router.Helpers, as: Routes
+
+      import SignuisWeb.Components.Map
     end
   end
 

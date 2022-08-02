@@ -7,7 +7,7 @@ defmodule Signuis.MixProject do
       version: "0.1.0",
       elixir: "~> 1.12",
       elixirc_paths: elixirc_paths(Mix.env()),
-      compilers: [] ++ Mix.compilers(),
+      compilers: [] ++ Mix.compilers() ++ [:surface],
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps()
@@ -33,6 +33,9 @@ defmodule Signuis.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:inflex, "~> 2.0.0"},
+      {:pbkdf2_elixir, "~> 2.0"},
+      {:surface, "~> 0.7.5"},
       {:phoenix, "~> 1.6.5"},
       {:phoenix_ecto, "~> 4.4"},
       {:geo_postgis, "~> 3.4"},

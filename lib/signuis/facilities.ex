@@ -50,9 +50,9 @@ defmodule Signuis.Facilities do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_facility(attrs \\ %{}) do
+  def create_facility(attrs, opts \\ []) do
     %Facility{}
-    |> Facility.changeset(attrs)
+    |> Facility.changeset(attrs, opts)
     |> Repo.insert()
   end
 
@@ -85,9 +85,9 @@ defmodule Signuis.Facilities do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_facility(%Facility{} = facility, attrs) do
+  def update_facility(%Facility{} = facility, attrs, opts \\ []) do
     facility
-    |> Facility.changeset(attrs)
+    |> Facility.changeset(attrs, opts)
     |> Repo.update()
   end
 
@@ -116,8 +116,8 @@ defmodule Signuis.Facilities do
       %Ecto.Changeset{data: %Facility{}}
 
   """
-  def change_facility(%Facility{} = facility, attrs \\ %{}) do
-    Facility.changeset(facility, attrs)
+  def change_facility(%Facility{} = facility, attrs, opts \\ []) do
+    Facility.changeset(facility, attrs, opts)
   end
 
   @doc """
@@ -129,8 +129,8 @@ defmodule Signuis.Facilities do
       [%Member{}, ...]
 
   """
-  def list_facilities_members do
-    Repo.all(Member)
+  def list_facilities_members(opts \\ []) do
+    Member.list(opts)
   end
 
   @doc """

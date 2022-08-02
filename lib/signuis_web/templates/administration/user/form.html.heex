@@ -5,7 +5,10 @@
     </div>
   <% end %>
 
+  <%= label f, :roles, "Roles" %>
+  <%= multiple_select f, :roles, ["user", "admin"] %>
+
   <div>
-    <%= submit "Save" %>
+    <%= submit "Sauvegarder" %>
   </div>
 </.form>

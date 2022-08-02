@@ -10,6 +10,8 @@ defmodule Signuis.Accounts do
 
   ## Database getters
 
+  def list_users(), do: Repo.all(User)
+
   @doc """
   Gets a user by email.
 

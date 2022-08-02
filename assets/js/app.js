@@ -25,11 +25,11 @@ import "phoenix_html"
 import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
-import loadView from './views/loader';
 import './component/loader'
+import Hooks from './_hooks'
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
-let liveSocket = new LiveSocket("/live", Socket, {params: {_csrf_token: csrfToken}})
+let liveSocket = new LiveSocket("/live", Socket, {params: {_csrf_token: csrfToken}, hooks: Hooks})
 
 // Show progress bar on live navigation and form submits
 topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
@@ -46,31 +46,12 @@ liveSocket.connect()
 window.liveSocket = liveSocket
 
 function onDOMLoaded() {  
-    const viewName = document.getElementsByTagName("body")[0].dataset.jsViewName;
-    const ViewClass = loadView(viewName);
-    var hooks = {};
-
-    if (ViewClass !== undefined) 
-    {
-        const view = new ViewClass();
-        view.view_mounted({liveSocket});
-        window.currentView = view;
-    } else {
-        window.currentView = undefined;
-    }
 }
 
 function onPhxUpdate() {
-    if(window.currentView !== undefined) 
-    {
-        window.currentView.updated();
-    }
 }
 
 function onDocumentUnload() {
-    if(window.currentView !== undefined) {
-        window.currentView.view_unmounted();
-    }
 }
 
 window.addEventListener('DOMContentLoaded', onDOMLoaded);

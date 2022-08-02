@@ -2,7 +2,6 @@ defmodule SignuisWeb.Administration.UserController do
   use SignuisWeb, :controller
 
   alias Signuis.Accounts
-  alias Signuis.Accounts.User
 
   def index(conn, _params) do
     users = Accounts.list_users()

@@ -32,3 +32,5 @@ signuis-*.tar
 npm-debug.log
 /assets/node_modules/
 
+# Ignore generated js hook files for components
+assets/js/_hooks/

@@ -6,6 +6,24 @@
   <% end %>
 
   <div>
-    <%= submit "Save" %>
+    <%= label f, :label %>
+    <%= text_input f, :label %>
+    <%= error_tag f, :label %>
+  </div>
+
+  <div>
+    <%= label f, :description %>
+    <%= textarea f, :description, rows: 10 %>
+    <%= error_tag f, :description %>
+  </div>
+
+  <div>
+    <%= label f, :family %>
+    <%= select f, :family, Signuis.Reporting.NuisanceType.families() %>
+    <%= error_tag f, :family %>
+  </div>
+
+  <div>
+    <%= submit "Sauvegarder" %>
   </div>
 </.form>

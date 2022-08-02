@@ -31,8 +31,7 @@ class LeafletMap extends HTMLElement {
 
         this.defaultIcon = L.icon({
             iconUrl: '/images/marker-icon.png',
-            shadowUrl: '/images/marker-shadow.png',
-            iconSize: [64, 64],
+            shadowUrl: '/images/marker-shadow.png'
         });
     }
 
@@ -41,23 +40,16 @@ class LeafletMap extends HTMLElement {
         markerElements.forEach(markerEl => {
             const lat = markerEl.getAttribute('lat')
             const lng = markerEl.getAttribute('lng')
+            const data_id = markerEl.getAttribute('data-id')
+            const data_type = markerEl.getAttribute('data-type')
 
-            const leafletMarker = L.marker([lat, lng]).addTo(this.map);
+            const leafletMarker = L.marker([lat, lng], {icon: this.defaultIcon}).addTo(this.map);
             
-            leafletMarker.addEventListener('click', (_event) => {
-                markerEl.click()
-            })
-
-            const iconEl = markerEl.querySelector('leaflet-icon');
-            const iconSize = [iconEl.getAttribute('width'), iconEl.getAttribute('height')]
-
-            iconEl.addEventListener('url-updated', (e) => {
-                leafletMarker.setIcon(L.icon({
-                    iconUrl: e.detail,
-                    iconSize: iconSize,
-                    iconAnchor: iconSize
-                }))
-            })
+            leafletMarker.addEventListener('click', function(event) {
+                markerEl.click();
+                event = new CustomEvent('marker-clicked', {detail: {target: leafletMarker, data: {id: data_id, type: data_type}}});
+                this.dispatchEvent(event)
+            }.bind(this));
         })
     }
 
