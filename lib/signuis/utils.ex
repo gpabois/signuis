@@ -12,4 +12,11 @@ defmodule Signuis.Utils do
       srid: position["srid"]
     }
   end
+
+  def decode_js_bounds(bounds) do
+    %{
+      bottom_left: bounds["bottom_left"] |> decode_js_position,
+      top_right: bounds["top_right"] |> decode_js_position
+    }
+  end
 end

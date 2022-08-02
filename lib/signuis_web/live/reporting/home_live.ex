@@ -27,9 +27,12 @@ defmodule SignuisWeb.Reporting.HomeLive do
   end
 
   def handle_event("map::marker-clicked", marker, socket) do
-    {:noreply,
-      socket
-    }
+    {:noreply, socket}
+  end
+
+  def handle_event("map::bounds-updated", bounds, socket) do
+    bounds = decode_js_bounds(bounds)
+    {:noreply, socket}
   end
 
   def handle_event("geolocation::position-updated", position, socket) do

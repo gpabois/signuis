@@ -21,6 +21,12 @@ class LeafletMap extends HTMLElement {
         this.map = L.map(this.mapElement, {
             zoomControl: false}).setView([this.getAttribute('lat'), this.getAttribute('lng')], 13);
         
+        this.map.on('moveend', function () {
+            var bounds = this.map.getBounds();
+            var event = new CustomEvent('bounds-updated', {detail: {bounds: bounds}});
+            this.dispatchEvent("bounds-updated", event);
+        }.bind(this));
+
         L.control.zoom({
             position: 'bottomright'
         }).addTo(this.map);
@@ -47,7 +53,7 @@ class LeafletMap extends HTMLElement {
             
             leafletMarker.addEventListener('click', function(event) {
                 markerEl.click();
-                event = new CustomEvent('marker-clicked', {detail: {target: leafletMarker, data: {id: data_id, type: data_type}}});
+                var event = new CustomEvent('marker-clicked', {detail: {target: leafletMarker, data: {id: data_id, type: data_type}}});
                 this.dispatchEvent(event)
             }.bind(this));
         })
