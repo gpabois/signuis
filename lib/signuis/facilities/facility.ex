@@ -1,7 +1,12 @@
 defmodule Signuis.Facilities.Facility do
   use Ecto.Schema
+
+  alias Signuis.Repo
+
   import Ecto.Changeset
   import Signuis.Filter
+  import Geo.PostGIS
+  import Ecto.Query
 
   schema "facilities" do
     field :adresse__zip_code, :string
@@ -25,6 +30,33 @@ defmodule Signuis.Facilities.Facility do
 
     __MODULE__
     |> filter(filter, __MODULE__)
+    |> Repo.all
+  end
+
+  def filter_on_attribute({:bounds, %{bottom_left: bottom_left, top_right: top_right}}, query) do
+    from(
+      f in query,
+      where: st_within(
+        fragment("?::geometry", f.location),
+        fragment("?::geometry",
+          st_set_srid(
+            st_make_box_2d(^bottom_left, ^top_right), 4326)
+          )
+        )
+    )
+  end
+
+  def get_in_area(%Geo.Point{srid: 4326} = bottom_left, %Geo.Point{srid: 4326} = top_right) do
+    from(
+      f in __MODULE__,
+      where: st_within(
+        fragment("?::geometry", f.location),
+        fragment("?::geometry",
+          st_set_srid(
+            st_make_box_2d(^bottom_left, ^top_right), 4326)
+          )
+        )
+    )
   end
 
   @doc false

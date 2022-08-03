@@ -120,6 +120,21 @@
 }
 
 /* Signuis Framework */
+.leaflet-div-icon {
+  background: none;
+  border: none;
+}
+
+.sg-marker {
+  display: flex;
+  bottom: 0; left: -50%;
+}
+
+.sg-marker .sg-icon {
+  width: 64px;
+  height: 64px;
+}
+
 .sg-map-quickview {
   display: block;
   height: 400px;

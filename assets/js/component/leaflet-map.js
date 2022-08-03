@@ -24,8 +24,10 @@ class LeafletMap extends HTMLElement {
         this.map.on('moveend', function () {
             var bounds = this.map.getBounds();
             var event = new CustomEvent('bounds-updated', {detail: {bounds: bounds}});
-            this.dispatchEvent("bounds-updated", event);
+            this.dispatchEvent(event);
         }.bind(this));
+
+        this.markers = [];
 
         L.control.zoom({
             position: 'bottomright'
@@ -42,21 +44,39 @@ class LeafletMap extends HTMLElement {
     }
 
     reloadMarkers() {
-        const markerElements = this.querySelectorAll('leaflet-marker')
-        markerElements.forEach(markerEl => {
+        this.markers.forEach((marker) => marker.remove());
+        this.markers = [];
+
+        const markerElements = this.querySelectorAll('leaflet-marker');
+        
+        markerElements.forEach(function(markerEl) {
             const lat = markerEl.getAttribute('lat')
             const lng = markerEl.getAttribute('lng')
+
             const data_id = markerEl.getAttribute('data-id')
             const data_type = markerEl.getAttribute('data-type')
 
-            const leafletMarker = L.marker([lat, lng], {icon: this.defaultIcon}).addTo(this.map);
+            var icon = this.defaultIcon;
+
+            if (markerEl.querySelectorAll('div').length > 0) {
+                var divEl = markerEl.querySelectorAll('div')[0];
+
+                icon = L.divIcon({
+                    html: divEl.outerHTML,
+                    iconSize: null
+                });
+            }
+
+            const leafletMarker = L.marker([lat, lng], {icon: icon}).addTo(this.map);
+
+            this.markers.push(leafletMarker);
             
             leafletMarker.addEventListener('click', function(event) {
                 markerEl.click();
                 var event = new CustomEvent('marker-clicked', {detail: {target: leafletMarker, data: {id: data_id, type: data_type}}});
                 this.dispatchEvent(event)
             }.bind(this));
-        })
+        }.bind(this))
     }
 
     connectedCallback() {

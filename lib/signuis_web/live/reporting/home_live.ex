@@ -1,13 +1,16 @@
 defmodule SignuisWeb.Reporting.HomeLive do
   use SignuisWeb, :live_view
+  use SignuisWeb.Mixins.Map
+  use SignuisWeb.Mixins.Geolocation
 
-  import Signuis.Utils
   alias SignuisWeb.MapMarker
+  alias Signuis.Facilities
 
-  def mount(_params, _session, socket) do
+  def mount(params, session, socket) do
     {:ok,
       socket
-      |> assign(:markers, [])
+      |> assign(:facilities, [])
+      |> init_map(params, session)
       |> assign(:location, nil)
     }
   end
@@ -16,31 +19,34 @@ defmodule SignuisWeb.Reporting.HomeLive do
     markers = []
 
     markers = markers ++ if socket.assigns.location do
-      [%MapMarker{id: "anonymous", type: "user", location: socket.assigns.location}]
+      [%MapMarker{id: "anonymous", type: "user", location: socket.assigns.location, object: nil}]
     else
       []
     end
 
+    markers = markers ++ Enum.map(socket.assigns.facilities, &MapMarker.to/1)
+
     socket
-    |> assign(:markers, markers)
-    |> push_event("map::markers-updated", %{})
+    |> set_markers(markers)
   end
 
-  def handle_event("map::marker-clicked", marker, socket) do
+  def handle_info({"map::marker-clicked", _marker}, socket) do
     {:noreply, socket}
   end
 
-  def handle_event("map::bounds-updated", bounds, socket) do
-    bounds = decode_js_bounds(bounds)
-    {:noreply, socket}
+  def handle_info({"map::bounds-updated", bounds}, socket) do
+    {:noreply,
+      socket
+      |> assign(:facilities, Facilities.list_facilities(filter: [bounds: bounds]))
+      |> update_markers
+    }
   end
 
-  def handle_event("geolocation::position-updated", position, socket) do
-    position = decode_js_position(position)
+  def handle_info({"geolocation::position-updated", position}, socket) do
     {:noreply,
       socket
       |> assign(:location, position)
-      |> update_markers
+      |> update_markers()
     }
   end
 

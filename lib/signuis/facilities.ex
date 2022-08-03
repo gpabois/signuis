@@ -18,8 +18,8 @@ defmodule Signuis.Facilities do
       [%Facility{}, ...]
 
   """
-  def list_facilities do
-    Repo.all(Facility)
+  def list_facilities(opts \\ []) do
+    Facility.list(opts)
   end
 
   @doc """
