@@ -2,9 +2,6 @@ import L from "../../vendor/leaflet/leaflet"
 
 const template = document.createElement('template');
 template.innerHTML = `
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
-    integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
-    crossorigin=""/>
     <div style="height: 100%">
         <slot />
     </div>
@@ -15,7 +12,14 @@ class LeafletMap extends HTMLElement {
         super();
 
         this.attachShadow({ mode: 'open' });
+        
+        for(var link of document.querySelectorAll("link")) {
+            console.log(link);
+            this.shadowRoot.appendChild(link.cloneNode(true));
+        }
+
         this.shadowRoot.appendChild(template.content.cloneNode(true));
+
         this.mapElement = this.shadowRoot.querySelector('div')
 
         this.map = L.map(this.mapElement, {

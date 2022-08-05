@@ -6,58 +6,41 @@ defmodule SignuisWeb.MapMarker do
   defp factory_icon do
     """
     <div class="sg-icon factory">
-      <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
-        <g>
-          <g>
-            <path d="M384.42,200.223V149.27l-127.58,50.953V149.27l-127.58,50.953v-43.712v-30.417V75.394H0v50.699v30.417v280.095h512V149.27    L384.42,200.223z M30.417,105.811h68.426v20.282H30.417V105.811z M481.583,406.189L481.583,406.189H30.417V156.511h68.426v88.613    l127.58-50.953v50.953l127.58-50.953v50.953l127.58-50.953V406.189z"/>
-          </g>
-        </g>
-        <g>
-          <g>
-            <path d="M98.844,282.492v80.163h80.164v-80.163H98.844z M148.591,332.239h-19.33V312.91h19.33V332.239z"/>
-          </g>
-        </g>
-        <g>
-          <g>
-            <path d="M226.423,282.492v80.163h80.165v-80.163H226.423z M276.171,332.239h-19.33V312.91h19.33V332.239z"/>
-          </g>
-        </g>
-        <g>
-          <g>
-            <path d="M354.003,282.492v80.163h80.164v-80.163H354.003z M403.75,332.239h-19.33V312.91h19.33V332.239z"/>
-          </g>
-        </g>
-        <g>
-        </g>
-        <g>
-        </g>
-        <g>
-        </g>
-        <g>
-        </g>
-        <g>
-        </g>
-        <g>
-        </g>
-        <g>
-        </g>
-        <g>
-        </g>
-        <g>
-        </g>
-        <g>
-        </g>
-        <g>
-        </g>
-        <g>
-        </g>
-        <g>
-        </g>
-        <g>
-        </g>
-        <g>
-        </g>
-        </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" width="32px" height="32px" viewBox="0 0 425.963 425.963" style="enable-background:new 0 0 425.963 425.963;" xml:space="preserve">
+    <g>
+      <path d="M213.285,0h-0.608C139.114,0,79.268,59.826,79.268,133.361c0,48.202,21.952,111.817,65.246,189.081   c32.098,57.281,64.646,101.152,64.972,101.588c0.906,1.217,2.334,1.934,3.847,1.934c0.043,0,0.087,0,0.13-0.002   c1.561-0.043,3.002-0.842,3.868-2.143c0.321-0.486,32.637-49.287,64.517-108.976c43.03-80.563,64.848-141.624,64.848-181.482   C346.693,59.825,286.846,0,213.285,0z M274.865,136.62c0,34.124-27.761,61.884-61.885,61.884   c-34.123,0-61.884-27.761-61.884-61.884s27.761-61.884,61.884-61.884C247.104,74.736,274.865,102.497,274.865,136.62z"/>
+    </g>
+    <g>
+    </g>
+    <g>
+    </g>
+    <g>
+    </g>
+    <g>
+    </g>
+    <g>
+    </g>
+    <g>
+    </g>
+    <g>
+    </g>
+    <g>
+    </g>
+    <g>
+    </g>
+    <g>
+    </g>
+    <g>
+    </g>
+    <g>
+    </g>
+    <g>
+    </g>
+    <g>
+    </g>
+    <g>
+    </g>
+    </svg>
       </div>
     """
   end
@@ -69,8 +52,8 @@ defmodule SignuisWeb.MapMarker do
       location: location,
       object: facility,
       slot: content_tag(:div, [
-        content_tag(:span, [facility.name]),
-        factory_icon() |> raw
+        factory_icon() |> raw,
+        content_tag(:span, [facility.name], class: "sg-marker__label")
       ], class: "sg-marker")
     }
   end
