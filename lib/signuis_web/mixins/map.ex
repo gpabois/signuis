@@ -13,7 +13,12 @@ defmodule SignuisWeb.Mixins.Map do
       end
 
       def handle_event("map::marker-clicked", %{"id" => id, "type" => type}, socket) do
-        case Enum.find(socket.assigns.markers, fn m -> m.id == id and m.type == type end) do
+        id = case Integer.parse(id) do
+          :error -> id
+          {id, _} -> id
+        end
+
+        case Enum.find(socket.assigns.markers, fn m -> m.id == id and m.type == String.to_existing_atom(type) end) do
           nil -> {}
           marker -> send(self(), {"map::marker-clicked", marker})
         end

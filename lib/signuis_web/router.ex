@@ -61,14 +61,20 @@ defmodule SignuisWeb.Router do
   scope "/facilities", SignuisWeb.Facilities, as: :facilities do
     pipe_through [:browser, :require_authenticated_user]
 
-    resources "/facilities", FacilityController
+    resources "/", FacilityController, except: [:show, :index]
 
-    get "/facilities/:facility_id/members/new", MemberController, :new
-    post "/facilities/:facility_id/members", MemberController, :create
+    get "/:facility_id/members/new", MemberController, :new
+    post "/:facility_id/members", MemberController, :create
 
-    get "/facilities/:facility_id/members", MemberController, :index
+    get "/:facility_id/members", MemberController, :index
 
-    resources "/facilities/members", MemberController, only: [:update, :edit, :delete]
+    resources "/members", MemberController, only: [:update, :edit, :delete]
+  end
+
+  scope "/facilities", SignuisWeb.Facilities, as: :facilities do
+    pipe_through [:browser]
+
+    resources "/", FacilityController, only: [:show, :index]
   end
 
   ## Authentication routes

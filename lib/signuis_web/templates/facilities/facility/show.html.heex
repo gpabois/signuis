@@ -1,11 +1,8 @@
-<h1>Show Facility</h1>
+<span><%= link "Retour", to: Routes.facilities_facility_path(@conn, :index) %></span>
+
+<h1>Installation <%= @facility.name %></h1>
 
 <ul>
-
-  <li>
-    <strong>Nom:</strong>
-    <%= @facility.nom %>
-  </li>
 
   <li>
     <strong>Description:</strong>
@@ -13,36 +10,21 @@
   </li>
 
   <li>
-    <strong>Location  lat:</strong>
-    <%= @facility.location__lat %>
-  </li>
-
-  <li>
-    <strong>Location  lng:</strong>
-    <%= @facility.location__lng %>
-  </li>
-
-  <li>
-    <strong>Valid:</strong>
-    <%= @facility.valid %>
-  </li>
-
-  <li>
     <strong>Adresse  voie:</strong>
-    <%= @facility.adresse__voie %>
+    <%= @facility.adresse__street %>
   </li>
 
   <li>
     <strong>Adresse  commune:</strong>
-    <%= @facility.adresse__commune %>
+    <%= @facility.adresse__city %>
   </li>
 
   <li>
     <strong>Adresse  code postal:</strong>
-    <%= @facility.adresse__code_postal %>
+    <%= @facility.adresse__zip_code %>
   </li>
-
 </ul>
 
-<span><%= link "Edit", to: Routes.facilities_facility_path(@conn, :edit, @facility) %></span> |
-<span><%= link "Back", to: Routes.facilities_facility_path(@conn, :index) %></span>
+<.map center={@facility.location}  classes={["sg-map-quickview"]} markers={[SignuisWeb.MapMarker.to(@facility)]} />
+
+

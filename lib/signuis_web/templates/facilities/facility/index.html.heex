@@ -18,19 +18,17 @@
   <tbody>
 <%= for facility <- @facilities do %>
     <tr>
-      <td><%= facility.nom %></td>
+      <td><%= facility.name %></td>
       <td><%= facility.description %></td>
       <td><%= facility.location__lat %></td>
       <td><%= facility.location__lng %></td>
       <td><%= facility.valid %></td>
-      <td><%= facility.adresse__voie %></td>
-      <td><%= facility.adresse__commune %></td>
-      <td><%= facility.adresse__code_postal %></td>
+      <td><%= facility.adresse__street %></td>
+      <td><%= facility.adresse__city %></td>
+      <td><%= facility.adresse__zip_code %></td>
 
       <td>
         <span><%= link "Show", to: Routes.facilities_facility_path(@conn, :show, facility) %></span>
-        <span><%= link "Edit", to: Routes.facilities_facility_path(@conn, :edit, facility) %></span>
-        <span><%= link "Delete", to: Routes.facilities_facility_path(@conn, :delete, facility), method: :delete, data: [confirm: "Are you sure?"] %></span>
       </td>
     </tr>
 <% end %>

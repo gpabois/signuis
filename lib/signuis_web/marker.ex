@@ -1,6 +1,9 @@
 defmodule SignuisWeb.MapMarker do
   use Phoenix.HTML
 
+  alias Signuis.Facilities
+  alias Signuis.Facilities.Facility
+
   defstruct [id: nil, type: nil, location: nil, object: nil, slot: ""]
 
   defp factory_icon do
@@ -45,7 +48,15 @@ defmodule SignuisWeb.MapMarker do
     """
   end
 
-  def to(%Signuis.Facilities.Facility{location: location, id: id} = facility) do
+  def from(%__MODULE__{id: id, type: type}) do
+    case type do
+      :facility ->
+        Facilities.get_facility!(id)
+      _ -> nil
+    end
+  end
+
+  def to(%Facility{location: location, id: id} = facility) do
     %__MODULE__{
       id: id,
       type: :facility,

@@ -1,9 +1,15 @@
 <button id="geolocation" phx-hook="Geolocation">Localiser</button>
 <.map id="map" phx-hook="Map" classes={["sg-map fullpage"]} markers={@markers} />
 
+<%= case @focused_entity do %>
+  <% %Signuis.Facilities.Facility{} = facility -> %>
+    <h2><%= link facility.name, to: Routes.facilities_facility_path(@socket, :show, facility) %></h2>
+    <p><%= facility.description %></p>
+  <% _ -> %>
+<% end %>
 
 <%= if "#{Mix.env}" === "dev" do %>
   <div id="reporting-dev-toolbox" phx-hook="ReportingDevToolbox">
-    <h1>Dev Toolbox</h1>
+    <h2>Dev Toolbox</h2>
   </div>
 <% end %>

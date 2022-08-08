@@ -10,11 +10,11 @@ defmodule SignuisWeb.Reporting.HomeLive do
     {:ok,
       socket
       |> assign(:facilities, [])
-      |> init_map(params, session)
+      |> assign(:focused_entity, nil)
       |> assign(:location, nil)
+      |> init_map(params, session)
     }
   end
-
   def update_markers(socket) do
     markers = []
 
@@ -30,8 +30,9 @@ defmodule SignuisWeb.Reporting.HomeLive do
     |> set_markers(markers)
   end
 
-  def handle_info({"map::marker-clicked", _marker}, socket) do
-    {:noreply, socket}
+  def handle_info({"map::marker-clicked", marker}, socket) do
+    entity = MapMarker.from(marker)
+    {:noreply, socket |> assign(:focused_entity, entity)}
   end
 
   def handle_info({"map::bounds-updated", bounds}, socket) do
