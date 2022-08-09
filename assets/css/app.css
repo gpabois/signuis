@@ -33,8 +33,23 @@
   width: 100%;
 }
 
-.sg-map.fullpage {
+.sg-map__fullpage {
   display: block;
-  width: 100%;
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 100vw;
   height: 100vh;
+}
+
+.sg-map__wrapper {
+  position: absolute;
+  top: 0; right: 0;
+}
+
+.sg-map__overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1000;
 }
