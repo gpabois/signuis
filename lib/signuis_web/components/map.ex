@@ -19,7 +19,7 @@ defmodule SignuisWeb.Components.Map do
       <.marker slot={marker.slot} data-id={marker.id} data-type={marker.type} location={marker.location}/>
       <% end %>
       <%= for cell <- heatmap_cells do %>
-      <.heatmap_cell location={cell.location} weight={cell.weight} precision={cell.precision} />
+      <.heatmap_cell location={cell.location} weight={cell.weight} bounds={cell.bounds} />
       <% end %>
     </leaflet-map>
     """
@@ -41,9 +41,20 @@ defmodule SignuisWeb.Components.Map do
   def heatmap_cell(assigns) do
     %Geo.Point{coordinates: {lat, lng}, srid: 4326} = Map.get(assigns, :location, @default_location)
     weight = Map.get(assigns, :weight, 0)
-    precision = Map.get(assigns, :precision, 20)
+    %{
+      bottom_left: {bottom_right__lat, bottom_right__lng},
+      top_right: {top_left__lat, top_left__lng}
+    } = Map.get(assigns, :bounds, nil)
     ~H"""
-    <leaflet-heatmap-cell weight={weight} lat={lat} lng={lng} precision={precision}>
+    <leaflet-heatmap-cell
+        weight={weight}
+        lat={lat}
+        lng={lng}
+        bottom_left__lat={bottom_right__lat}
+        bottom_left__lng={bottom_right__lng}
+        top_right__lat={top_left__lat}
+        top_right__lng={top_left__lng}
+    >
     </leaflet-heatmap-cell>
   """
   end

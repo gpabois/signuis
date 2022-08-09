@@ -8,13 +8,18 @@ defmodule SignuisWeb.Facilities.DashboardLive do
   alias Signuis.Reporting
   alias Signuis.Reporting.Report
 
+  @grid_size 0.001
+
   def mount(%{"facility_id" => facility_id} = params, session, socket) do
+    :timer.send_interval(10000, :fetch)
+
     {:ok,
       socket
       |> assign(:facility, Facilities.get_facility!(facility_id))
       |> assign(:facilities, [])
       |> assign(:focused_entity, nil)
       |> assign(:report_heatmap, [])
+      |> assign(:map_bounds, nil)
       |> init_map(params, session)
     }
   end
@@ -45,7 +50,7 @@ defmodule SignuisWeb.Facilities.DashboardLive do
   def handle_event("dev::reports::generate", %{"number" => number}, socket) do
     facility = socket.assigns.facility
     for _i <- 1..String.to_integer(number) do
-      location = GeoMath.random_within(facility.location, GeoMath.Distance.km(2))
+      location = GeoMath.random_within(facility.location, GeoMath.Distance.km(2), min: 0.2)
       nuisance_type = Enum.random(Reporting.list_nuisances_types())
       nuisance_level = Enum.random(1..10)
 
@@ -53,6 +58,12 @@ defmodule SignuisWeb.Facilities.DashboardLive do
         &(cast_location(&1, location))
       ])
     end
+    {:noreply, socket}
+  end
+
+  def handle_event("dev::reports::delete_all", _, socket) do
+    Reporting.delete_all_reports()
+
     {:noreply, socket}
   end
 
@@ -103,11 +114,23 @@ defmodule SignuisWeb.Facilities.DashboardLive do
     {:noreply, socket |> assign(:focused_entity, entity)}
   end
 
+  def handle_info(:fetch, socket) do
+    socket = if socket.assigns.map_bounds do
+      socket
+      |> assign(:report_heatmap, Reporting.get_report_heatmap(grid: @grid_size, bounds: socket.assigns.map_bounds))
+      |> update_map
+    else
+      socket
+    end
+    {:noreply, socket}
+  end
+
   def handle_info({"map::bounds-updated", bounds}, socket) do
     {:noreply,
       socket
+      |> assign(:map_bounds, bounds)
       |> assign(:facilities, Facilities.list_facilities(filter: [bounds: bounds]))
-      |> assign(:report_heatmap, Reporting.get_report_heatmap(grid: 0.0001, bounds: bounds))
+      |> assign(:report_heatmap, Reporting.get_report_heatmap(grid: @grid_size, bounds: bounds))
       |> update_map
     }
   end

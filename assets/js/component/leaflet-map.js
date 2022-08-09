@@ -34,7 +34,7 @@ class LeafletMap extends HTMLElement {
         }.bind(this));
 
         this.markers = [];
-        this.heatmapLayer = L.heatLayer([]);
+        this.heatmapLayer = L.layerGroup([]);
 
         L.control.zoom({
             position: 'bottomright'
@@ -58,6 +58,11 @@ class LeafletMap extends HTMLElement {
         ], 16)
     }
 
+    heatMapColor(value){
+        var h = Math.max(Math.min(1.0, (1.0 - value)), 0.0)* 240;
+        return "hsl(" + h + ", 100%, 50%)";
+    }
+
     reloadData() {
         this.markers.forEach((marker) => marker.remove());
         this.heatmapLayer.remove();
@@ -68,14 +73,32 @@ class LeafletMap extends HTMLElement {
         }.bind(this)));
 
         var heatmap = [...this.querySelectorAll('leaflet-heatmap-cell')].map(function(heatmapCell) {
-            return [
-                heatmapCell.getAttribute('lat'),
-                heatmapCell.getAttribute('lng'),
-                heatmapCell.getAttribute('weight')
+            var bounds = [
+                [
+                    parseFloat(heatmapCell.getAttribute('bottom_left__lat')),
+                    parseFloat(heatmapCell.getAttribute('bottom_left__lng'))
+                ],
+                [
+                    parseFloat(heatmapCell.getAttribute('top_right__lat')),
+                    parseFloat(heatmapCell.getAttribute('top_right__lng'))
+                ]
             ]
-        }.bind(this));
+            
+            var weight = parseFloat(heatmapCell.getAttribute('weight')) / 10.0;
 
-        this.heatmapLayer = L.heatLayer(heatmap, {max: 50, opacity: 0.6, maxZoom: 16, radius: heatmap_cell_radius});
+            if (weight == 0)
+                return null;
+
+            return L.rectangle(bounds, {
+                color: this.heatMapColor(weight),
+                weight: 0,
+                opacity: 0.8
+            })
+        }.bind(this)).filter((n) => n != null);
+
+        console.log(heatmap);
+
+        this.heatmapLayer = L.layerGroup(heatmap);
         this.heatmapLayer.addTo(this.map);
 
         this.querySelectorAll('leaflet-marker').forEach(function(markerEl) {

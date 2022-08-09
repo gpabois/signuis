@@ -17,8 +17,10 @@
 <%= if "#{Mix.env}" === "dev" do %>
   <div id="reporting-dev-toolbox" phx-hook="ReportingDevToolbox">
     <h2>Dev Toolbox</h2>
+    <button class="btn" phx-click="dev::reports::delete_all">Tout supprimer</button>
     <button class="btn" phx-click="dev::reports::generate" phx-value-number="10">Générer 10 signalements</button>
     <button class="btn" phx-click="dev::reports::generate" phx-value-number="100">Générer 100 signalements</button>
     <button class="btn" phx-click="dev::reports::generate" phx-value-number="500">Générer 500 signalements</button>
+    <button class="btn" phx-click="dev::reports::generate" phx-value-number="5000">Générer 5000 signalements</button>
   </div>
 <% end %>

@@ -92,15 +92,20 @@ defmodule GeoMath do
       random_within_box  ll, ru
   end
 
-  def random_within(%Geo.Point{coordinates: {lat, long}, srid: srid} = _ptA, %Distance{} = d) do
-      %Distance{value: r} = Distance.to(d, :m)
+  def random_within(%Geo.Point{coordinates: {lat, long}, srid: srid} = _ptA, %Distance{} = d, opts \\ []) do
+    %Distance{value: r} = Distance.to(d, :m)
 
-      u = Geocalc.degrees_to_radians(:rand.uniform() * 360.0)
-      {:ok, [lat, long]} = Geocalc.destination_point([lat, long], u, r * :rand.uniform())
+    v = Enum.max([
+        Keyword.get(opts, :min, 0.0),
+        :rand.uniform_real()
+    ])
 
-      %Geo.Point{
-          coordinates: {lat, long},
-          srid: srid
-      }
-  end
+    u = Geocalc.degrees_to_radians(:rand.uniform_real() * 360.0)
+    {:ok, [lat, long]} = Geocalc.destination_point([lat, long], u, r * v)
+
+    %Geo.Point{
+        coordinates: {lat, long},
+        srid: srid
+    }
+end
 end

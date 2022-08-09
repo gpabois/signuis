@@ -201,6 +201,10 @@ defmodule Signuis.Reporting do
     |> Repo.update()
   end
 
+  def delete_all_reports() do
+    Repo.delete_all(Report)
+  end
+
   @doc """
   Deletes a report.
 
