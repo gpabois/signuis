@@ -1,11 +1,19 @@
 <main class="container">
-  <p class="alert alert-info" role="alert"
+  <%= case  live_flash(@flash, :info) do %>
+  <% nil -> %>
+  <% info -> %>
+    <p class="alert alert-info" role="alert"
     phx-click="lv:clear-flash"
-    phx-value-key="info"><%= live_flash(@flash, :info) %></p>
+    phx-value-key="info"><%= info %></p>
+  <% end %>
 
-  <p class="alert alert-danger" role="alert"
+  <%= case  live_flash(@flash, :error) do %>
+  <% nil -> %>
+  <% error -> %>
+    <p class="alert alert-danger" role="alert"
     phx-click="lv:clear-flash"
-    phx-value-key="error"><%= live_flash(@flash, :error) %></p>
+    phx-value-key="info"><%= error %></p>
+  <% end %>
 
   <%= @inner_content %>
 </main>

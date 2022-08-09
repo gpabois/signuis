@@ -1,41 +1,33 @@
-defmodule SignuisWeb.Reporting.HomeLive do
+defmodule SignuisWeb.Facilities.DashboardLive do
   use SignuisWeb, :live_view
   use SignuisWeb.Mixins.Map
-  use SignuisWeb.Mixins.Geolocation
 
   alias SignuisWeb.MapMarker
+  alias SignuisWeb.HeatmapCell
   alias Signuis.Facilities
   alias Signuis.Reporting
   alias Signuis.Reporting.Report
 
-  def mount(params, session, socket) do
-    choices_nuisance_types = Reporting.list_nuisances_types
-    |> Enum.map(&{&1.label, &1.id})
-
+  def mount(%{"facility_id" => facility_id} = params, session, socket) do
     {:ok,
       socket
+      |> assign(:facility, Facilities.get_facility!(facility_id))
       |> assign(:facilities, [])
       |> assign(:focused_entity, nil)
-      |> assign(:location, nil)
-      |> assign(:report_changeset, Reporting.change_report(%Report{}, %{}))
-      |> assign(:choices_nuisance_types, choices_nuisance_types)
-      |> assign(:display_report_form, false)
+      |> assign(:report_heatmap, [])
       |> init_map(params, session)
     }
   end
+
   def update_map(socket) do
     markers = []
-
-    markers = markers ++ if socket.assigns.location do
-      [%MapMarker{id: "anonymous", type: "user", location: socket.assigns.location, object: nil}]
-    else
-      []
-    end
+    heatmap_cells = []
 
     markers = markers ++ Enum.map(socket.assigns.facilities, &MapMarker.to/1)
+    heatmap_cells = heatmap_cells ++ Enum.map(socket.assigns.report_heatmap, &HeatmapCell.to/1)
 
     socket
-    |> set_map_data(markers)
+    |> set_map_data(markers ++ heatmap_cells)
   end
 
   def cast_location(changeset, location) do
@@ -48,6 +40,20 @@ defmodule SignuisWeb.Reporting.HomeLive do
         changeset
         |> Ecto.Changeset.add_error(:location, "veuillez activer la géolocalisation")
     end
+  end
+
+  def handle_event("dev::reports::generate", %{"number" => number}, socket) do
+    facility = socket.assigns.facility
+    for _i <- 1..String.to_integer(number) do
+      location = GeoMath.random_within(facility.location, GeoMath.Distance.km(2))
+      nuisance_type = Enum.random(Reporting.list_nuisances_types())
+      nuisance_level = Enum.random(1..10)
+
+      Reporting.create_report(%{nuisance_type_id: nuisance_type.id, nuisance_level: nuisance_level}, pre_validations: [
+        &(cast_location(&1, location))
+      ])
+    end
+    {:noreply, socket}
   end
 
   def handle_event("form::report::toggle", _value, socket) do
@@ -101,6 +107,7 @@ defmodule SignuisWeb.Reporting.HomeLive do
     {:noreply,
       socket
       |> assign(:facilities, Facilities.list_facilities(filter: [bounds: bounds]))
+      |> assign(:report_heatmap, Reporting.get_report_heatmap(grid: 0.0001, bounds: bounds))
       |> update_map
     }
   end

@@ -59,8 +59,9 @@ defmodule SignuisWeb.Router do
 
   ## Facility routes
   scope "/facilities", SignuisWeb.Facilities, as: :facilities do
-    pipe_through [:browser, :require_authenticated_user]
+    pipe_through [:browser]#, :require_authenticated_user]
 
+    live "/:facility_id/dashboard", DashboardLive
     resources "/", FacilityController, except: [:show, :index]
 
     get "/:facility_id/members/new", MemberController, :new
@@ -69,16 +70,18 @@ defmodule SignuisWeb.Router do
     get "/:facility_id/members", MemberController, :index
 
     resources "/members", MemberController, only: [:update, :edit, :delete]
+
+    get "/:facility_id/reports", ReportController, :index
   end
 
   scope "/facilities", SignuisWeb.Facilities, as: :facilities do
     pipe_through [:browser]
 
     resources "/", FacilityController, only: [:show, :index]
+
   end
 
   ## Authentication routes
-
   scope "/accounts", SignuisWeb.Accounts, as: :accounts do
     pipe_through [:browser, :redirect_if_user_is_authenticated]
 
@@ -114,6 +117,8 @@ defmodule SignuisWeb.Router do
   scope "/administration", SignuisWeb.Administration, as: :administration do
     pipe_through [:browser]#, :require_authenticated_user]
 
+    get "/", DashboardController, :show
+
     resources "/users", UserController, except: [:new, :create]
 
     scope "/facilities", Facilities do
@@ -121,6 +126,7 @@ defmodule SignuisWeb.Router do
 
       resources "/members", MemberController, except: [:new, :create, :index]
       resources "/:facility_id/members", MemberController, only: [:new, :create, :index]
+
     end
 
     resources "/nuisances/types", NuisanceTypeController

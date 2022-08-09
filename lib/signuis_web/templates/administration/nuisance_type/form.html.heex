@@ -5,25 +5,25 @@
     </div>
   <% end %>
 
-  <div>
-    <%= label f, :label %>
-    <%= text_input f, :label %>
+  <div class="form-group">
+    <%= label f, :label, "Libellé" %>
+    <%= text_input f, :label, class: "form-control" %>
     <%= error_tag f, :label %>
   </div>
 
-  <div>
-    <%= label f, :description %>
-    <%= textarea f, :description, rows: 10 %>
+  <div class="form-group">
+    <%= label f, :description, "Description" %>
+    <%= textarea f, :description, rows: 10, class: "form-control" %>
     <%= error_tag f, :description %>
   </div>
 
-  <div>
-    <%= label f, :family %>
-    <%= select f, :family, Signuis.Reporting.NuisanceType.families() %>
+  <div class="form-group">
+    <%= label f, :family, "Famille" %>
+    <%= select f, :family, Signuis.Reporting.NuisanceType.families(), class: "form-control" %>
     <%= error_tag f, :family %>
   </div>
 
-  <div>
-    <%= submit "Sauvegarder" %>
+  <div class="form-group">
+    <%= submit "Sauvegarder", class: "btn btn-primary mb-2" %>
   </div>
 </.form>

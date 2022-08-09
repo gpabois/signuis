@@ -15,9 +15,9 @@ defmodule Signuis.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: Signuis.PubSub},
       # Start the Endpoint (http/https)
-      SignuisWeb.Endpoint
-      # Start a worker by calling: Signuis.Worker.start_link(arg)
-      # {Signuis.Worker, arg}
+      SignuisWeb.Endpoint,
+      # Start the dispatcher related to the facilities
+      Signuis.Facilities.Dispatcher
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

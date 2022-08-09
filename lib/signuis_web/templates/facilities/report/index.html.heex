@@ -1,0 +1,22 @@
+<h1>Signalements reçus par <%= @facility.name %></h1>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Libellé</th>
+      <th>Famille</th>
+      <th>Intensité</th>
+      <th>Crée le</th>
+    </tr>
+  </thead>
+  <tbody>
+<%= for facility_report <- @facilities_reports do %>
+    <tr>
+      <td><%= facility_report.nuisance_type.label %></td>
+      <td><%= facility_report.nuisance_type.family %></td>
+      <td><%= facility_report.nuisance_level %></td>
+      <td><%= facility_report.inserted_at %></td>
+    </tr>
+<% end %>
+  </tbody>
+</table>

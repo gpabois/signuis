@@ -8,6 +8,57 @@ defmodule Signuis.Facilities do
 
   alias Signuis.Facilities.Facility
   alias Signuis.Facilities.Member
+  alias Signuis.Reporting.Report
+
+  @doc """
+    Assign a report to a facility
+  """
+  def assign_report(%Facility{id: facility_id} = facility, %Report{id: report_id} = report) do
+    Repo.insert_all("reports_facilities", [[facility_id: facility_id, report_id: report_id]])
+    Signuis.EventTypes.new_assigned_report(facility, report)
+  end
+
+  @doc """
+    Assign a report to a list of facilities
+  """
+  def assign_report(facilities, %Report{id: report_id} = report) when is_list(facilities) do
+    inserts = Enum.map(facilities, &[facility_id: &1.id, report_id: report_id])
+    Repo.insert_all("reports_facilities", inserts)
+
+    for facility <- facilities do
+      Signuis.EventTypes.new_assigned_report(facility, report)
+    end
+  end
+
+  def count_facilities_reports(%Facility{id: facility_id}) do
+    from(j in "reports_facilities",
+      where: j.facility_id == ^facility_id,
+      select: count(j.id)
+    ) |> Repo.one!
+  end
+  def list_facilities_reports(%Facility{id: facility_id}, opts \\ []) do
+    chunk = Keyword.get(opts, :chunk, nil)
+
+    query = from(r in Report,
+      join: j in "reports_facilities", on: r.id == j.report_id,
+      where: j.facility_id == ^facility_id
+    )
+
+    query = case chunk do
+      {page, size} ->
+        offset = page * size
+        limit = size
+        query
+        |> offset(^offset)
+        |> limit(^limit)
+      nil -> query
+    end
+
+    query
+    |> order_by([desc: :inserted_at])
+    |> Repo.all()
+    |> Repo.preload([:nuisance_type])
+  end
 
   @doc """
   Returns the list of facilities.

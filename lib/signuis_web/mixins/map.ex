@@ -4,12 +4,35 @@ defmodule SignuisWeb.Mixins.Map do
       defp init_map(socket, _params, _session) do
         socket
         |> assign(:markers, [])
+        |> assign(:heatmap_cells, [])
       end
 
-      def set_markers(socket, markers) do
+      def fly_to(socket, %Geo.Point{coordinates: {lat, long}}) do
+        socket
+        |> push_event("map::fly-to", %{
+          coordinates: %{
+            lat: lat,
+            long: long
+          },
+          srid: 4326
+        })
+      end
+
+      def set_map_data(socket, data) do
+        markers = Enum.filter(data, &(case &1 do
+          %SignuisWeb.MapMarker{} -> true
+          _ -> false
+        end))
+
+        heatmap_cells = Enum.filter(data, &(case &1 do
+          %SignuisWeb.HeatmapCell{} -> true
+          _ -> false
+        end))
+
         socket
         |> assign(:markers, markers)
-        |> push_event("map::markers-updated", %{})
+        |> assign(:heatmap_cells, heatmap_cells)
+        |> push_event("map::data-updated", %{})
       end
 
       def handle_event("map::marker-clicked", %{"id" => id, "type" => type}, socket) do

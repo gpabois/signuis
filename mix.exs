@@ -35,6 +35,7 @@ defmodule Signuis.MixProject do
     [
       {:inflex, "~> 2.0.0"},
       {:pbkdf2_elixir, "~> 2.0"},
+      {:geocalc, "~> 0.8"},
       {:surface, "~> 0.7.5"},
       {:phoenix, "~> 1.6.5"},
       {:phoenix_ecto, "~> 4.4"},

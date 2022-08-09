@@ -2,11 +2,15 @@ defmodule Signuis.Reporting.Report do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Signuis.Reporting.NuisanceType
+
   schema "reports" do
     field :location, Geo.PostGIS.Geometry
     field :location__lat, :float, virtual: true
     field :location__lng, :float, virtual: true
-    field :nuisance_type_id, :id
+
+    belongs_to :nuisance_type, NuisanceType
+
     field :nuisance_level, :integer
     field :user_id, :id
 
@@ -14,9 +18,15 @@ defmodule Signuis.Reporting.Report do
   end
 
   @doc false
-  def changeset(report, attrs) do
-    report
+  def changeset(report, attrs, opts \\ []) do
+    pre_validations = Keyword.get(opts, :pre_validations, [])
+
+    changeset = report
     |> cast(attrs, [:nuisance_level, :nuisance_type_id, :user_id, :location__lat, :location__lng])
+
+    changeset = Enum.reduce(pre_validations, changeset, &(&1.(&2)))
+
+    changeset
     |> validate_required([:nuisance_level, :nuisance_type_id, :location__lat, :location__lng])
     |> cast_location()
   end

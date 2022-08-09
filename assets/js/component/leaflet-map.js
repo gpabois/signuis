@@ -1,6 +1,8 @@
 import L from "../../vendor/leaflet/leaflet"
+import "../../vendor/leaflet-heatmap"
 
 const template = document.createElement('template');
+
 template.innerHTML = `
     <div style="height: 100%">
         <slot />
@@ -14,7 +16,6 @@ class LeafletMap extends HTMLElement {
         this.attachShadow({ mode: 'open' });
         
         for(var link of document.querySelectorAll("link")) {
-            console.log(link);
             this.shadowRoot.appendChild(link.cloneNode(true));
         }
 
@@ -23,7 +24,8 @@ class LeafletMap extends HTMLElement {
         this.mapElement = this.shadowRoot.querySelector('div')
 
         this.map = L.map(this.mapElement, {
-            zoomControl: false}).setView([this.getAttribute('lat'), this.getAttribute('lng')], 13);
+            maxZoom: 16,
+            zoomControl: false}).setView([this.getAttribute('lat'), this.getAttribute('lng')], this.getAttribute("zoom") ? this.getAttribute("zoom") : 16);
         
         this.map.on('moveend', function () {
             var bounds = this.map.getBounds();
@@ -32,6 +34,7 @@ class LeafletMap extends HTMLElement {
         }.bind(this));
 
         this.markers = [];
+        this.heatmapLayer = L.heatLayer([]);
 
         L.control.zoom({
             position: 'bottomright'
@@ -47,13 +50,35 @@ class LeafletMap extends HTMLElement {
         });
     }
 
-    reloadMarkers() {
-        this.markers.forEach((marker) => marker.remove());
-        this.markers = [];
+    flyTo(location) {
+        this.map.invalidateSize();
+        this.map.flyTo([
+            location["coordinates"]["lat"],
+            location["coordinates"]["long"]
+        ], 16)
+    }
 
-        const markerElements = this.querySelectorAll('leaflet-marker');
-        
-        markerElements.forEach(function(markerEl) {
+    reloadData() {
+        this.markers.forEach((marker) => marker.remove());
+        this.heatmapLayer.remove();
+
+        this.markers = [];
+        var heatmap_cell_radius = Math.max([...this.querySelectorAll('leaflet-heatmap-cell')].map(function(heatmapCell) {
+            return heatmapCell.getAttribute('precision')
+        }.bind(this)));
+
+        var heatmap = [...this.querySelectorAll('leaflet-heatmap-cell')].map(function(heatmapCell) {
+            return [
+                heatmapCell.getAttribute('lat'),
+                heatmapCell.getAttribute('lng'),
+                heatmapCell.getAttribute('weight')
+            ]
+        }.bind(this));
+
+        this.heatmapLayer = L.heatLayer(heatmap, {max: 50, opacity: 0.6, maxZoom: 16, radius: heatmap_cell_radius});
+        this.heatmapLayer.addTo(this.map);
+
+        this.querySelectorAll('leaflet-marker').forEach(function(markerEl) {
             const lat = markerEl.getAttribute('lat')
             const lng = markerEl.getAttribute('lng')
 
@@ -84,7 +109,7 @@ class LeafletMap extends HTMLElement {
     }
 
     connectedCallback() {
-        this.reloadMarkers();
+        this.reloadData();
     }
 }
 

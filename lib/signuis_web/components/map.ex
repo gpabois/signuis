@@ -7,13 +7,19 @@ defmodule SignuisWeb.Components.Map do
     %Geo.Point{coordinates: {center_lat, center_lng}, srid: 4326} = Map.get(assigns, :center, @default_location)
     classes = Map.get(assigns, :classes, []) |> Enum.join(" ")
     markers = Map.get(assigns, :markers, [])
+    heatmap_cells = Map.get(assigns, :heatmap_cells, [])
+
     id = Map.get(assigns, :id, "")
     phx_hook = Map.get(assigns, :"phx-hook", "")
+    zoom = Map.get(assigns, :zoom, 16)
 
     ~H"""
-    <leaflet-map id={id} phx-hook={phx_hook} lat={center_lat} class={classes} lng={center_lng}>
+    <leaflet-map id={id} phx-hook={phx_hook} lat={center_lat} class={classes} lng={center_lng} zoom={zoom}>
       <%= for marker <- markers do %>
       <.marker slot={marker.slot} data-id={marker.id} data-type={marker.type} location={marker.location}/>
+      <% end %>
+      <%= for cell <- heatmap_cells do %>
+      <.heatmap_cell location={cell.location} weight={cell.weight} precision={cell.precision} />
       <% end %>
     </leaflet-map>
     """
@@ -30,5 +36,15 @@ defmodule SignuisWeb.Components.Map do
         <%= slot |> Phoenix.HTML.raw %>
       </leaflet-marker>
     """
+  end
+
+  def heatmap_cell(assigns) do
+    %Geo.Point{coordinates: {lat, lng}, srid: 4326} = Map.get(assigns, :location, @default_location)
+    weight = Map.get(assigns, :weight, 0)
+    precision = Map.get(assigns, :precision, 20)
+    ~H"""
+    <leaflet-heatmap-cell weight={weight} lat={lat} lng={lng} precision={precision}>
+    </leaflet-heatmap-cell>
+  """
   end
 end

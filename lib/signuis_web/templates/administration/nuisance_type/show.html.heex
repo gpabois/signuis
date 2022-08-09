@@ -1,8 +1,6 @@
-<h1>Show Nuisance type</h1>
+<h1><%= @nuisance_type.label %></h1>
 
-<ul>
+<p><%= @nuisance_type.description |> text_to_html %></p>
 
-</ul>
-
-<span><%= link "Edit", to: Routes.administration_nuisance_type_path(@conn, :edit, @nuisance_type) %></span> |
-<span><%= link "Back", to: Routes.administration_nuisance_type_path(@conn, :index) %></span>
+<span><%= link "Modifier", to: Routes.administration_nuisance_type_path(@conn, :edit, @nuisance_type) %></span> |
+<span><%= link "Retour", to: Routes.administration_nuisance_type_path(@conn, :index) %></span>

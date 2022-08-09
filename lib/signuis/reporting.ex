@@ -4,9 +4,10 @@ defmodule Signuis.Reporting do
   """
 
   import Ecto.Query, warn: false
+  import Geo.PostGIS
   alias Signuis.Repo
 
-  alias Signuis.Reporting.NuisanceType
+  alias Signuis.Reporting.{NuisanceType, Report}
 
   @doc """
   Returns the list of nuisances_types.
@@ -102,8 +103,6 @@ defmodule Signuis.Reporting do
     NuisanceType.changeset(nuisance_type, attrs)
   end
 
-  alias Signuis.Reporting.Report
-
   @doc """
   Returns the list of reports.
 
@@ -133,6 +132,36 @@ defmodule Signuis.Reporting do
   """
   def get_report!(id), do: Repo.get!(Report, id)
 
+  def get_report_heatmap(opts \\ []) do
+    grid_size = Keyword.get(opts, :grid, 0.001)
+    bounds    = Keyword.get(opts, :bounds, nil)
+
+    query = from(r in Report,
+      inner_join: grid in fragment("ST_SquareGrid(?, ?)", ^grid_size, r.location),
+      on: fragment("ST_Intersects(?, ?)", r.location, grid.geom),
+      group_by: grid.geom,
+      select: %{weight: count(r.id), cell: grid.geom, location: st_centroid(grid.geom), precision: fragment("ST_MinimumBoundingRadius(?)", grid.geom)}
+    )
+
+    query = if bounds != nil do
+      %{bottom_left: bottom_left, top_right: top_right} = bounds
+      query
+      |> where([r, grid], st_intersects(
+        fragment("?.geom", grid),
+        fragment("?::geometry",
+          st_set_srid(
+            st_make_box_2d(^bottom_left, ^top_right), 4326)
+          )
+        )
+      )
+    else
+      query
+    end
+
+    query
+    |> Repo.all
+  end
+
   @doc """
   Creates a report.
 
@@ -145,10 +174,13 @@ defmodule Signuis.Reporting do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_report(attrs \\ %{}) do
-    %Report{}
-    |> Report.changeset(attrs)
-    |> Repo.insert()
+  def create_report(attrs, opts \\ []) do
+    with {:ok, report} <- %Report{}
+    |> Report.changeset(attrs, opts)
+    |> Repo.insert() do
+      Signuis.EventTypes.new_report(report)
+      {:ok, report}
+    end
   end
 
   @doc """
@@ -194,7 +226,7 @@ defmodule Signuis.Reporting do
       %Ecto.Changeset{data: %Report{}}
 
   """
-  def change_report(%Report{} = report, attrs \\ %{}) do
-    Report.changeset(report, attrs)
+  def change_report(%Report{} = report, attrs, opts \\ []) do
+    Report.changeset(report, attrs, opts)
   end
 end

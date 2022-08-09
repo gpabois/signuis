@@ -1,12 +1,45 @@
-<button id="geolocation" phx-hook="Geolocation">Localiser</button>
-<.map id="map" phx-hook="Map" classes={["sg-map fullpage"]} markers={@markers} />
+<button id="geolocation" phx-hook="Geolocation" class="btn btn-primary">Localiser</button>
+<a id="geolocation" phx-click="form::report::toggle" class="btn btn-primary">Signaler</a>
 
-<%= case @focused_entity do %>
-  <% %Signuis.Facilities.Facility{} = facility -> %>
-    <h2><%= link facility.name, to: Routes.facilities_facility_path(@socket, :show, facility) %></h2>
-    <p><%= facility.description %></p>
-  <% _ -> %>
-<% end %>
+<div class="container">
+  <div class="row">
+    <.map id="map" phx-hook="Map" classes={["sg-map fullpage", "col"]} markers={@markers} />
+
+    <%= case @focused_entity do %>
+        <% %Signuis.Facilities.Facility{} = facility -> %>
+          <div class="col-2">
+            <h2><%= link facility.name, to: Routes.facilities_facility_path(@socket, :show, facility) %></h2>
+            <p><%= facility.description %></p>
+          </div>
+        <% _ -> %>
+    <% end %>
+  </div>
+
+  <%= if @display_report_form do %>
+  <div class="row" id="report-form">
+    <.form let={f} for={@report_changeset} phx-change="report::validate" phx-submit="report::submit">
+      <div class="form-group">
+        <%= error_tag f, :location %>
+      </div>
+      
+      <div class="form-group">
+        <%= label f, :nuisance_type_id %>
+        <%= select f, :nuisance_type_id, @choices_nuisance_types, class: "form-control" %>
+        <%= error_tag f, :nuisance_type_id %>
+      </div>
+
+      <div class="form-group">
+        <%= label f, :nuisance_level, "Intensité" %>
+        <%= number_input f, :nuisance_level, class: "form-control", min: 1, max: 10  %>
+        <%= error_tag f, :nuisance_level %>
+      </div>
+
+      <%= submit "Signaler", class: "btn btn-primary" %>
+    </.form>
+  </div>
+  <% end %>
+</div>
+
 
 <%= if "#{Mix.env}" === "dev" do %>
   <div id="reporting-dev-toolbox" phx-hook="ReportingDevToolbox">

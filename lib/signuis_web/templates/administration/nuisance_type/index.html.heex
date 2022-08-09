@@ -1,16 +1,22 @@
-<h1>Listing Nuisances types</h1>
+<h1>Types de nuisance</h1>
 
-<table>
+<table class="table">
   <thead>
     <tr>
-
+      <th>Libellé</th>
+      <th>Famille</th>
       <th></th>
     </tr>
   </thead>
   <tbody>
 <%= for nuisance_type <- @nuisances_types do %>
     <tr>
-
+      <td>
+        <%= nuisance_type.label %>
+      </td>
+      <td>
+        <%= nuisance_type.family %>
+      </td>
       <td>
         <span><%= link "Show", to: Routes.administration_nuisance_type_path(@conn, :show, nuisance_type) %></span>
         <span><%= link "Edit", to: Routes.administration_nuisance_type_path(@conn, :edit, nuisance_type) %></span>
@@ -21,4 +27,4 @@
   </tbody>
 </table>
 
-<span><%= link "New Nuisance type", to: Routes.administration_nuisance_type_path(@conn, :new) %></span>
+<span><%= link "Nouveau type de nuisance", to: Routes.administration_nuisance_type_path(@conn, :new) %></span>
