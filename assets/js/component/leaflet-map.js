@@ -91,12 +91,10 @@ class LeafletMap extends HTMLElement {
 
             return L.rectangle(bounds, {
                 color: this.heatMapColor(weight),
-                weight: 0,
-                opacity: 0.8
+                weight: 0.0,
+                opacity: 0.1
             })
         }.bind(this)).filter((n) => n != null);
-
-        console.log(heatmap);
 
         this.heatmapLayer = L.layerGroup(heatmap);
         this.heatmapLayer.addTo(this.map);

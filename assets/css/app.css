@@ -16,6 +16,10 @@
   top: -32px;
 }
 
+.sg-fullwidth {
+  width: 100%
+}
+
 .sg-marker .sg-marker__label {
   flex: 1;
   font-weight: bold;
@@ -33,23 +37,75 @@
   width: 100%;
 }
 
-.sg-map__fullpage {
+.sg-menu {
+  z-index: 10000;
+  transition: opacity 1s ease-out;
+}
+
+.sg-map {
+  display: block;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.sg-wrapper {
   display: block;
   position: relative;
-  top: 0;
-  left: 0;
-  width: 100vw;
+}
+
+.sg-wrapper__content {
+  position: absolute;
+  top: 0; left: 0;
+}
+
+.sg-wrapper__overlay {
+  position: absolute;
+  top: 0; left: 0;
+  z-index: 10000;
+}
+
+.sg-viewport {
+  position: absolute;
+  width: 100vw; 
   height: 100vh;
-}
-
-.sg-map__wrapper {
-  position: absolute;
   top: 0; right: 0;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
 }
 
-.sg-map__overlay {
+.sg-viewport__body__main {
+  object-fit: contain;
+  flex-grow: 1;
+  max-height: 100%;
+  max-width: 100%;
+}
+
+.sg-viewport__body__row {
+  flex-grow: 0;
+}
+
+.sg-viewport__body__main .row {
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.sg-viewport__body__main .col {
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.sg-viewport__overlay {
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 1000;
+  z-index: 10000;
+}
+
+.sg-gap--top {
+  padding: 10px;
 }

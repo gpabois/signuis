@@ -118,7 +118,9 @@ defmodule Signuis.Facilities do
   def register_facility(attrs \\ %{}, %Signuis.Accounts.User{} = admin) do
     Repo.transaction fn ->
       with {:ok, facility} <- create_facility(attrs),
-          {:ok, _member} <- create_member([user_id: admin.id, facility_id: facility.id, roles: [:admin]] |> Enum.into(%{})) do
+          {:ok, _member} <- create_member(
+            [user_id: admin.id, facility_id: facility.id, roles: [:admin]] |> Enum.into(%{}),
+            mode: :direct_new) do
         {:ok, facility}
       end
     end
@@ -212,9 +214,12 @@ defmodule Signuis.Facilities do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_member(attrs \\ %{}) do
+  def create_member(attrs, opts \\ []) do
+    mode = Keyword.get(opts, :mode, :new)
+    opts = opts |> Keyword.put(:mode, mode)
+
     %Member{}
-    |> Member.changeset(attrs)
+    |> Member.changeset(attrs, opts)
     |> Repo.insert()
   end
 
@@ -232,7 +237,7 @@ defmodule Signuis.Facilities do
   """
   def update_member(%Member{} = member, attrs) do
     member
-    |> Member.changeset(attrs)
+    |> Member.changeset(attrs, mode: :update)
     |> Repo.update()
   end
 
@@ -261,7 +266,7 @@ defmodule Signuis.Facilities do
       %Ecto.Changeset{data: %Member{}}
 
   """
-  def change_member(%Member{} = member, attrs \\ %{}) do
-    Member.changeset(member, attrs)
+  def change_member(%Member{} = member, attrs, opts \\ []) do
+    Member.changeset(member, attrs, opts)
   end
 end

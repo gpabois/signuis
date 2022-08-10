@@ -1,8 +1,10 @@
-<h1>Listing Facilities members</h1>
+<div class="container">
+<h1>Equipe de <%= @facility.name %></h1>
 
-<table>
+<table class="table">
   <thead>
     <tr>
+      <th>Email</th>
       <th>Roles</th>
 
       <th></th>
@@ -11,10 +13,10 @@
   <tbody>
 <%= for member <- @facilities_members do %>
     <tr>
+      <td><%= member.user.email %></td>
       <td><%= member.roles %></td>
 
       <td>
-        <span><%= link "Show", to: Routes.facilities_member_path(@conn, :show, member) %></span>
         <span><%= link "Edit", to: Routes.facilities_member_path(@conn, :edit, member) %></span>
         <span><%= link "Delete", to: Routes.facilities_member_path(@conn, :delete, member), method: :delete, data: [confirm: "Are you sure?"] %></span>
       </td>
@@ -23,4 +25,5 @@
   </tbody>
 </table>
 
-<span><%= link "New Member", to: Routes.facilities_member_path(@conn, :new) %></span>
+<span><%= link "Ajouter", class: "btn btn-primary", to: Routes.facilities_member_path(@conn, :new, @facility) %></span>
+</div>

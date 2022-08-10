@@ -15,12 +15,14 @@ defmodule SignuisWeb.Facilities.DashboardLive do
 
     {:ok,
       socket
+      |> assign(:current_user, nil)
       |> assign(:facility, Facilities.get_facility!(facility_id))
       |> assign(:facilities, [])
       |> assign(:focused_entity, nil)
       |> assign(:report_heatmap, [])
       |> assign(:map_bounds, nil)
       |> init_map(params, session)
+      |> SignuisWeb.Facilities.FacilityController.nav
     }
   end
 

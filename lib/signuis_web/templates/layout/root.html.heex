@@ -14,12 +14,8 @@
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
   </head>
   <body>
-    <header>
-      <section class="container">
-        <nav>
-          <%= render "_user_menu.html", assigns %>
-        </nav>
-      </section>
+    <header class="sg-fullwidth">
+      <%= render "_user_menu.html", assigns %>
     </header>
     <%= @inner_content %>
   </body>

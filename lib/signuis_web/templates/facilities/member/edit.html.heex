@@ -1,5 +1,8 @@
-<h1>Edit Member</h1>
-
-<%= render "form.html", Map.put(assigns, :action, Routes.facilities_member_path(@conn, :update, @member)) %>
-
-<span><%= link "Back", to: Routes.facilities_member_path(@conn, :index) %></span>
+<div class="container mb-3">
+    <h1>Modifier le membre</h1>
+    <%= render "form.html", 
+        assigns
+        |> Map.put(:mode, :update)
+        |> Map.put(:action, Routes.facilities_member_path(@conn, :update, @member)) %>
+    <span><%= link "Retour", to: Routes.facilities_member_path(@conn, :index, @facility) %></span>
+</div>

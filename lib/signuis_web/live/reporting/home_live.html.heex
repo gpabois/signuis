@@ -1,52 +1,60 @@
-<div class="sg-map__wrapper">
-    <.map id="map" phx-hook="Map" classes={["sg-map__fullpage", "col"]} markers={@markers} />
-
-    <div class="sg-map__overlay">
-      <button id="geolocation" phx-hook="Geolocation" class="btn btn-primary">Localiser</button>
-      <a id="geolocation" phx-click="form::report::toggle" class="btn btn-primary">Signaler</a>
-
-      <div class="container">
-        <div class="row">
-          <%= case @focused_entity do %>
-              <% %Signuis.Facilities.Facility{} = facility -> %>
-                <div class="col-2">
-                  <h2><%= link facility.name, to: Routes.facilities_facility_path(@socket, :show, facility) %></h2>
-                  <p><%= facility.description %></p>
-                </div>
-              <% _ -> %>
-          <% end %>
-        </div>
-
-        <%= if @display_report_form do %>
-        <div class="row" id="report-form">
-          <.form let={f} for={@report_changeset} phx-change="report::validate" phx-submit="report::submit">
-            <div class="form-group">
-              <%= error_tag f, :location %>
-            </div>
-            
-            <div class="form-group">
-              <%= label f, :nuisance_type_id %>
-              <%= select f, :nuisance_type_id, @choices_nuisance_types, class: "form-control" %>
-              <%= error_tag f, :nuisance_type_id %>
-            </div>
-
-            <div class="form-group">
-              <%= label f, :nuisance_level, "Intensité" %>
-              <%= number_input f, :nuisance_level, class: "form-control", min: 1, max: 10  %>
-              <%= error_tag f, :nuisance_level %>
-            </div>
-
-            <%= submit "Signaler", class: "btn btn-primary" %>
-          </.form>
-        </div>
-        <% end %>
-      </div>
-
-
-      <%= if "#{Mix.env}" === "dev" do %>
-        <div id="reporting-dev-toolbox" phx-hook="ReportingDevToolbox">
-          <h2>Dev Toolbox</h2>
-        </div>
-      <% end %>
+<div class="sg-viewport">
+  <div class="sg-viewport__body__row sg-menu shadow-lg">
+    <%= Phoenix.View.render SignuisWeb.LayoutView, "_user_menu.html", conn: @socket, current_user: @current_user, nav: [] %>
+  </div>
+  <div class="row sg-viewport__body__main">
+    <%= if "#{Mix.env}" === "dev" do %>
+    <div id="reporting-dev-toolbox" class="col-2 shadow" phx-hook="ReportingDevToolbox">
+      <h2>Dev Toolbox</h2>
     </div>
+    <% end %>
+    <div class="col sg-wrapper">
+      <div class="sg-wrapper__overlay sg-fullwidth">
+        <ul class="nav justify-content-center sg-fullwidth sg-gap--top">
+          <li class="nav-item px-2">
+            <a class="btn btn-primary" id="geolocation" phx-hook="Geolocation" aria-current="page" href="#">Localiser</a>
+          </li>
+          <li class="nav-item px-2">
+            <a class="btn btn-success" href="#" phx-click="form::report::toggle">Signaler</a>
+          </li>
+        </ul>
+      </div>
+      <.map id="map" phx-hook="Map" classes={["sg-map", "sg-wrapper__content"]} markers={@markers} />
+    </div>
+    <%= case @focused_entity do %>
+      <% %Signuis.Facilities.Facility{} = facility -> %>
+        <div class="sg-menu col-2 shadow-lg">
+          <h2><%= link facility.name, to: Routes.facilities_facility_path(@socket, :show, facility) %></h2>
+          <p><%= facility.description %></p>
+        </div>
+      <% _ -> %>
+    <% end %>
+  </div>
+    <%= if @display_report_form do %>
+  <div class="sg-viewport__body__row sg-menu shadow-lg">
+    <div class="container" id="report-form">
+      <.form let={f} for={@report_changeset} phx-change="report::validate" phx-submit="report::submit">
+        <div class="form-group">
+          <%= error_tag f, :location %>
+        </div>
+        
+        <div class="form-group">
+          <%= label f, :nuisance_type_id, "Type de nuisance" %>
+          <%= select f, :nuisance_type_id, @choices_nuisance_types, class: "form-control" %>
+          <%= error_tag f, :nuisance_type_id %>
+        </div>
+
+        <div class="form-group">
+          <%= label f, :nuisance_level, "Intensité" %>
+          <%= number_input f, :nuisance_level, class: "form-control", min: 1, max: 10  %>
+          <%= error_tag f, :nuisance_level %>
+        </div>
+
+        <div class="form-group">
+          <%= submit "Signaler", class: "btn btn-primary" %>
+        </div>
+      </.form>
+    </div>   
+  </div>
+  <% end %>
 </div>

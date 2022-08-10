@@ -12,13 +12,13 @@ defmodule SignuisWeb.Facilities.ReportController do
 
     facilities_reports = Facilities.list_facilities_reports(facility, chunk: {page - 1, 50})
 
-    render(conn,
-      "index.html",
-      facility: facility,
-      facilities_reports: facilities_reports,
-      page: page,
-      max_page: max_page
-    )
+    conn
+    |> assign(:facility, facility)
+    |> assign(:facilities_reports, facilities_reports)
+    |> assign(:page, page)
+    |> assign(:max_page, max_page)
+    |> SignuisWeb.Facilities.FacilityController.nav
+    |> render("index.html")
   end
 
 end

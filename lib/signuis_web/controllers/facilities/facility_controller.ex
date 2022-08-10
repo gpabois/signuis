@@ -4,6 +4,29 @@ defmodule SignuisWeb.Facilities.FacilityController do
   alias Signuis.Facilities
   alias Signuis.Facilities.Facility
 
+  def nav(%Plug.Conn{} = conn) do
+    conn
+    |> Plug.Conn.assign(:nav, [
+      {conn.assigns.facility.name, [
+        {Routes.facilities_live_path(conn, SignuisWeb.Facilities.DashboardLive, conn.assigns.facility), "Surveillance"},
+        {Routes.facilities_report_path(conn, :index, conn.assigns.facility), "Signalements"},
+        {Routes.facilities_member_path(conn, :index, conn.assigns.facility), "Equipe"}
+      ]}
+    ])
+  end
+
+  def nav(%Phoenix.LiveView.Socket{} = conn) do
+    conn
+    |> Phoenix.LiveView.assign(:nav, [
+      {conn.assigns.facility.name, [
+        {Routes.facilities_live_path(conn, SignuisWeb.Facilities.DashboardLive, conn.assigns.facility), "Surveillance"},
+        {Routes.facilities_report_path(conn, :index, conn.assigns.facility), "Signalements"},
+        {Routes.facilities_member_path(conn, :index, conn.assigns.facility), "Equipe"}
+      ]}
+    ])
+  end
+
+
   def index(conn, _params) do
     facilities = Facilities.list_facilities()
     render(conn, "index.html", facilities: facilities)

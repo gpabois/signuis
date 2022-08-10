@@ -1,8 +1,56 @@
-<%= if @current_user do %>
-  <%= @current_user.email %> |
-  <%= link "Settings", to: Routes.accounts_user_settings_path(@conn, :edit) %> |
-  <%= link "Log out", to: Routes.accounts_user_session_path(@conn, :delete), method: :delete %>
-<% else %>
-  <%= link "Register", to: Routes.accounts_user_registration_path(@conn, :new) %> |
-  <%= link "Log in", to: Routes.accounts_user_session_path(@conn, :new) %>
-<% end %>
+<nav class="navbar navbar-expand-lg bg-light shadow sg-fullwidth">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Signal'Nuisance</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="/">Acceuil</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href={Routes.facilities_facility_path(assigns[:conn] || assigns[:socket], :index)}>Installations</a>
+        </li>
+        <%= for nav <- (assigns[:nav] || []) do %>
+          <%= case nav do %>
+            <% {label, items} when is_list(items) -> %>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false" href="#"><%= label %></a>
+              <ul class="dropdown-menu">
+                <%= for {link, label} <- items do %>
+                  <li><a class="dropdown-item" href={link}><%= label %></a></li>   
+                <% end %>
+              </ul>
+            </li>
+            <% {link, label} -> %>
+            <li class="nav-item">
+              <a class="nav-link" href={link}><%= label %></a>
+            </li>
+          <% end %>
+        <% end %>
+        <li class="nav-item">
+          <a class="nav-link disabled">Signuis v<%= Application.spec(:signuis, :vsn) |> to_string() %></a>
+        </li>
+        <%= if assigns[:current_user] do %>
+          <li class="nav-item">
+            <span class="nav-link disabled"><%= @current_user.email %></span>
+          </li>
+          <li class="nav-item">
+            <%= link "Paramètres", class: "nav-link", to: Routes.accounts_user_settings_path(assigns[:conn] || assigns[:socket], :edit) %>
+          </li>
+          <li class="nav-item">
+            <%= link "Déconnexion", class: "nav-link", to: Routes.accounts_user_session_path(assigns[:conn] || assigns[:socket], :delete), method: :delete %>
+          </li>
+        <% else %>
+          <li class="nav-item">
+            <%= link "S'enregistrer", class: "nav-link", to: Routes.accounts_user_registration_path(assigns[:conn] || assigns[:socket], :new) %>
+          </li>
+          <li class="nav-item">
+            <%= link "Se connecter", class: "nav-link", to: Routes.accounts_user_session_path(assigns[:conn] || assigns[:socket], :new) %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+</nav>

@@ -1,15 +1,25 @@
 <.form let={f} for={@changeset} action={@action}>
   <%= if @changeset.action do %>
-    <div class="alert alert-danger">
-      <p>Oops, something went wrong! Please check the errors below.</p>
+    <div class="alert alert-danger" role="alert">
+      Oops, something went wrong! Please check the errors below.
     </div>
   <% end %>
 
-  <%= label f, :roles %>
-  <%= multiple_select f, :roles, ["Option 1": "option1", "Option 2": "option2"] %>
-  <%= error_tag f, :roles %>
+  <%= if @mode == :new do %>
+    <div class="mb-3">
+      <%= label f, :email %>
+      <%= text_input f, :email, class: "form-control" %>
+      <%= error_tag f, :email %>
+    </div>
+  <% end %>
 
-  <div>
-    <%= submit "Save" %>
+  <div class="mb-3">
+    <%= label f, :roles %>
+    <%= multiple_select f, :roles, ["Administrateur": "admin", "Manager": "manager", "Utilisateur": "user"], class: "form-control" %>
+    <%= error_tag f, :roles %>
+  </div>
+
+  <div class="mb-3">
+    <%= submit "Sauvegarder", class: "btn btn-primary" %>
   </div>
 </.form>

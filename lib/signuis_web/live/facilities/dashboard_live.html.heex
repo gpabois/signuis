@@ -1,28 +1,20 @@
-<div class="sg-map__wrapper">
-<.map id="map" center={@facility.location} phx-hook="Map" classes={["sg-map sg-map__fullpage", "col"]} markers={@markers} heatmap_cells={@heatmap_cells} />
-
-  <div class="container">
-    <div class="row">
-      <%= case @focused_entity do %>
-          <% %Signuis.Facilities.Facility{} = facility -> %>
-            <div class="col-2">
-              <h2><%= link facility.name, to: Routes.facilities_facility_path(@socket, :show, facility) %></h2>
-              <p><%= facility.description %></p>
-            </div>
-          <% _ -> %>
+<div class="sg-viewport">
+    <div class="sg-viewport__body__row ">
+      <%= Phoenix.View.render SignuisWeb.LayoutView, "_user_menu.html", assigns %>
+    </div>
+    <div class="row sg-viewport__body__main">
+      <div class="col sg-wrapper">
+        <.map id="map" center={@facility.location} phx-hook="Map" classes={["sg-map", "wrapper__content"]} markers={@markers} heatmap_cells={@heatmap_cells} />
+      </div>
+      <%= if "#{Mix.env}" === "dev" do %>
+      <div id="reporting-dev-toolbox" class="col-2" phx-hook="ReportingDevToolbox">
+        <h2>Dev Toolbox</h2>
+        <button class="btn" phx-click="dev::reports::delete_all">Tout supprimer</button>
+        <button class="btn" phx-click="dev::reports::generate" phx-value-number="10">Générer 10 signalements</button>
+        <button class="btn" phx-click="dev::reports::generate" phx-value-number="100">Générer 100 signalements</button>
+        <button class="btn" phx-click="dev::reports::generate" phx-value-number="500">Générer 500 signalements</button>
+        <button class="btn" phx-click="dev::reports::generate" phx-value-number="5000">Générer 5000 signalements</button>
+      </div>
       <% end %>
-    </div>
   </div>
-
-
-  <%= if "#{Mix.env}" === "dev" do %>
-    <div id="reporting-dev-toolbox" class="sg-map__overlay" phx-hook="ReportingDevToolbox">
-      <h2>Dev Toolbox</h2>
-      <button class="btn" phx-click="dev::reports::delete_all">Tout supprimer</button>
-      <button class="btn" phx-click="dev::reports::generate" phx-value-number="10">Générer 10 signalements</button>
-      <button class="btn" phx-click="dev::reports::generate" phx-value-number="100">Générer 100 signalements</button>
-      <button class="btn" phx-click="dev::reports::generate" phx-value-number="500">Générer 500 signalements</button>
-      <button class="btn" phx-click="dev::reports::generate" phx-value-number="5000">Générer 5000 signalements</button>
-    </div>
-  <% end %>
 </div>

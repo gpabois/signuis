@@ -14,6 +14,7 @@ defmodule SignuisWeb.Reporting.HomeLive do
 
     {:ok,
       socket
+      |> assign(:current_user, nil)
       |> assign(:facilities, [])
       |> assign(:focused_entity, nil)
       |> assign(:location, nil)
@@ -106,11 +107,19 @@ defmodule SignuisWeb.Reporting.HomeLive do
   end
 
   def handle_info({"geolocation::position-updated", position}, socket) do
-    {:noreply,
+    # If it is the first location we get, we fly to it.
+    socket = if socket.assigns.location == nil do
       socket
-      |> assign(:location, position)
-      |> update_map
-    }
+      |> fly_to(position)
+    else
+      socket
+    end
+
+    socket = socket
+    |> assign(:location, position)
+    |> update_map
+
+    {:noreply, socket}
   end
 
 end
