@@ -71,6 +71,13 @@ defmodule SignuisWeb.Router do
 
     resources "/members", MemberController, only: [:update, :edit, :delete]
 
+    get "/:facility_id/production/new", ProductionController, :new
+    post "/:facility_id/production", ProductionController, :create
+
+    get "/:facility_id/production", ProductionController, :index
+
+    resources "/production", ProductionController, only: [:update, :edit, :delete]
+
     get "/:facility_id/reports", ReportController, :index
   end
 

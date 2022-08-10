@@ -24,9 +24,12 @@ import "phoenix_html"
 // Establish Phoenix Socket and LiveView configuration.
 import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
-import topbar from "../vendor/topbar"
+
 import './component/loader'
 import Hooks from './_hooks'
+
+import topbar from "../vendor/topbar.js"
+import tempusDominus from "../vendor/tempus-dominus/tempus-dominus"
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {params: {_csrf_token: csrfToken}, hooks: Hooks})
@@ -44,15 +47,7 @@ liveSocket.connect()
 // >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
+window.tempusDominus = tempusDominus;
 
-function onDOMLoaded() {  
-}
-
-function onPhxUpdate() {
-}
-
-function onDocumentUnload() {
-}
-
-window.addEventListener('DOMContentLoaded', onDOMLoaded);
-window.addEventListener('unload', onDocumentUnload);
+window.addEventListener('DOMContentLoaded', function(ev) {
+});

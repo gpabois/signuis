@@ -1,30 +1,17 @@
-<span><%= link "Retour", to: Routes.facilities_facility_path(@conn, :index) %></span>
+<div class="container">
+  <h1>Installation <%= @facility.name %></h1>
 
-<h1>Installation <%= @facility.name %></h1>
-
-<ul>
-
-  <li>
-    <strong>Description:</strong>
+  <p>
     <%= @facility.description %>
-  </li>
+  </p>
+  <ul class="bi">
+    <li class="bi-geo-point-fill">
+      <%= @facility.adresse__street %>, <%= @facility.adresse__zip_code %> <%= @facility.adresse__city %>
+    </li>
+  </ul>
 
-  <li>
-    <strong>Adresse  voie:</strong>
-    <%= @facility.adresse__street %>
-  </li>
+  <.map center={@facility.location}  classes={["sg-map-quickview"]} markers={[SignuisWeb.MapMarker.to(@facility)]} />
+</div>
 
-  <li>
-    <strong>Adresse  commune:</strong>
-    <%= @facility.adresse__city %>
-  </li>
-
-  <li>
-    <strong>Adresse  code postal:</strong>
-    <%= @facility.adresse__zip_code %>
-  </li>
-</ul>
-
-<.map center={@facility.location}  classes={["sg-map-quickview"]} markers={[SignuisWeb.MapMarker.to(@facility)]} />
 
 

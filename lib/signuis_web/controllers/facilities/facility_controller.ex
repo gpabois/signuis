@@ -9,6 +9,7 @@ defmodule SignuisWeb.Facilities.FacilityController do
     |> Plug.Conn.assign(:nav, [
       {conn.assigns.facility.name, [
         {Routes.facilities_live_path(conn, SignuisWeb.Facilities.DashboardLive, conn.assigns.facility), "Surveillance"},
+        {Routes.facilities_production_path(conn, :index, conn.assigns.facility), "Planning de production"},
         {Routes.facilities_report_path(conn, :index, conn.assigns.facility), "Signalements"},
         {Routes.facilities_member_path(conn, :index, conn.assigns.facility), "Equipe"}
       ]}
@@ -20,6 +21,7 @@ defmodule SignuisWeb.Facilities.FacilityController do
     |> Phoenix.LiveView.assign(:nav, [
       {conn.assigns.facility.name, [
         {Routes.facilities_live_path(conn, SignuisWeb.Facilities.DashboardLive, conn.assigns.facility), "Surveillance"},
+        {Routes.facilities_production_path(conn, :index, conn.assigns.facility), "Planning de production"},
         {Routes.facilities_report_path(conn, :index, conn.assigns.facility), "Signalements"},
         {Routes.facilities_member_path(conn, :index, conn.assigns.facility), "Equipe"}
       ]}
@@ -51,7 +53,11 @@ defmodule SignuisWeb.Facilities.FacilityController do
 
   def show(conn, %{"id" => id}) do
     facility = Facilities.get_facility!(id)
-    render(conn, "show.html", facility: facility)
+
+    conn
+    |> assign(:facility, facility)
+    |> nav
+    |> render("show.html")
   end
 
   def edit(conn, %{"id" => id}) do

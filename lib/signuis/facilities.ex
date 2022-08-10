@@ -8,6 +8,8 @@ defmodule Signuis.Facilities do
 
   alias Signuis.Facilities.Facility
   alias Signuis.Facilities.Member
+  alias Signuis.Facilities.Production
+
   alias Signuis.Reporting.Report
 
   @doc """
@@ -268,5 +270,99 @@ defmodule Signuis.Facilities do
   """
   def change_member(%Member{} = member, attrs, opts \\ []) do
     Member.changeset(member, attrs, opts)
+  end
+
+  @doc """
+  Returns the list of facilities_productions.
+
+  ## Examples
+
+      iex> list_facilities_productions()
+      [%Production{}, ...]
+
+  """
+  def list_facilities_productions(opts \\ []) do
+    Production.list(opts)
+  end
+
+  @doc """
+  Gets a single production.
+
+  Raises `Ecto.NoResultsError` if the Production does not exist.
+
+  ## Examples
+
+      iex> get_production!(123)
+      %Production{}
+
+      iex> get_production!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_production!(id), do: Repo.get!(Production, id)
+
+  @doc """
+  Creates a production.
+
+  ## Examples
+
+      iex> create_production(%{field: value})
+      {:ok, %Production{}}
+
+      iex> create_production(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_production(attrs \\ %{}) do
+    %Production{}
+    |> Production.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a production.
+
+  ## Examples
+
+      iex> update_production(production, %{field: new_value})
+      {:ok, %Production{}}
+
+      iex> update_production(production, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_production(%Production{} = production, attrs) do
+    production
+    |> Production.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a production.
+
+  ## Examples
+
+      iex> delete_production(production)
+      {:ok, %Production{}}
+
+      iex> delete_production(production)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_production(%Production{} = production) do
+    Repo.delete(production)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking production changes.
+
+  ## Examples
+
+      iex> change_production(production)
+      %Ecto.Changeset{data: %Production{}}
+
+  """
+  def change_production(%Production{} = production, attrs \\ %{}) do
+    Production.changeset(production, attrs)
   end
 end

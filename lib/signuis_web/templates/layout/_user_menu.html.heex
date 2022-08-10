@@ -30,7 +30,7 @@
           <% end %>
         <% end %>
         <li class="nav-item">
-          <a class="nav-link disabled">Signuis v<%= Application.spec(:signuis, :vsn) |> to_string() %></a>
+          <a class="nav-link" href="https://github.com/gpabois/signuis">Signuis v<%= Application.spec(:signuis, :vsn) |> to_string() %></a>
         </li>
         <%= if assigns[:current_user] do %>
           <li class="nav-item">

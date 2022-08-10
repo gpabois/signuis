@@ -23,9 +23,18 @@
     </div>
     <%= case @focused_entity do %>
       <% %Signuis.Facilities.Facility{} = facility -> %>
-        <div class="sg-menu col-2 shadow-lg">
-          <h2><%= link facility.name, to: Routes.facilities_facility_path(@socket, :show, facility) %></h2>
+        <div class="sg-menu col-3 shadow-lg container">
+          <h2><%= facility.name %></h2>
+          <%= link "Fiche", to: Routes.facilities_facility_path(@socket, :show, facility) %>
+          <hr>
           <p><%= facility.description %></p>
+          <hr>
+          <ul class="bi">
+            <li class="bi-geo-point-fill">
+              <small><%= facility.adresse__street %>, <%= facility.adresse__zip_code %> <%= facility.adresse__city %></small>
+            </li>
+          </ul>
+          <hr>
         </div>
       <% _ -> %>
     <% end %>

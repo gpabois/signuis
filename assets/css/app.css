@@ -1,3 +1,5 @@
+@import "../vendor/tempus-dominus/tempus-dominus.css";
+
 /* Signuis Framework */
 .leaflet-div-icon {
   background: none;
@@ -108,4 +110,16 @@
 
 .sg-gap--top {
   padding: 10px;
+}
+
+ul.bi {
+	list-style: none;
+}
+
+ul.bi li::before {
+	font-family: bootstrap-icons !important;
+}
+
+ul.bi li.bi-geo-point-fill::before {
+  content: '\F3E7';
 }

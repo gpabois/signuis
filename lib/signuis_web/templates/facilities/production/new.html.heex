@@ -1,0 +1,5 @@
+<div class="container">
+    <h1>Nouvelle période de production</h1>
+    <%= render "form.html", Map.put(assigns, :action, Routes.facilities_production_path(@conn, :create, @facility)) %>
+    <span><%= link "Retour", to: Routes.facilities_production_path(@conn, :index, @facility) %></span>
+</div>

@@ -1,38 +1,27 @@
-<h1>Listing Facilities</h1>
+<div class="container">
+<h1>Liste des installations</h1>
 
-<table>
+<table class="table">
   <thead>
     <tr>
       <th>Nom</th>
-      <th>Description</th>
-      <th>Location  lat</th>
-      <th>Location  lng</th>
-      <th>Valid</th>
-      <th>Adresse  voie</th>
-      <th>Adresse  commune</th>
-      <th>Adresse  code postal</th>
-
+      <th>Voie</th>
+      <th>Commune</th>
+      <th>Code postal</th>
       <th></th>
     </tr>
   </thead>
   <tbody>
 <%= for facility <- @facilities do %>
     <tr>
-      <td><%= facility.name %></td>
-      <td><%= facility.description %></td>
-      <td><%= facility.location__lat %></td>
-      <td><%= facility.location__lng %></td>
-      <td><%= facility.valid %></td>
+      <td><%= link facility.name, to: Routes.facilities_facility_path(@conn, :show, facility) %></td>
       <td><%= facility.adresse__street %></td>
       <td><%= facility.adresse__city %></td>
       <td><%= facility.adresse__zip_code %></td>
-
-      <td>
-        <span><%= link "Show", to: Routes.facilities_facility_path(@conn, :show, facility) %></span>
-      </td>
     </tr>
 <% end %>
   </tbody>
 </table>
 
-<span><%= link "New Facility", to: Routes.facilities_facility_path(@conn, :new) %></span>
+<span><%= link "Nouvelle installation", to: Routes.facilities_facility_path(@conn, :new) %></span>
+</div>

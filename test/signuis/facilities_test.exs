@@ -124,4 +124,60 @@ defmodule Signuis.FacilitiesTest do
       assert %Ecto.Changeset{} = Facilities.change_member(member)
     end
   end
+
+  describe "facilities_productions" do
+    alias Signuis.Facilities.Production
+
+    import Signuis.FacilitiesFixtures
+
+    @invalid_attrs %{begin: nil, end: nil}
+
+    test "list_facilities_productions/0 returns all facilities_productions" do
+      production = production_fixture()
+      assert Facilities.list_facilities_productions() == [production]
+    end
+
+    test "get_production!/1 returns the production with given id" do
+      production = production_fixture()
+      assert Facilities.get_production!(production.id) == production
+    end
+
+    test "create_production/1 with valid data creates a production" do
+      valid_attrs = %{begin: ~N[2022-08-09 14:24:00], end: ~N[2022-08-09 14:24:00]}
+
+      assert {:ok, %Production{} = production} = Facilities.create_production(valid_attrs)
+      assert production.begin == ~N[2022-08-09 14:24:00]
+      assert production.end == ~N[2022-08-09 14:24:00]
+    end
+
+    test "create_production/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Facilities.create_production(@invalid_attrs)
+    end
+
+    test "update_production/2 with valid data updates the production" do
+      production = production_fixture()
+      update_attrs = %{begin: ~N[2022-08-10 14:24:00], end: ~N[2022-08-10 14:24:00]}
+
+      assert {:ok, %Production{} = production} = Facilities.update_production(production, update_attrs)
+      assert production.begin == ~N[2022-08-10 14:24:00]
+      assert production.end == ~N[2022-08-10 14:24:00]
+    end
+
+    test "update_production/2 with invalid data returns error changeset" do
+      production = production_fixture()
+      assert {:error, %Ecto.Changeset{}} = Facilities.update_production(production, @invalid_attrs)
+      assert production == Facilities.get_production!(production.id)
+    end
+
+    test "delete_production/1 deletes the production" do
+      production = production_fixture()
+      assert {:ok, %Production{}} = Facilities.delete_production(production)
+      assert_raise Ecto.NoResultsError, fn -> Facilities.get_production!(production.id) end
+    end
+
+    test "change_production/1 returns a production changeset" do
+      production = production_fixture()
+      assert %Ecto.Changeset{} = Facilities.change_production(production)
+    end
+  end
 end
