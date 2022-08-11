@@ -17,10 +17,17 @@ defmodule Signuis.Facilities.Production do
   end
 
   @doc false
-  def changeset(production, attrs) do
-    production
-    |> cast(attrs, [:begin, :end])
-    |> validate_required([:begin, :end])
+  def changeset(production, attrs, opts \\ []) do
+    case Keyword.get(opts, :mode, :default) do
+      :default ->
+        production
+        |> cast(attrs, [:facility_id, :begin, :end])
+        |> validate_required([:facility_id, :begin, :end])
+      :toggle ->
+        production
+        |> cast(attrs, [:facility_id, :begin, :end])
+        |> validate_required([:facility_id, :begin])
+    end
   end
 
   def list(opts \\ []) do
@@ -33,6 +40,9 @@ defmodule Signuis.Facilities.Production do
     |> Repo.preload(preload)
   end
 
+  def filter_on_attribute({:end, value}, query) do
+    where(query, [b], b.end == ^value)
+  end
 
   def filter_on_attribute({:facility, facility}, query) do
     where(query, [b], b.facility_id == ^facility.id)

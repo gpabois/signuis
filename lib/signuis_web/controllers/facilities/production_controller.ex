@@ -17,7 +17,7 @@ defmodule SignuisWeb.Facilities.ProductionController do
 
   def new(conn, %{"facility_id" => facility_id}) do
     facility = Facilities.get_facility!(facility_id)
-    changeset = Facilities.change_production(%Production{})
+    changeset = Facilities.change_production(%Production{}, %{})
 
     conn
     |> assign(:changeset, changeset)
@@ -49,7 +49,7 @@ defmodule SignuisWeb.Facilities.ProductionController do
   def edit(conn, %{"id" => id}) do
     production = Facilities.get_production!(id)
     facility = Facilities.get_facility!(production.facility_id)
-    changeset = Facilities.change_production(production)
+    changeset = Facilities.change_production(production, %{})
 
     conn
     |> assign(:changeset, changeset)

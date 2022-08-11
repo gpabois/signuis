@@ -6,6 +6,7 @@ defmodule SignuisWeb.Router do
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
+    plug SignuisWeb.Plugs.SessionId
     plug :fetch_live_flash
     plug :put_root_layout, {SignuisWeb.LayoutView, :root}
     plug :protect_from_forgery
@@ -83,9 +84,19 @@ defmodule SignuisWeb.Router do
 
   scope "/facilities", SignuisWeb.Facilities, as: :facilities do
     pipe_through [:browser]
-
     resources "/", FacilityController, only: [:show, :index]
+  end
 
+  ## Messages
+  scope "/messages", SignuisWeb.Messaging, as: :messaging do
+    pipe_through [:browser]
+    resources "/", MessageController, only: [:index]
+  end
+
+  # Reports
+  scope "/reports", SignuisWeb.Reporting, as: :reporting do
+    pipe_through [:browser]
+    resources "/", ReportController, only: [:index]
   end
 
   ## Authentication routes

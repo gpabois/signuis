@@ -14,7 +14,6 @@ defmodule SignuisWeb.Reporting.HomeLive do
 
     {:ok,
       socket
-      |> assign(:current_user, nil)
       |> assign(:facilities, [])
       |> assign(:focused_entity, nil)
       |> assign(:location, nil)
@@ -69,6 +68,13 @@ defmodule SignuisWeb.Reporting.HomeLive do
   end
 
   def handle_event("report::submit", %{"report" => report_params}, socket) do
+    report_params = case socket.assigns do
+      %{current_user: current_user} when not is_nil(current_user) ->
+        %{"user_id" => current_user.id}
+      %{current_session_id: session_id} ->
+        %{"session_id" => session_id}
+    end |> Map.merge(report_params)
+
     result = Reporting.create_report(report_params, pre_validations: [&(cast_location(&1, socket.assigns.location))])
     socket = case result do
       {:ok, _report} ->

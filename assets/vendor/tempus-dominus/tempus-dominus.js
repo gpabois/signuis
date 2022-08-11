@@ -1558,6 +1558,9 @@
             const components = this.optionsStore.options.display.components;
             if (!date)
                 return '';
+            
+            return date.toISOString();
+
             return date.format({
                 year: components.calendar && components.year ? 'numeric' : undefined,
                 month: components.calendar && components.month ? '2-digit' : undefined,

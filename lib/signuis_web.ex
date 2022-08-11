@@ -48,6 +48,8 @@ defmodule SignuisWeb do
       use Phoenix.LiveView,
         layout: {SignuisWeb.LayoutView, "live.html"}
 
+      on_mount {SignuisWeb.Accounts.LiveUserAuth, :assign_current_user}
+
       unquote(view_helpers())
     end
   end

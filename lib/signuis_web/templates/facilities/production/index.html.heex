@@ -13,13 +13,12 @@
     <tbody>
   <%= for production <- @facilities_productions do %>
       <tr>
-        <td><%= production.begin %></td>
-        <td><%= production.end %></td>
+        <td><%= production.begin |> Timex.from_now %></td>
+        <td><%= if production.end, do: production.end |> Timex.from_now, else: "En cours" %></td>
 
         <td>
-          <span><%= link "Show", to: Routes.facilities_production_path(@conn, :show, production) %></span>
-          <span><%= link "Edit", to: Routes.facilities_production_path(@conn, :edit, production) %></span>
-          <span><%= link "Delete", to: Routes.facilities_production_path(@conn, :delete, production), method: :delete, data: [confirm: "Are you sure?"] %></span>
+          <span><%= link "Modifier", to: Routes.facilities_production_path(@conn, :edit, production) %></span>
+          <span><%= link "Supprimer", to: Routes.facilities_production_path(@conn, :delete, production), method: :delete, data: [confirm: "Are you sure?"] %></span>
         </td>
       </tr>
   <% end %>

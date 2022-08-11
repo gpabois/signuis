@@ -1,0 +1,20 @@
+<div class="container">
+  <h1>Signalements</h1>
+
+  <table class="container">
+    <thead>
+      <tr>
+        <th>Nuisance</th>
+        <th>Signalé le</th>
+      </tr>
+    </thead>
+    <tbody>
+  <%= for report <- @reports do %>
+      <tr>
+        <td><%= report.nuisance_type.label %></td>
+        <td><%= report.inserted_at %></td>
+      </tr>
+  <% end %>
+    </tbody>
+  </table>
+</div>

@@ -11,12 +11,15 @@ defmodule SignuisWeb.Facilities.DashboardLive do
   @grid_size 0.001
 
   def mount(%{"facility_id" => facility_id} = params, session, socket) do
-    :timer.send_interval(10000, :fetch)
+    :timer.send_interval(10000, :fetch_new_reports)
+    facility = Facilities.get_facility!(facility_id)
+
+    Phoenix.PubSub.subscribe(Signuis.PubSub, "facilities::#{facility.id}")
 
     {:ok,
       socket
-      |> assign(:current_user, nil)
-      |> assign(:facility, Facilities.get_facility!(facility_id))
+      |> assign(:current_production, Facilities.current_ongoing_production(facility))
+      |> assign(:facility, facility)
       |> assign(:facilities, [])
       |> assign(:focused_entity, nil)
       |> assign(:report_heatmap, [])
@@ -49,6 +52,31 @@ defmodule SignuisWeb.Facilities.DashboardLive do
     end
   end
 
+  def handle_info({:begin_facility_production, production}, socket) do
+    socket = socket
+    |> assign(:current_production, production)
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:end_facility_production, production}, socket) do
+    socket =socket
+    |> assign(:current_production, nil)
+
+    {:noreply, socket}
+  end
+
+  def handle_info(:fetch_new_reports, socket) do
+    socket = if socket.assigns.map_bounds do
+      socket
+      |> assign(:report_heatmap, Reporting.get_report_heatmap(grid: @grid_size, bounds: socket.assigns.map_bounds))
+      |> update_map
+    else
+      socket
+    end
+    {:noreply, socket}
+  end
+
   def handle_event("dev::reports::generate", %{"number" => number}, socket) do
     facility = socket.assigns.facility
     for _i <- 1..String.to_integer(number) do
@@ -72,6 +100,11 @@ defmodule SignuisWeb.Facilities.DashboardLive do
   def handle_event("form::report::toggle", _value, socket) do
     socket = socket
     |> assign(:display_report_form, not socket.assigns.display_report_form)
+    {:noreply, socket}
+  end
+
+  def handle_event("production::toggle", _, socket) do
+    Facilities.toggle_production(socket.assigns.facility)
     {:noreply, socket}
   end
 
@@ -114,17 +147,6 @@ defmodule SignuisWeb.Facilities.DashboardLive do
     end
 
     {:noreply, socket |> assign(:focused_entity, entity)}
-  end
-
-  def handle_info(:fetch, socket) do
-    socket = if socket.assigns.map_bounds do
-      socket
-      |> assign(:report_heatmap, Reporting.get_report_heatmap(grid: @grid_size, bounds: socket.assigns.map_bounds))
-      |> update_map
-    else
-      socket
-    end
-    {:noreply, socket}
   end
 
   def handle_info({"map::bounds-updated", bounds}, socket) do

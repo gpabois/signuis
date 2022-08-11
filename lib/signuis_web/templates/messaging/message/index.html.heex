@@ -1,0 +1,22 @@
+<div class="container">
+  <h1>Messages</h1>
+
+  <table>
+    <thead>
+      <tr>
+
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+  <%= for message <- @messages do %>
+      <tr>
+
+        <td>
+          <span><%= link "Voir", to: Routes.message_path(@conn, :show, message) %></span>
+        </td>
+      </tr>
+  <% end %>
+    </tbody>
+  </table>
+</div>

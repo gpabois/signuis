@@ -1,6 +1,6 @@
 <div class="sg-viewport">
   <div class="sg-viewport__body__row sg-menu shadow-lg">
-    <%= Phoenix.View.render SignuisWeb.LayoutView, "_user_menu.html", conn: @socket, current_user: @current_user, nav: [] %>
+    <%= Phoenix.View.render SignuisWeb.LayoutView, "_user_menu.html", assigns %>
   </div>
   <div class="row sg-viewport__body__main">
     <%= if "#{Mix.env}" === "dev" do %>

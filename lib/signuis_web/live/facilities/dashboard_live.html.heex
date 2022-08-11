@@ -1,9 +1,31 @@
 <div class="sg-viewport">
-    <div class="sg-viewport__body__row ">
+    <div class="sg-viewport__body__row" style="z-index: 100000;">
       <%= Phoenix.View.render SignuisWeb.LayoutView, "_user_menu.html", assigns %>
     </div>
     <div class="row sg-viewport__body__main">
       <div class="col sg-wrapper">
+          <div class="sg-wrapper__overlay sg-fullwidth">
+          <ul class="nav justify-content-center sg-fullwidth sg-gap--top">
+            <li class="nav-item px-2">
+              <%= if @current_production do %>
+                <a class="btn btn-danger" href="#" phx-click="production::toggle">
+                  <i class="bi bi-stop-circle-fill"></i>
+                </a>
+              <% else %>
+              <a class="btn btn-success" href="#" phx-click="production::toggle">
+                  <i class="bi bi-play-circle-fill"></i>
+                </a>
+              <% end %>
+            </li>
+
+            <%= if @current_production do %>
+            <li>
+              <a class="btn bg-light">En production depuis <%= @current_production.begin %></a>
+            </li>
+            <% else %>
+            <% end %>
+          </ul>
+        </div>
         <.map id="map" center={@facility.location} phx-hook="Map" classes={["sg-map", "wrapper__content"]} markers={@markers} heatmap_cells={@heatmap_cells} />
       </div>
       <%= if "#{Mix.env}" === "dev" do %>

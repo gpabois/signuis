@@ -273,6 +273,20 @@ defmodule Signuis.Facilities do
   end
 
   @doc """
+    Toggle production in a facility
+  """
+  def toggle_production(%Facility{} = facility) do
+    Signuis.Facilities.Servers.Production.toggle_production(facility)
+  end
+
+  def current_ongoing_production(%Facility{} = facility) do
+    Production
+    |> where([p], is_nil(p.end))
+    |> where([p], p.facility_id == ^facility.id)
+    |> Repo.one
+  end
+
+  @doc """
   Returns the list of facilities_productions.
 
   ## Examples
@@ -313,10 +327,19 @@ defmodule Signuis.Facilities do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_production(attrs \\ %{}) do
-    %Production{}
-    |> Production.changeset(attrs)
-    |> Repo.insert()
+  def create_production(attrs, opts \\ []) do
+    with {:ok, production} <- %Production{}
+    |> Production.changeset(attrs, opts)
+    |> Repo.insert() do
+      cond do
+        production.end == nil ->
+          facility = get_facility!(production.facility_id)
+          Signuis.EventTypes.begin_production(facility, production)
+        true -> {}
+      end
+
+      {:ok, production}
+    end
   end
 
   @doc """
@@ -331,10 +354,20 @@ defmodule Signuis.Facilities do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_production(%Production{} = production, attrs) do
-    production
-    |> Production.changeset(attrs)
-    |> Repo.update()
+  def update_production(%Production{} = production, attrs, opts \\ []) do
+    prev_end = production.end
+    with {:ok, production} <- production
+    |> Production.changeset(attrs, opts)
+    |> Repo.update() do
+      cond do
+        # We finished the production
+        prev_end == nil and production.end != nil ->
+          facility = get_facility!(production.facility_id)
+          Signuis.EventTypes.end_production(facility, production)
+        true -> {}
+      end
+      {:ok, production}
+    end
   end
 
   @doc """
@@ -362,7 +395,7 @@ defmodule Signuis.Facilities do
       %Ecto.Changeset{data: %Production{}}
 
   """
-  def change_production(%Production{} = production, attrs \\ %{}) do
-    Production.changeset(production, attrs)
+  def change_production(%Production{} = production, attrs, opts \\ []) do
+    Production.changeset(production, attrs, opts)
   end
 end

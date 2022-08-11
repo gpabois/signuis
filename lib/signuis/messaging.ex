@@ -1,0 +1,326 @@
+defmodule Signuis.Messaging do
+  @moduledoc """
+  The Messaging context.
+  """
+
+  import Ecto.Query, warn: false
+  alias Signuis.Repo
+
+  alias Signuis.Messaging.Message
+  alias Signuis.Reporting
+  alias Signuis.Facilities
+  @doc """
+  Returns the list of messages.
+
+  ## Examples
+
+      iex> list_messages()
+      [%Message{}, ...]
+
+  """
+  def list_messages(opts \\ []) do
+    Message.list(opts)
+  end
+
+  @doc """
+  Gets a single message.
+
+  Raises `Ecto.NoResultsError` if the Message does not exist.
+
+  ## Examples
+
+      iex> get_message!(123)
+      %Message{}
+
+      iex> get_message!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_message!(id), do: Repo.get!(Message, id)
+
+  @doc """
+  Creates a message.
+
+  ## Examples
+
+      iex> create_message(%{field: value})
+      {:ok, %Message{}}
+
+      iex> create_message(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_message(attrs \\ %{}) do
+    %Message{}
+    |> Message.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a message.
+
+  ## Examples
+
+      iex> update_message(message, %{field: new_value})
+      {:ok, %Message{}}
+
+      iex> update_message(message, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_message(%Message{} = message, attrs) do
+    message
+    |> Message.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a message.
+
+  ## Examples
+
+      iex> delete_message(message)
+      {:ok, %Message{}}
+
+      iex> delete_message(message)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_message(%Message{} = message) do
+    Repo.delete(message)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking message changes.
+
+  ## Examples
+
+      iex> change_message(message)
+      %Ecto.Changeset{data: %Message{}}
+
+  """
+  def change_message(%Message{} = message, attrs \\ %{}) do
+    Message.changeset(message, attrs)
+  end
+
+  alias Signuis.Messaging.ReportCallback
+
+  def get_remaining_reports(%ReportCallback{} = report_callback) do
+    if report_callback.factory_production_id do
+      factory_production = Facilities.get_factory_production!(report_callback.factory_production_id)
+
+      Reporting.list_reports(filter: %{
+        "factory"             => factory_production,
+        "not-report-callback" => report_callback,
+        "timerange"           => {factory_production.begin, factory_production.end}
+      })
+    else
+      []
+    end
+  end
+
+  def has_remaining_reports?(%ReportCallback{} = report_callback) do
+    if report_callback.factory_production_id do
+      factory_production = Facilities.get_factory_production!(report_callback.factory_production_id)
+
+      Reporting.count_reports(filter: %{
+        "factory"             => factory_production,
+        "not-report-callback" => report_callback,
+        "timerange"           => {factory_production.begin, factory_production.end}
+      }) > 0
+    else
+      false
+    end
+  end
+
+
+  @doc """
+  Returns the list of report_callbacks.
+
+  ## Examples
+
+      iex> list_report_callbacks()
+      [%ReportCallback{}, ...]
+
+  """
+  def list_report_callbacks(opts \\ []) do
+    ReportCallback.list(opts)
+  end
+
+  @doc """
+  Gets a single report_callback.
+
+  Raises `Ecto.NoResultsError` if the ReportCallback does not exist.
+
+  ## Examples
+
+      iex> get_report_callback!(123)
+      %ReportCallback{}
+
+      iex> get_report_callback!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_report_callback!(id), do: Repo.get!(ReportCallback, id)
+
+  @doc """
+  Creates a report_callback.
+
+  ## Examples
+
+      iex> create_report_callback(%{field: value})
+      {:ok, %ReportCallback{}}
+
+      iex> create_report_callback(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_report_callback(attrs \\ %{}) do
+    %ReportCallback{}
+    |> ReportCallback.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a report_callback.
+
+  ## Examples
+
+      iex> update_report_callback(report_callback, %{field: new_value})
+      {:ok, %ReportCallback{}}
+
+      iex> update_report_callback(report_callback, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_report_callback(%ReportCallback{} = report_callback, attrs) do
+    report_callback
+    |> ReportCallback.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a report_callback.
+
+  ## Examples
+
+      iex> delete_report_callback(report_callback)
+      {:ok, %ReportCallback{}}
+
+      iex> delete_report_callback(report_callback)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_report_callback(%ReportCallback{} = report_callback) do
+    Repo.delete(report_callback)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking report_callback changes.
+
+  ## Examples
+
+      iex> change_report_callback(report_callback)
+      %Ecto.Changeset{data: %ReportCallback{}}
+
+  """
+  def change_report_callback(%ReportCallback{} = report_callback, attrs \\ %{}) do
+    ReportCallback.changeset(report_callback, attrs)
+  end
+
+  alias Signuis.Messaging.ReportCallbackAck
+
+  @doc """
+  Returns the list of reports_report_callbacks_acks.
+
+  ## Examples
+
+      iex> list_reports_report_callbacks_acks()
+      [%ReportCallbackAck{}, ...]
+
+  """
+  def list_reports_report_callbacks_acks do
+    Repo.all(ReportCallbackAck)
+  end
+
+  @doc """
+  Gets a single report_callback_ack.
+
+  Raises `Ecto.NoResultsError` if the Report report_callback ack does not exist.
+
+  ## Examples
+
+      iex> get_report_callback_ack!(123)
+      %ReportReportCallbackAck{}
+
+      iex> get_report_callback_ack!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_report_callback_ack!(id), do: Repo.get!(ReportCallbackAck, id)
+
+  @doc """
+  Creates a report_callback_ack.
+
+  ## Examples
+
+      iex> create_report_callback_ack(%{field: value})
+      {:ok, %ReportReportCallbackAck{}}
+
+      iex> create_report_callback_ack(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_report_callback_ack(attrs \\ %{}) do
+    %ReportCallbackAck{}
+    |> ReportCallbackAck.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a report_callback_ack.
+
+  ## Examples
+
+      iex> update_report_callback_ack(report_callback_ack, %{field: new_value})
+      {:ok, %ReportReportCallbackAck{}}
+
+      iex> update_report_callback_ack(report_callback_ack, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_report_callback_ack(%ReportCallbackAck{} = report_callback_ack, attrs) do
+    report_callback_ack
+    |> ReportCallbackAck.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a report_callback_ack.
+
+  ## Examples
+
+      iex> delete_report_callback_ack(report_callback_ack)
+      {:ok, %ReportReportCallbackAck{}}
+
+      iex> delete_report_callback_ack(report_callback_ack)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_report_callback_ack(%ReportCallbackAck{} = report_callback_ack) do
+    Repo.delete(report_callback_ack)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking report_callback_ack changes.
+
+  ## Examples
+
+      iex> change_report_callback_ack(report_callback_ack)
+      %Ecto.Changeset{data: %ReportCallbackAck{}}
+
+  """
+  def change_report_callback_ack(%ReportCallbackAck{} = report_callback_ack, attrs \\ %{}) do
+    ReportCallbackAck.changeset(report_callback_ack, attrs)
+  end
+end

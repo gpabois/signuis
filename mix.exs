@@ -34,6 +34,7 @@ defmodule Signuis.MixProject do
   defp deps do
     [
       {:inflex, "~> 2.0.0"},
+      {:timex, "~> 3.7.9"},
       {:pbkdf2_elixir, "~> 2.0"},
       {:geocalc, "~> 0.8"},
       {:surface, "~> 0.7.5"},

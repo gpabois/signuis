@@ -16,8 +16,10 @@ defmodule Signuis.Application do
       {Phoenix.PubSub, name: Signuis.PubSub},
       # Start the Endpoint (http/https)
       SignuisWeb.Endpoint,
-      # Start the dispatcher related to the facilities
-      Signuis.Facilities.Dispatcher
+      # Assign the reports to facilities
+      Signuis.Facilities.Servers.Report,
+      # Manage facility production (toggle)
+      Signuis.Facilities.Servers.Production
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
