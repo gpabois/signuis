@@ -5,6 +5,8 @@ defmodule SignuisWeb.Facilities.DashboardLive do
   alias SignuisWeb.MapMarker
   alias SignuisWeb.HeatmapCell
   alias Signuis.Facilities
+  alias Signuis.Messaging
+  alias Signuis.Messaging.ReportCallback
   alias Signuis.Reporting
   alias Signuis.Reporting.Report
 
@@ -21,9 +23,13 @@ defmodule SignuisWeb.Facilities.DashboardLive do
       |> assign(:current_production, Facilities.current_ongoing_production(facility))
       |> assign(:facility, facility)
       |> assign(:facilities, [])
+      |> assign(:opened_report_callbacks, Messaging.list_report_callbacks(filter: %{"facility" => facility, "status" => "opened"}))
       |> assign(:focused_entity, nil)
       |> assign(:report_heatmap, [])
+      |> assign(:alive_reports_count, nil)
       |> assign(:map_bounds, nil)
+      |> assign(:report_callback_changeset, Messaging.change_report_callback(%ReportCallback{}, %{}))
+      |> assign(:display_report_callback_form, false)
       |> init_map(params, session)
       |> SignuisWeb.Facilities.FacilityController.nav
     }
@@ -52,28 +58,65 @@ defmodule SignuisWeb.Facilities.DashboardLive do
     end
   end
 
-  def handle_info({:begin_facility_production, production}, socket) do
-    socket = socket
-    |> assign(:current_production, production)
+  def handle_info(event, socket) do
+    alive_threshold_dt = NaiveDateTime.add(NaiveDateTime.utc_now(), -1800) # Now - 30 mn (Reports are alive during 30 minutes)
 
-    {:noreply, socket}
-  end
+    socket = case event do
+      :fetch_new_reports ->
 
-  def handle_info({:end_facility_production, production}, socket) do
-    socket =socket
-    |> assign(:current_production, nil)
+        alive_reports_count = Reporting.count_reports(filter: %{
+          "facility" => socket.assigns.facility,
+          "timerange" => {alive_threshold_dt, nil}
+        })
 
-    {:noreply, socket}
-  end
+        socket = if socket.assigns.map_bounds do
+          heatmap = Reporting.get_report_heatmap(grid: @grid_size, bounds: socket.assigns.map_bounds, timerange: {alive_threshold_dt, nil})
+          socket
+          |> assign(:report_heatmap, heatmap)
+          |> update_map
+        else
+          socket
+        end
+        |> assign(:alive_reports_count, alive_reports_count)
 
-  def handle_info(:fetch_new_reports, socket) do
-    socket = if socket.assigns.map_bounds do
-      socket
-      |> assign(:report_heatmap, Reporting.get_report_heatmap(grid: @grid_size, bounds: socket.assigns.map_bounds))
-      |> update_map
-    else
-      socket
+      {:begin_facility_production, production} ->
+        socket
+        |> assign(:current_production, production)
+
+      {:end_facility_production, production} ->
+        socket
+        |> assign(:current_production, nil)
+
+      {:new_report_callback, report_callback} ->
+        socket
+        |> assign(:opened_report_callbacks, Messaging.list_report_callbacks(filter: %{"facility" => socket.assigns.facility, "status" => "opened"}))
+
+      {:updated_report_callback, report_callback} ->
+        socket
+        |> assign(:opened_report_callbacks, Messaging.list_report_callbacks(filter: %{"facility" => socket.assigns.facility, "status" => "opened"}))
+      {"map::marker-clicked", marker} ->
+          entity = MapMarker.from(marker)
+
+          socket = if entity do
+            socket
+            |> fly_to(marker.location)
+          else
+            socket
+          end
+
+          socket
+          |> assign(:focused_entity, entity)
+
+      {"map::bounds-updated", bounds} ->
+          socket
+          |> assign(:map_bounds, bounds)
+          |> assign(:facilities, Facilities.list_facilities(filter: [bounds: bounds]))
+          |> assign(:report_heatmap, Reporting.get_report_heatmap(grid: @grid_size, bounds: bounds, timerange: {alive_threshold_dt, nil}))
+          |> update_map
+
+      _ -> socket
     end
+
     {:noreply, socket}
   end
 
@@ -97,74 +140,63 @@ defmodule SignuisWeb.Facilities.DashboardLive do
     {:noreply, socket}
   end
 
-  def handle_event("form::report::toggle", _value, socket) do
+  def handle_event("form::report_callback::toggle", _, socket) do
+    {:noreply,
+      socket
+      |> assign(:display_report_callback_form, not socket.assigns.display_report_callback_form)
+    }
+  end
+
+  def handle_event("form::report_callback::validate", %{"report_callback" => report_callback_params}, socket) do
+    changeset = %ReportCallback{}
+    |> Messaging.change_report_callback(report_callback_params, pre_validations: [&(cast_report_callback_remaining_parameters(&1, socket))])
+    |> Map.put(:action, :insert)
+
     socket = socket
-    |> assign(:display_report_form, not socket.assigns.display_report_form)
+    |> assign(:report_callback_changeset, changeset)
     {:noreply, socket}
+  end
+
+  def handle_event("form::report_callback::submit", %{"report_callback" => report_callback_params}, socket) do
+    pre_validations = [&(cast_report_callback_remaining_parameters(&1, socket))]
+
+    result = Messaging.create_report_callback(report_callback_params, pre_validations: pre_validations)
+
+    socket = case result do
+      {:ok, _report} ->
+        socket
+        |> put_flash(:info, "Report callback created successfully")
+        |> assign(:display_report_callback_form, false)
+
+      {:error, changeset} ->
+        socket
+        |> assign(:report_callback_changeset, changeset)
+
+    end
+
+    {:noreply, socket}
+  end
+
+  defp cast_report_callback_remaining_parameters(changeset, socket) do
+    changeset = changeset
+    |> Ecto.Changeset.put_change(:strategy, ReportCallback.during_facility_production)
+    |> Ecto.Changeset.put_change(:facility_id, socket.assigns.facility.id)
+
+    case Ecto.Changeset.get_change(changeset, :facility_production_id, nil) do
+      nil -> if socket.assigns.current_production do
+        changeset |> Ecto.Changeset.put_change(:facility_production_id, socket.assigns.current_production.id)
+      else
+        changeset |> Ecto.Changeset.add_error(:facility_production_id, "aucune production n'est en cours")
+      end
+
+      facility_production ->
+        changeset |> Ecto.Changeset.put_change(:facility_production_id, facility_production.id)
+    end
   end
 
   def handle_event("production::toggle", _, socket) do
     Facilities.toggle_production(socket.assigns.facility)
     {:noreply, socket}
-  end
-
-  def handle_event("report::validate", %{"report" => report_params}, socket) do
-    changeset = %Report{}
-    |> Reporting.change_report(report_params, pre_validations: [&(cast_location(&1, socket.assigns.location))])
-    |> Map.put(:action, :insert)
-
-    socket = socket
-    |> assign(:report_changeset, changeset)
-
-    {:noreply, socket}
-  end
-
-  def handle_event("report::submit", %{"report" => report_params}, socket) do
-    result = Reporting.create_report(report_params, pre_validations: [&(cast_location(&1, socket.assigns.location))])
-    socket = case result do
-      {:ok, _report} ->
-        socket
-        |> put_flash(:info, "Report created successfully")
-        |> assign(:display_report_form, false)
-
-      {:error, changeset} ->
-        socket
-        |> assign(:report_changeset, changeset)
-
-    end
-
-    {:noreply, socket}
-  end
-
-  def handle_info({"map::marker-clicked", marker}, socket) do
-    entity = MapMarker.from(marker)
-
-    socket = if entity do
-      socket
-      |> fly_to(marker.location)
-    else
-      socket
-    end
-
-    {:noreply, socket |> assign(:focused_entity, entity)}
-  end
-
-  def handle_info({"map::bounds-updated", bounds}, socket) do
-    {:noreply,
-      socket
-      |> assign(:map_bounds, bounds)
-      |> assign(:facilities, Facilities.list_facilities(filter: [bounds: bounds]))
-      |> assign(:report_heatmap, Reporting.get_report_heatmap(grid: @grid_size, bounds: bounds))
-      |> update_map
-    }
-  end
-
-  def handle_info({"geolocation::position-updated", position}, socket) do
-    {:noreply,
-      socket
-      |> assign(:location, position)
-      |> update_map
-    }
   end
 
 end

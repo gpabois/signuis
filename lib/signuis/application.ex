@@ -19,7 +19,9 @@ defmodule Signuis.Application do
       # Assign the reports to facilities
       Signuis.Facilities.Servers.Report,
       # Manage facility production (toggle)
-      Signuis.Facilities.Servers.Production
+      Signuis.Facilities.Servers.Production,
+      # Manage report callbacks
+      Signuis.Messaging.Servers.ReportCallback
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

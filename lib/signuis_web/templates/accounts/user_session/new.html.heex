@@ -1,27 +1,43 @@
-<h1>Log in</h1>
+<div class="container">
+  <h1>Connexion</h1>
 
-<.form let={f} for={@conn} action={Routes.accounts_user_session_path(@conn, :create)} as={:user}>
-  <%= if @error_message do %>
-    <div class="alert alert-danger">
-      <p><%= @error_message %></p>
+  <.form let={f} for={@conn} action={Routes.accounts_user_session_path(@conn, :create)} as={:user}>
+    <%= if @error_message do %>
+      <div class="alert alert-danger">
+        <p><%= @error_message %></p>
+      </div>
+    <% end %>
+
+    <div class="form-group mb-3">
+      <%= label f, :email, "Email" %>
+      <%= email_input f, :email, required: true, class: "form-control" %>
+      <%= error_tag f, :email %>
     </div>
-  <% end %>
 
-  <%= label f, :email %>
-  <%= email_input f, :email, required: true %>
+    <div class="form-group mb-3">
+      <%= label f, :password %>
+      <%= password_input f, :password, required: true, class: "form-control" %>
+      <%= error_tag f, :password %>
+    </div>
 
-  <%= label f, :password %>
-  <%= password_input f, :password, required: true %>
+    <div class="form-group mb-3">
+      <%= checkbox f, :remember_me%>
+      <%= label f, :remember_me, "Se souvenir de moi ?" %>  
+      <%= error_tag f, :remember_me %>
+    </div>
 
-  <%= label f, :remember_me, "Keep me logged in for 60 days" %>
-  <%= checkbox f, :remember_me %>
+    <div class="mb-3 row">
+      <div class="col">
+        <%= submit "Suivant", class: "btn btn-primary" %>
+      </div>
+      <div class="col-2">
+        <%= link "Mot de passe oublié ?", to: Routes.accounts_user_reset_password_path(@conn, :new) %>
+      </div>
+    </div>
 
-  <div>
-    <%= submit "Log in" %>
+  </.form>
+
+  <div class="mb-3">
+    <%= link "Créer un compte", to: Routes.accounts_user_registration_path(@conn, :new), class: "btn btn-primary" %>
   </div>
-</.form>
-
-<p>
-  <%= link "Register", to: Routes.accounts_user_registration_path(@conn, :new) %> |
-  <%= link "Forgot your password?", to: Routes.accounts_user_reset_password_path(@conn, :new) %>
-</p>
+</div>

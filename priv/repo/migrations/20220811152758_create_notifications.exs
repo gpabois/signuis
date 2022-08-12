@@ -5,9 +5,11 @@ defmodule Signuis.Repo.Migrations.CreateNotifications do
     create table(:notifications) do
       add :session_id, :string
       add :type, :string
+
       add :user_id, references(:users, on_delete: :delete_all)
       add :message_id, references(:messages, on_delete: :delete_all)
 
+      add :read, :boolean
       timestamps()
     end
 

@@ -106,13 +106,14 @@ defmodule Signuis.Messaging do
   alias Signuis.Messaging.ReportCallback
 
   def get_remaining_reports(%ReportCallback{} = report_callback) do
-    if report_callback.factory_production_id do
-      factory_production = Facilities.get_factory_production!(report_callback.factory_production_id)
+    if report_callback.facility_production_id do
+      facility_production = Facilities.get_production!(report_callback.facility_production_id)
+      facility = Facilities.get_facility!(facility_production.facility_id)
 
       Reporting.list_reports(filter: %{
-        "factory"             => factory_production,
+        "facility"             => facility,
         "not-report-callback" => report_callback,
-        "timerange"           => {factory_production.begin, factory_production.end}
+        "timerange"           => {facility_production.begin, facility_production.end}
       })
     else
       []
@@ -120,13 +121,14 @@ defmodule Signuis.Messaging do
   end
 
   def has_remaining_reports?(%ReportCallback{} = report_callback) do
-    if report_callback.factory_production_id do
-      factory_production = Facilities.get_factory_production!(report_callback.factory_production_id)
+    if report_callback.facility_production_id do
+      facility_production = Facilities.get_production!(report_callback.facility_production_id)
+      facility = Facilities.get_facility!(facility_production.facility_id)
 
       Reporting.count_reports(filter: %{
-        "factory"             => factory_production,
+        "facility"             => facility,
         "not-report-callback" => report_callback,
-        "timerange"           => {factory_production.begin, factory_production.end}
+        "timerange"           => {facility_production.begin, facility_production.end}
       }) > 0
     else
       false
@@ -175,10 +177,14 @@ defmodule Signuis.Messaging do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_report_callback(attrs \\ %{}) do
+  def create_report_callback(attrs, opts \\ []) do
+    with {:ok, report_callback} <-
     %ReportCallback{}
-    |> ReportCallback.changeset(attrs)
-    |> Repo.insert()
+    |> ReportCallback.changeset(attrs, opts)
+    |> Repo.insert() do
+      Signuis.EventTypes.new_report_callback(report_callback)
+      {:ok, report_callback}
+    end
   end
 
   @doc """
@@ -194,9 +200,12 @@ defmodule Signuis.Messaging do
 
   """
   def update_report_callback(%ReportCallback{} = report_callback, attrs) do
-    report_callback
+    with {:ok, report_callback} <- report_callback
     |> ReportCallback.changeset(attrs)
-    |> Repo.update()
+    |> Repo.update() do
+      Signuis.EventTypes.updated_report_callback(report_callback)
+      {:ok, report_callback}
+    end
   end
 
   @doc """
@@ -224,8 +233,8 @@ defmodule Signuis.Messaging do
       %Ecto.Changeset{data: %ReportCallback{}}
 
   """
-  def change_report_callback(%ReportCallback{} = report_callback, attrs \\ %{}) do
-    ReportCallback.changeset(report_callback, attrs)
+  def change_report_callback(%ReportCallback{} = report_callback, attrs, opts \\ []) do
+    ReportCallback.changeset(report_callback, attrs, opts)
   end
 
   alias Signuis.Messaging.ReportCallbackAck

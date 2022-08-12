@@ -9,13 +9,14 @@ defmodule Signuis.Messaging.ReportCallback do
   import Signuis.Filter
 
   alias Signuis.Facilities
+  alias Signuis.Messaging
   alias Signuis.Reporting.Report
 
   schema "reports_callbacks" do
     field :content, :string
     field :strategy, :string
-    field :titre, :string
-    field :status, :string
+    field :title, :string
+    field :status, :string, default: "opened"
 
     field :facility_id, :id
     field :facility_production_id, :id
@@ -40,13 +41,17 @@ defmodule Signuis.Messaging.ReportCallback do
     where(query, [b], b.facility_id == ^facility.id)
   end
 
+  def filter_on_attribute({:status, status}, query) do
+    where(query, [b], b.status == ^status)
+  end
+
   @doc """
     Check if the report callback is closed (we don't expect new reports to be callback)
   """
   def is_closed?(%__MODULE__{} = report_callback) do
     cond do
       report_callback.facility_production_id != nil ->
-        facility_production = Facilities.get_facility_production!(report_callback.facility_production_id)
+        facility_production = Facilities.get_production!(report_callback.facility_production_id)
         cond do
           facility_production.end != nil and facility_production.end <= NaiveDateTime.utc_now() ->
             true
@@ -69,6 +74,8 @@ defmodule Signuis.Messaging.ReportCallback do
 
   @during_facility_production "during_facility_production"
 
+  def during_facility_production, do: @during_facility_production
+
   def cast_strategy(changeset) do
     case get_change(changeset, :strategy, nil) do
       @during_facility_production ->
@@ -82,10 +89,16 @@ defmodule Signuis.Messaging.ReportCallback do
   end
 
   @doc false
-  def changeset(callback, attrs) do
-    callback
-    |> cast(attrs, [:titre, :contenu, :strategy, :facility_id, :facility_production_id, :begin, :end])
-    |> validate_required([:titre, :contenu, :strategy, :facility_id])
+  def changeset(report_callback, attrs, opts \\ []) do
+    pre_validations = Keyword.get(opts, :pre_validations, [])
+
+    changeset = report_callback
+    |> cast(attrs, [:title, :content, :strategy, :status, :facility_id, :facility_production_id, :begin, :end])
+
+    changeset = Enum.reduce(pre_validations, changeset, &(&1.(&2)))
+
+    changeset
+    |> validate_required([:title, :content, :strategy, :facility_id])
     |> cast_strategy()
   end
 end

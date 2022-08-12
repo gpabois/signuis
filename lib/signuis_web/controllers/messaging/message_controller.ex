@@ -11,7 +11,7 @@ defmodule SignuisWeb.Messaging.MessageController do
         %{"to_session_id" => session_id}
     end
 
-    messages = Messaging.list_messages(filter: filter)
+    messages = Messaging.list_messages(filter: filter, preload: [:from_facility, :from_user])
 
     conn
     |> assign(:messages, messages)

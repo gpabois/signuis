@@ -1,10 +1,12 @@
 <div class="container">
-  <h1>Signalements</h1>
+  <h1 class="mt-3 mb-3">Signalements</h1>
 
-  <table class="container">
+  <%= if not Enum.empty?(@reports) do %>
+  <table class="table">
     <thead>
       <tr>
         <th>Nuisance</th>
+        <th>Intensité</th>
         <th>Signalé le</th>
       </tr>
     </thead>
@@ -12,9 +14,15 @@
   <%= for report <- @reports do %>
       <tr>
         <td><%= report.nuisance_type.label %></td>
+        <td><%= report.nuisance_level %></td>
         <td><%= report.inserted_at %></td>
       </tr>
   <% end %>
     </tbody>
   </table>
+  <% else %>
+  <p >
+    <i>Aucun signalement enregistré...</i>
+  </p>
+  <% end %>
 </div>

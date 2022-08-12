@@ -1,4 +1,4 @@
-<nav class="navbar navbar-expand-lg bg-light shadow sg-fullwidth">
+<nav class="navbar navbar-expand-lg bg-light shadow sg-fullwidth" style="z-index:100000;">
   <div class="container-fluid">
     <a class="navbar-brand" href="#">Signal'Nuisance</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,19 +33,25 @@
           <a class="nav-link" href="https://github.com/gpabois/signuis">Signuis v<%= Application.spec(:signuis, :vsn) |> to_string() %></a>
         </li>
         <%= if assigns[:current_user] do %>
-          <li class="nav-item">
-            <span class="nav-link disabled"><%= @current_user.email %></span>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false" href="#"><%= @current_user.email %></a>
+            <ul class="dropdown-menu">    
+              <li class="nav-item">
+                <%= link "Messages", class: "nav-link", to: Routes.messaging_message_path(assigns[:conn] || assigns[:socket], :index) %>
+              </li>
+              <li class="nav-item">
+                <%= link "Signalements", class: "nav-link", to: Routes.reporting_report_path(assigns[:conn] || assigns[:socket], :index) %>
+              </li>
+              <li class="nav-item">
+                <%= link "Paramètres", class: "nav-link", to: Routes.accounts_user_settings_path(assigns[:conn] || assigns[:socket], :edit) %>
+              </li>
+              <li class="nav-item">
+                <%= link "Déconnexion", class: "nav-link", to: Routes.accounts_user_session_path(assigns[:conn] || assigns[:socket], :delete), method: :delete %>
+              </li>
+            </ul>
           </li>
-          <li class="nav-item">
-            <%= link "Paramètres", class: "nav-link", to: Routes.accounts_user_settings_path(assigns[:conn] || assigns[:socket], :edit) %>
-          </li>
-          <li class="nav-item">
-            <%= link "Déconnexion", class: "nav-link", to: Routes.accounts_user_session_path(assigns[:conn] || assigns[:socket], :delete), method: :delete %>
-          </li>
+
         <% else %>
-          <li class="nav-item">
-            <%= link "S'enregistrer", class: "nav-link", to: Routes.accounts_user_registration_path(assigns[:conn] || assigns[:socket], :new) %>
-          </li>
           <li class="nav-item">
             <%= link "Se connecter", class: "nav-link", to: Routes.accounts_user_session_path(assigns[:conn] || assigns[:socket], :new) %>
           </li>

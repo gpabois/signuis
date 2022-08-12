@@ -1,10 +1,9 @@
-defmodule Signuis.Messaging.Reports.ReportCallback do
+defmodule Signuis.Messaging.Servers.ReportCallback do
   use GenServer
 
   alias Signuis.Reporting.Report
 
   alias Signuis.Facilities.Facility
-  alias Signuis.Facilities
 
   alias Signuis.Messaging
   alias Signuis.Messaging.ReportCallback
@@ -18,32 +17,34 @@ defmodule Signuis.Messaging.Reports.ReportCallback do
     Phoenix.PubSub.subscribe(Signuis.PubSub, "facilities")
     Phoenix.PubSub.subscribe(Signuis.PubSub, "messaging::reports_callbacks")
 
-    Messaging.list_report_callbacks(%{"status" => "opened"})
+    Messaging.list_report_callbacks(filter: %{"status" => "opened"})
     |> process_reports_callbacks
 
     {:ok, init}
   end
 
-  # New report callback, process the remaining reports
-  def handle_info({:new_report_callback, report_callback}, state) do
-    process_report_callback(report_callback)
-    {:noreply, state}
-  end
+  @impl true
+  def handle_info(event, state) do
+    state = case event do
+      # New report callback, process the remaining reports
+      {:new_report_callback, report_callback} ->
+        process_report_callback(report_callback)
+        state
+      # Related to facility production
+      # The production has ended
+      {:end_facility_production, facility_production, _facility} ->
+        reports_callbacks = Messaging.list_report_callbacks(filter: %{"facility_production" => facility_production, "status" => "opened"})
+        process_reports_callbacks(reports_callbacks)
+        state
+      # A new report is produced, check if we need to call back
+      {:new_assigned_report, %Report{} = report, %Facility{} = facility} ->
+        report_callbacks = Messaging.list_report_callbacks(filter: %{"facility" => facility, "status" => "opened"})
 
-  # Related to facility production
-  # The production has ended
-  def handle_info({:end_facility_production, facility_production, _facility}, state) do
-    reports_callbacks = Messaging.list_report_callback(filter: %{"facility_production" => facility_production, "status" => "opened"})
-    process_reports_callbacks(reports_callbacks)
-    {:noreply, state}
-  end
-
-  # A new report is produced, check if we need to call back
-  def handle_info({:new_assigned_report, %Report{} = report, %Facility{} = facility}, state) do
-    report_callbacks = Messaging.list_report_callbacks(filter: %{"facility" => facility, "status" => "opened"})
-
-    for report_callback <- report_callbacks do
-      process_report(report, report_callback)
+        for report_callback <- report_callbacks do
+          process_report(report, report_callback)
+        end
+        state
+      _ -> state
     end
 
     {:noreply, state}

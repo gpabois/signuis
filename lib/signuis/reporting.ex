@@ -139,6 +139,7 @@ defmodule Signuis.Reporting do
   def get_report_heatmap(opts \\ []) do
     grid_size = Keyword.get(opts, :grid, 0.001)
     bounds    = Keyword.get(opts, :bounds, nil)
+    timerange = Keyword.get(opts, :timerange, nil)
 
     query = from(r in Report,
       inner_join: grid in fragment("ST_SquareGrid(?, ?)", ^grid_size, r.location),
@@ -146,6 +147,17 @@ defmodule Signuis.Reporting do
       group_by: grid.geom,
       select: %{weight: count(r.id), cell: grid.geom, location: st_centroid(grid.geom), precision: fragment("ST_MinimumBoundingRadius(?)", grid.geom)}
     )
+
+    query = case timerange do
+      nil -> query
+      {bgt, nil} ->
+        query
+        |> where([r], r.inserted_at >= ^bgt)
+      {bgt, endt} ->
+        query
+        |> where([r], r.inserted_at >= ^bgt)
+        |> where([r], r.inserted_at <= ^endt)
+    end
 
     query = if bounds != nil do
       %{bottom_left: bottom_left, top_right: top_right} = bounds

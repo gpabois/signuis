@@ -13,5 +13,7 @@ defmodule Signuis.Repo.Migrations.CreateReportsCallbacksAcks do
     create index(:reports_callbacks_acks, [:report_callback_id])
     create index(:reports_callbacks_acks, [:report_id])
     create index(:reports_callbacks_acks, [:message_id])
+
+    create unique_index(:reports_callbacks_acks, [:report_callback_id, :report_id, :message_id])
   end
 end

@@ -76,6 +76,7 @@ defmodule SignuisWeb.Reporting.HomeLive do
     end |> Map.merge(report_params)
 
     result = Reporting.create_report(report_params, pre_validations: [&(cast_location(&1, socket.assigns.location))])
+
     socket = case result do
       {:ok, _report} ->
         socket

@@ -8,18 +8,22 @@ defmodule Signuis.Messaging.Message do
   import Signuis.Utils
   import Signuis.Filter
 
+  alias Signuis.Facilities.Facility
+  alias Signuis.Accounts.User
+
   schema "messages" do
     field :content, :string
 
     field :title, :string
 
     field :to_session_id, :string
-    field :to_user_id, :id
-    field :to_facility_id, :id
+
+    belongs_to :to_facility, Facility
+    belongs_to :to_user, User
 
     field :from_session_id, :string
-    field :from_user_id, :id
-    field :from_facility_id, :id
+    belongs_to :from_facility, Facility
+    belongs_to :from_user, User
 
     timestamps()
   end
@@ -30,6 +34,7 @@ defmodule Signuis.Messaging.Message do
 
     __MODULE__
     |> filter(filters, __MODULE__)
+    |> order_by([desc: :inserted_at])
     |> Repo.all
     |> Repo.preload(preload)
   end
@@ -42,10 +47,11 @@ defmodule Signuis.Messaging.Message do
     where(query, [b], b.to_user_id == ^user_id)
   end
 
+
   @doc false
   def changeset(message, attrs) do
     message
-    |> cast(attrs, [:titre, :contenu, :to_session_id, :from_session_id])
-    |> validate_required([:titre, :contenu, :to_session_id, :from_session_id])
+    |> cast(attrs, [:title, :content, :to_user_id, :to_session_id, :to_facility_id, :from_session_id, :from_user_id, :from_facility_id])
+    |> validate_required([:title, :content])
   end
 end

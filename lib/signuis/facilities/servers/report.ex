@@ -2,7 +2,6 @@ defmodule Signuis.Facilities.Servers.Report do
   use GenServer
 
   alias Signuis.Reporting.Report
-  alias Signuis.Facilities.Facility
   alias Signuis.Facilities
 
   def start_link(_) do
@@ -17,12 +16,19 @@ defmodule Signuis.Facilities.Servers.Report do
   end
 
   @impl true
-  def handle_info({:new_report, %Report{} = report}, state) do
-    facilities = Facilities.list_facilities()
-    Facilities.assign_report(
-      facilities,
-      report
-    )
+  def handle_info(event, state) do
+    state = case event do
+      {:new_report, %Report{} = report} ->
+        # Automatically assign all reports to a facility.
+        # Need to enhance the assignment method to better aim the facilities that might be responsible for the nuisance.
+        facilities = Facilities.list_facilities()
+        Facilities.assign_report(
+          facilities,
+          report
+        )
+        state
+      _ -> state
+    end
     {:noreply, state}
   end
 end

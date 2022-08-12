@@ -39,7 +39,8 @@ defmodule Signuis.Reporting.Report do
 
     __MODULE__
     |> filter(filters, __MODULE__)
-    |> Repo.count
+    |> select([b], count(b.id))
+    |> Repo.one!
   end
 
   def filter_on_attribute({:user_id, user_id}, query) do
@@ -54,7 +55,7 @@ defmodule Signuis.Reporting.Report do
 
   def filter_on_attribute({:facility, facility}, query) do
     from(b in query,
-      join: f in "report_facilities",
+      join: f in "reports_facilities",
       on: f.report_id == b.id,
       where: f.facility_id == ^facility.id
     )
@@ -81,7 +82,7 @@ defmodule Signuis.Reporting.Report do
     )
 
     from(b in query,
-      where: b.id not in ^sq
+      where: b.id not in subquery(sq)
     )
   end
 
