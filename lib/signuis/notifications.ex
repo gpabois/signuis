@@ -17,8 +17,12 @@ defmodule Signuis.Notifications do
       [%Notification{}, ...]
 
   """
-  def list_notifications do
-    Repo.all(Notification)
+  def list_notifications(opts \\ []) do
+    Notification.list(opts)
+  end
+
+  def count_notifications(opts \\ []) do
+    Notification.count(opts)
   end
 
   @doc """
@@ -50,9 +54,12 @@ defmodule Signuis.Notifications do
 
   """
   def create_notification(attrs \\ %{}) do
-    %Notification{}
+    with {:ok, notification} <- %Notification{}
     |> Notification.changeset(attrs)
-    |> Repo.insert()
+    |> Repo.insert() do
+      Signuis.EventTypes.new_notification(notification)
+      {:ok, notification}
+    end
   end
 
   @doc """
@@ -68,9 +75,13 @@ defmodule Signuis.Notifications do
 
   """
   def update_notification(%Notification{} = notification, attrs) do
+    with {:ok, notification} <-
     notification
     |> Notification.changeset(attrs)
-    |> Repo.update()
+    |> Repo.update() do
+      Signuis.EventTypes.updated_notification(notification)
+      {:ok, notification}
+    end
   end
 
   @doc """

@@ -42,24 +42,25 @@
     <%= if @display_report_form do %>
   <div class="sg-viewport__body__row sg-menu shadow-lg">
     <div class="container" id="report-form">
+      <h3 class="mt-3 mb-3">Signaler une nuisance</h3>
       <.form let={f} for={@report_changeset} phx-change="report::validate" phx-submit="report::submit">
-        <div class="form-group">
+        <div class="form-group mb-3">
           <%= error_tag f, :location %>
         </div>
         
-        <div class="form-group">
+        <div class="form-group mb-3">
           <%= label f, :nuisance_type_id, "Type de nuisance" %>
           <%= select f, :nuisance_type_id, @choices_nuisance_types, class: "form-control" %>
           <%= error_tag f, :nuisance_type_id %>
         </div>
 
-        <div class="form-group">
+        <div class="form-group mb-3">
           <%= label f, :nuisance_level, "Intensité" %>
           <%= number_input f, :nuisance_level, class: "form-control", min: 1, max: 10  %>
           <%= error_tag f, :nuisance_level %>
         </div>
 
-        <div class="form-group">
+        <div class="form-group mb-3">
           <%= submit "Signaler", class: "btn btn-primary" %>
         </div>
       </.form>

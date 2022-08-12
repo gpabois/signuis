@@ -17,15 +17,50 @@ defmodule Signuis.EventTypes do
     Phoenix.PubSub.broadcast(Signuis.PubSub, "facilities::#{facility.id}", {:end_facility_production, production})
   end
 
+  def new_message(message) do
+    Phoenix.PubSub.broadcast(Signuis.PubSub, "messaging", {:new_message, message})
+    cond do
+      message.to_user_id ->
+        Phoenix.PubSub.broadcast(Signuis.PubSub, "users::#{message.to_user_id}", {:new_message, message})
+      message.to_facility_id ->
+        Phoenix.PubSub.broadcast(Signuis.PubSub, "facilities::#{message.to_facility_id}", {:new_message, message})
+      message.to_session_id ->
+        Phoenix.PubSub.broadcast(Signuis.PubSub, "sessions::#{message.to_session_id}", {:new_message, message})
+      true ->
+        %{}
+    end
+  end
+
+  def new_notification(notification) do
+    Phoenix.PubSub.broadcast(Signuis.PubSub, "notifications", {:new_notification, notification})
+    cond do
+      notification.user_id ->
+        Phoenix.PubSub.broadcast(Signuis.PubSub, "users::#{notification.user_id}", {:new_notification, notification})
+      notification.session_id ->
+        Phoenix.PubSub.broadcast(Signuis.PubSub, "sessions::#{notification.session_id}", {:new_notification, notification})
+      true -> %{}
+    end
+  end
+
+  def updated_notification(notification) do
+    Phoenix.PubSub.broadcast(Signuis.PubSub, "notifications", {:updated_notification, notification})
+    cond do
+      notification.user_id ->
+        Phoenix.PubSub.broadcast(Signuis.PubSub, "users::#{notification.user_id}", {:updated_notification, notification})
+      notification.session_id ->
+        Phoenix.PubSub.broadcast(Signuis.PubSub, "sessions::#{notification.session_id}", {:updated_notification, notification})
+    end
+  end
+
   def new_report_callback(report_callback) do
-    Phoenix.PubSub.broadcast(Signuis.PubSub, "messaging::reports_callbacks", {:new_report_callback, report_callback})
+    Phoenix.PubSub.broadcast(Signuis.PubSub, "messaging", {:new_report_callback, report_callback})
     if report_callback.facility_id do
       Phoenix.PubSub.broadcast(Signuis.PubSub, "facilities::#{report_callback.facility_id}", {:new_report_callback, report_callback})
     end
   end
 
   def updated_report_callback(report_callback) do
-    Phoenix.PubSub.broadcast(Signuis.PubSub, "messaging::reports_callbacks", {:updated_report_callback, report_callback})
+    Phoenix.PubSub.broadcast(Signuis.PubSub, "messaging", {:updated_report_callback, report_callback})
     if report_callback.facility_id do
       Phoenix.PubSub.broadcast(Signuis.PubSub, "facilities::#{report_callback.facility_id}", {:updated_report_callback, report_callback})
     end

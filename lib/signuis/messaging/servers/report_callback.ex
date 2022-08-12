@@ -15,7 +15,7 @@ defmodule Signuis.Messaging.Servers.ReportCallback do
   @impl true
   def init(init) do
     Phoenix.PubSub.subscribe(Signuis.PubSub, "facilities")
-    Phoenix.PubSub.subscribe(Signuis.PubSub, "messaging::reports_callbacks")
+    Phoenix.PubSub.subscribe(Signuis.PubSub, "messaging")
 
     Messaging.list_report_callbacks(filter: %{"status" => "opened"})
     |> process_reports_callbacks

@@ -29,9 +29,6 @@
             </li>
           <% end %>
         <% end %>
-        <li class="nav-item">
-          <a class="nav-link" href="https://github.com/gpabois/signuis">Signuis v<%= Application.spec(:signuis, :vsn) |> to_string() %></a>
-        </li>
         <%= if assigns[:current_user] do %>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false" href="#"><%= @current_user.email %></a>
@@ -56,6 +53,10 @@
             <%= link "Se connecter", class: "nav-link", to: Routes.accounts_user_session_path(assigns[:conn] || assigns[:socket], :new) %>
           </li>
         <% end %>
+        <%= live_render(assigns[:conn] || assigns[:socket], SignuisWeb.Notifications.NotificationPaneLive, id: "notification-pane") %>
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/gpabois/signuis">Signuis v<%= Application.spec(:signuis, :vsn) |> to_string() %></a>
+        </li>
       </ul>
     </div>
   </div>

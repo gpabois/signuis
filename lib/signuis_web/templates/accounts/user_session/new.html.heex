@@ -1,5 +1,5 @@
 <div class="container">
-  <h1>Connexion</h1>
+  <h1 class="mt-3 mb-3">Connexion</h1>
 
   <.form let={f} for={@conn} action={Routes.accounts_user_session_path(@conn, :create)} as={:user}>
     <%= if @error_message do %>

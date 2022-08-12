@@ -1,0 +1,23 @@
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle btn" role="button" data-bs-toggle="dropdown" aria-expanded="false" href="#">
+        <i class="bi bi-bell"></i>
+        <%= @unread_notifications_count %>
+        
+    </a>
+    <ul class="dropdown-menu"> 
+        <%= for notification <- @last_notifications do %>   
+        <li class="nav-item">
+            <%= case notification.type do %>
+            <% "new_message" -> %>
+                <a class="nav-link" href="#" phx-click="notification::clicked" phx-value-notification={notification.id}>
+                    <%= if notification.read == false do %>
+                        <i class="bi bi-envelope-exclamation"></i>
+                    <% end %>
+                    Message reçu
+                </a>
+            <% _ -> %>
+            <% end %>
+        </li>
+        <% end %>
+    </ul>
+</li>

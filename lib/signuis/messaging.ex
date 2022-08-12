@@ -51,9 +51,13 @@ defmodule Signuis.Messaging do
 
   """
   def create_message(attrs \\ %{}) do
+    with {:ok, message} <-
     %Message{}
     |> Message.changeset(attrs)
-    |> Repo.insert()
+    |> Repo.insert() do
+      Signuis.EventTypes.new_message(message)
+      {:ok, message}
+    end
   end
 
   @doc """

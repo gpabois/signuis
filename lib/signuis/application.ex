@@ -21,7 +21,9 @@ defmodule Signuis.Application do
       # Manage facility production (toggle)
       Signuis.Facilities.Servers.Production,
       # Manage report callbacks
-      Signuis.Messaging.Servers.ReportCallback
+      Signuis.Messaging.Servers.ReportCallback,
+      # Notify the receiver upon new message
+      Signuis.Notifications.Servers.Messages
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
