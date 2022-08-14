@@ -7,6 +7,8 @@ defmodule Signuis.Notifications.Notification do
   import Signuis.Filter
   import Signuis.Utils
 
+  alias Signuis.Accounts.{User, Anonymous}
+
   alias Signuis.Repo
 
   schema "notifications" do
@@ -21,14 +23,12 @@ defmodule Signuis.Notifications.Notification do
 
   @new_message "new_message"
   def new_message, do: @new_message
-
   @doc false
   def changeset(notification, attrs) do
     notification
     |> cast(attrs, [:user_id, :session_id, :type, :message_id, :read])
     |> validate_required([:type])
   end
-
   def list(opts \\ []) do
     filters = Keyword.get(opts, :filter, %{}) |> Enum.into(%{}) |> keys_to_atoms
     preload = Keyword.get(opts, :preload, [])
@@ -39,7 +39,6 @@ defmodule Signuis.Notifications.Notification do
     |> Repo.all
     |> Repo.preload(preload)
   end
-
   def count(opts \\ []) do
     filters = Keyword.get(opts, :filter, %{}) |> Enum.into(%{}) |> keys_to_atoms
 
@@ -48,9 +47,16 @@ defmodule Signuis.Notifications.Notification do
     |> select([b], count(b.id))
     |> Repo.one!
   end
-
   def filter_on_attribute({:read, read}, query) do
     where(query, [b], b.read == ^read)
+  end
+
+  def filter_on_attribute({:user, %Anonymous{id: session_id}}, query) do
+    filter_on_attribute({:session_id, session_id}, query)
+  end
+
+  def filter_on_attribute({:user, %User{} = user}, query) do
+    filter_on_attribute({:user_id, user.id}, query)
   end
 
   def filter_on_attribute({:session_id, session_id}, query) do

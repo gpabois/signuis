@@ -3,15 +3,15 @@ defmodule SignuisWeb.Notifications.NotificationPaneLive do
   use SignuisWeb.Mixins.Map
 
   alias Signuis.Notifications
+  alias Signuis.Accounts.{User, Anonymous}
+  def mount(_params, _session, socket) do
+    filter = %{"user" => socket.assigns.current_user}
 
-  def mount(_params, session, socket) do
-    filter = case socket.assigns do
-      %{current_user: current_user} when not is_nil(current_user) ->
-        Phoenix.PubSub.subscribe(Signuis.PubSub, "users::#{current_user.id}")
-        %{"user_id" => current_user.id}
-      %{current_session_id: current_session_id} ->
-        Phoenix.PubSub.subscribe(Signuis.PubSub, "sessions::#{current_session_id}")
-        %{"session_id" => current_session_id}
+    case socket.assigns.current_user do
+      %Anonymous{id: id} ->
+        Phoenix.PubSub.subscribe(Signuis.PubSub, "sessions::#{id}")
+      %User{id: id} ->
+        Phoenix.PubSub.subscribe(Signuis.PubSub, "users::#{id}")
     end
 
     {:ok,

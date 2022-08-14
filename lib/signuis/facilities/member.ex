@@ -9,6 +9,7 @@ defmodule Signuis.Facilities.Member do
   import Signuis.Filter
 
   alias Signuis.Accounts.User
+  alias Signuis.Facilities.Facility
 
   schema "facilities_members" do
     field :roles, {:array, :string}, default: []
@@ -18,6 +19,23 @@ defmodule Signuis.Facilities.Member do
     field :email, :string, virtual: true
 
     timestamps()
+  end
+
+  def is_member?(%Facility{} = facility, %User{} = user) do
+    __MODULE__
+    |> where([m], m.user_id == ^user.id)
+    |> where([m], m.facility_id == ^facility.id)
+    |> select([m], count(m.id))
+    |> Repo.one > 0
+  end
+
+  def has_role?(%Facility{} = facility, %User{} = user, role) do
+    __MODULE__
+    |> where([m], m.user_id == ^user.id)
+    |> where([m], m.facility_id == ^facility.id)
+    |> where([m], ^role in m.roles)
+    |> select([m], count(m.id))
+    |> Repo.one > 0
   end
 
   def list(opts \\ []) do

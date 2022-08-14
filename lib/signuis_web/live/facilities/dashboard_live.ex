@@ -8,17 +8,17 @@ defmodule SignuisWeb.Facilities.DashboardLive do
   alias Signuis.Messaging
   alias Signuis.Messaging.ReportCallback
   alias Signuis.Reporting
-  alias Signuis.Reporting.Report
 
   @grid_size 0.001
 
   def mount(%{"facility_id" => facility_id} = params, session, socket) do
-    :timer.send_interval(10000, :fetch_new_reports)
     facility = Facilities.get_facility!(facility_id)
 
-    Phoenix.PubSub.subscribe(Signuis.PubSub, "facilities::#{facility.id}")
+    socket = if permit?(Facilities, {:access, :dashboard}, socket.assigns.current_user, facility) do
+      :timer.send_interval(10000, :fetch_new_reports)
 
-    {:ok,
+      Phoenix.PubSub.subscribe(Signuis.PubSub, "facilities::#{facility.id}")
+
       socket
       |> assign(:current_production, Facilities.current_ongoing_production(facility))
       |> assign(:facility, facility)
@@ -32,7 +32,12 @@ defmodule SignuisWeb.Facilities.DashboardLive do
       |> assign(:display_report_callback_form, false)
       |> init_map(params, session)
       |> SignuisWeb.Facilities.FacilityController.nav
-    }
+
+    else
+      socket |> redirect(to: "/403.html")
+    end
+
+    {:ok, socket}
   end
 
   def update_map(socket) do

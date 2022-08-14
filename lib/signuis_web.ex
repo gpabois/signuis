@@ -24,6 +24,8 @@ defmodule SignuisWeb do
       import Plug.Conn
       import SignuisWeb.Gettext
       alias SignuisWeb.Router.Helpers, as: Routes
+      import Bodyguard
+      alias Signuis.{Facilities, Administration}
     end
   end
 
@@ -37,6 +39,12 @@ defmodule SignuisWeb do
       import Phoenix.Controller,
         only: [get_flash: 1, get_flash: 2, view_module: 1, view_template: 1]
 
+      alias Signuis.Accounts.{User, Anonymous}
+      # For policy checks
+      alias Signuis.{Facilities, Administration}
+
+      import Bodyguard
+
       # Include shared imports and aliases for views
       unquote(view_helpers())
       import Surface
@@ -48,6 +56,12 @@ defmodule SignuisWeb do
       use Phoenix.LiveView,
         layout: {SignuisWeb.LayoutView, "live.html"}
 
+      alias Signuis.Accounts.{User, Anonymous}
+      # For policy checks
+      alias Signuis.{Facilities, Administration}
+
+      import Bodyguard
+
       on_mount {SignuisWeb.Accounts.LiveUserAuth, :assign_current_user}
 
       unquote(view_helpers())
@@ -57,7 +71,7 @@ defmodule SignuisWeb do
   def live_component do
     quote do
       use Phoenix.LiveComponent
-
+      alias Bodyguard
       unquote(view_helpers())
     end
   end

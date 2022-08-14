@@ -3,6 +3,8 @@ defmodule SignuisWeb.Accounts.UserAuth do
   import Phoenix.Controller
 
   alias Signuis.Accounts
+  alias Signuis.Accounts.{Anonymous, User}
+
   alias SignuisWeb.Router.Helpers, as: Routes
 
   # Make the remember me cookie valid for 60 days.
@@ -91,6 +93,10 @@ defmodule SignuisWeb.Accounts.UserAuth do
   def fetch_current_user(conn, _opts) do
     {user_token, conn} = ensure_user_token(conn)
     user = user_token && Accounts.get_user_by_session_token(user_token)
+
+    # Assign anonymous object as current user
+    user = if user == nil, do: %Anonymous{id: get_session(conn, :session_id)}, else: user
+
     assign(conn, :current_user, user)
   end
 
@@ -112,12 +118,13 @@ defmodule SignuisWeb.Accounts.UserAuth do
   Used for routes that require the user to not be authenticated.
   """
   def redirect_if_user_is_authenticated(conn, _opts) do
-    if conn.assigns[:current_user] do
-      conn
-      |> redirect(to: signed_in_path(conn))
-      |> halt()
-    else
-      conn
+    case conn.assigns[:current_user] do
+      %User{} ->
+        conn
+        |> redirect(to: signed_in_path(conn))
+        |> halt()
+      _ ->
+        conn
     end
   end
 

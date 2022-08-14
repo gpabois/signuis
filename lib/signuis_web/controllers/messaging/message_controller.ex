@@ -4,13 +4,7 @@ defmodule SignuisWeb.Messaging.MessageController do
   alias Signuis.Messaging
 
   def index(conn, _params) do
-    filter = case conn.assigns do
-      %{current_user: current_user} when not is_nil(current_user) ->
-        %{"to_user_id" => current_user.id}
-      %{current_session_id: session_id} ->
-        %{"to_session_id" => session_id}
-    end
-
+    filter = %{"to" => conn.assigns.current_user}
     messages = Messaging.list_messages(filter: filter, preload: [:from_facility, :from_user])
 
     conn

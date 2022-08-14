@@ -2,12 +2,13 @@ defmodule SignuisWeb.Accounts.LiveUserAuth do
   import Phoenix.LiveView
 
   alias Signuis.Accounts
+  alias Signuis.Accounts.Anonymous
   # alias SignuisWeb.Router.Helpers, as: Routes
 
   def on_mount(:assign_current_user, _params, session, socket) do
     socket = socket
-    |> assign_current_user(session)
     |> assign_current_session_id(session)
+    |> assign_current_user(session)
 
     {:cont, socket}
   end
@@ -29,7 +30,7 @@ defmodule SignuisWeb.Accounts.LiveUserAuth do
         user = Accounts.get_user_by_session_token(user_token)
         assign_new(socket, :current_user, fn -> user end)
       %{} ->
-        assign_new(socket, :current_user, fn -> nil end)
+        assign_new(socket, :current_user, fn -> %Anonymous{id: socket.assigns.current_session_id} end)
     end
   end
 end

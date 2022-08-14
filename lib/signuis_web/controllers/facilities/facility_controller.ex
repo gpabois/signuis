@@ -4,28 +4,35 @@ defmodule SignuisWeb.Facilities.FacilityController do
   alias Signuis.Facilities
   alias Signuis.Facilities.Facility
 
-  def nav(%Plug.Conn{} = conn) do
-    conn
-    |> Plug.Conn.assign(:nav, [
-      {conn.assigns.facility.name, [
-        {Routes.facilities_live_path(conn, SignuisWeb.Facilities.DashboardLive, conn.assigns.facility), "Surveillance"},
-        {Routes.facilities_production_path(conn, :index, conn.assigns.facility), "Planning de production"},
-        {Routes.facilities_report_path(conn, :index, conn.assigns.facility), "Signalements"},
-        {Routes.facilities_member_path(conn, :index, conn.assigns.facility), "Equipe"}
-      ]}
-    ])
+  defp get_navigable_links(conn_or_socket, facility, user) do
+    (if permit?(Facilities, {:access, :dashboard}, user, facility), do: [{Routes.facilities_live_path(conn_or_socket, SignuisWeb.Facilities.DashboardLive, facility), "Surveillance"}], else: [])
+    ++
+    (if permit?(Facilities, {:access, :reports}, user, facility), do: [{Routes.facilities_report_path(conn_or_socket, :index, facility), "Signalements"}], else: [])
+    ++
+    (if permit?(Facilities, {:access, :production}, user, facility), do: [{Routes.facilities_production_path(conn_or_socket, :index, facility), "Planning de production"}])
+    ++
+    (if permit?(Facilities, {:access, :members}, user, facility), do: [{Routes.facilities_member_path(conn_or_socket, :index, facility), "Equipe"}], else: [])
   end
 
-  def nav(%Phoenix.LiveView.Socket{} = conn) do
-    conn
-    |> Phoenix.LiveView.assign(:nav, [
-      {conn.assigns.facility.name, [
-        {Routes.facilities_live_path(conn, SignuisWeb.Facilities.DashboardLive, conn.assigns.facility), "Surveillance"},
-        {Routes.facilities_production_path(conn, :index, conn.assigns.facility), "Planning de production"},
-        {Routes.facilities_report_path(conn, :index, conn.assigns.facility), "Signalements"},
-        {Routes.facilities_member_path(conn, :index, conn.assigns.facility), "Equipe"}
-      ]}
-    ])
+  def nav(%Plug.Conn{} = conn) do
+    if permit?(Facilities, {:access, :menu}, conn.assigns.current_user, conn.assigns.facility) do
+      conn
+      |> Plug.Conn.assign(:nav, [
+        {conn.assigns.facility.name, get_navigable_links(conn, conn.assigns.facility, conn.assigns.current_user)}
+      ])
+    else
+      conn
+    end
+  end
+
+  def nav(%Phoenix.LiveView.Socket{} = socket) do
+    if permit?(Facilities, {:access, :menu}, socket.assigns.current_user, socket.assigns.facility) do
+      socket
+      |> Phoenix.LiveView.assign(:nav, [
+        {socket.assigns.facility.name, get_navigable_links(socket, socket.assigns.facility, socket.assigns.current_user)}
+    ]) else
+      socket
+    end
   end
 
 

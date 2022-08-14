@@ -17,13 +17,19 @@
       <td><%= member.roles %></td>
 
       <td>
-        <span><%= link "Edit", to: Routes.facilities_member_path(@conn, :edit, member) %></span>
-        <span><%= link "Delete", to: Routes.facilities_member_path(@conn, :delete, member), method: :delete, data: [confirm: "Are you sure?"] %></span>
+        <%= if permit?(Facilities, {:update, :members}, @current_user, {@facility, member}) do %>
+          <span><%= link "Modifier", to: Routes.facilities_member_path(@conn, :edit, member) %></span>
+        <% end %>
+        <%= if permit?(Facilities, {:delete, :members}, @current_user, {@facility, member}) do %>
+          <span><%= link "Supprimer", to: Routes.facilities_member_path(@conn, :delete, member), method: :delete, data: [confirm: "Êtes-vous surs?"] %></span>
+        <% end %>
       </td>
     </tr>
 <% end %>
   </tbody>
 </table>
 
-<span><%= link "Ajouter", class: "btn btn-primary", to: Routes.facilities_member_path(@conn, :new, @facility) %></span>
+<%= if permit?(Facilities, {:add, :members}, @current_user, @facility) do %>
+  <span><%= link "Ajouter", class: "btn btn-primary", to: Routes.facilities_member_path(@conn, :new, @facility) %></span>
+<% end %>
 </div>

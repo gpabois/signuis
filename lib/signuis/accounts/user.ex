@@ -68,6 +68,12 @@ defmodule Signuis.Accounts.User do
     end
   end
 
+  def update_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:email, :roles])
+    |> validate_email()
+  end
+
   @doc """
   A user changeset for changing the email.
 

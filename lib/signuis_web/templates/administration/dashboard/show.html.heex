@@ -1,2 +1,11 @@
-<%= link "Installations", to: Routes.administration_facility_path(@conn, :index) %>
-<%= link "Types de nuisances", to: Routes.administration_nuisance_type_path(@conn, :index) %>
+<div class="row">
+    <div class="col-2">
+        <%= render "_user_menu.html", assigns %>
+    </div>
+    <div class="col">
+        <div class="jumbotron mt-3">
+            <h1 class="display-4">Panneau d'administration</h1>
+            <p class="lead">Des fonctionnalités à venir...</p>
+        </div>
+    </div>
+</div>

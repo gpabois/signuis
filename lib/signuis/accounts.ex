@@ -217,6 +217,15 @@ defmodule Signuis.Accounts do
     end
   end
 
+  @doc """
+    Update the user
+  """
+  def update_user(user, attrs) do
+    user
+    |> User.update_changeset(attrs)
+    |> Repo.update()
+  end
+
   ## Session
 
   @doc """

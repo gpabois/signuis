@@ -6,11 +6,15 @@ defmodule Signuis.Facilities do
   import Ecto.Query, warn: false
   alias Signuis.Repo
 
+  alias Signuis.Accounts.{User, Anonymous}
+
   alias Signuis.Facilities.Facility
   alias Signuis.Facilities.Member
   alias Signuis.Facilities.Production
 
   alias Signuis.Reporting.Report
+
+  defdelegate authorize(action, user, params), to: Signuis.Facilities.Policy
 
   @doc """
     Assign a report to a facility
@@ -203,6 +207,18 @@ defmodule Signuis.Facilities do
 
   """
   def get_member!(id), do: Repo.get!(Member, id)
+
+  def is_member?(%Facility{} = facility, %User{} = user) do
+    Member.is_member?(facility, user)
+  end
+
+  def is_member?(%Facility{}, %Anonymous{}), do: false
+
+  def has_role?(%Facility{} = facility, %User{} = user, role) do
+    Member.has_role?(facility, user, role)
+  end
+
+  def has_role?(%Facility{}, %Anonymous{}, _), do: false
 
   @doc """
   Creates a member.

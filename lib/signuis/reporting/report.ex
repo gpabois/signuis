@@ -8,6 +8,7 @@ defmodule Signuis.Reporting.Report do
   import Signuis.Utils
   import Signuis.Filter
 
+  alias Signuis.Accounts.{User, Anonymous}
   alias Signuis.Reporting.NuisanceType
 
   schema "reports" do
@@ -43,6 +44,13 @@ defmodule Signuis.Reporting.Report do
     |> Repo.one!
   end
 
+  def filter_on_attribute({:user, %Anonymous{id: session_id}}, query) do
+    filter_on_attribute({:session_id, session_id}, query)
+  end
+
+  def filter_on_attribute({:user, %User{} = user}, query) do
+    filter_on_attribute({:user_id, user.id}, query)
+  end
   def filter_on_attribute({:user_id, user_id}, query) do
     query
     |> where([b], b.user_id == ^user_id)

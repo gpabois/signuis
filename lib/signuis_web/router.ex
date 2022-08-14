@@ -18,6 +18,10 @@ defmodule SignuisWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :administration do
+    plug :put_layout, {SignuisWeb.Administration.LayoutView, "app.html"}
+  end
+
   scope "/", SignuisWeb do
     pipe_through :browser
 
@@ -133,7 +137,7 @@ defmodule SignuisWeb.Router do
 
   ## Administration
   scope "/administration", SignuisWeb.Administration, as: :administration do
-    pipe_through [:browser]#, :require_authenticated_user]
+    pipe_through [:browser, :administration]#, :require_authenticated_user]
 
     get "/", DashboardController, :show
 
