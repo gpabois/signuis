@@ -62,6 +62,13 @@ defmodule SignuisWeb.Router do
     end
   end
 
+  ## Errors
+  scope "/" do
+    pipe_through :browser
+
+    get "/403.html", SignuisWeb.ErrorController, :e403
+  end
+
   ## Facility routes
   scope "/facilities", SignuisWeb.Facilities, as: :facilities do
     pipe_through [:browser]#, :require_authenticated_user]

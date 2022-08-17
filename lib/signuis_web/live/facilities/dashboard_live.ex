@@ -37,7 +37,7 @@ defmodule SignuisWeb.Facilities.DashboardLive do
       socket |> redirect(to: "/403.html")
     end
 
-    {:ok, socket}
+    {:ok, socket, layout: {SignuisWeb.LayoutView, "nowrap.live.html"}}
   end
 
   def update_map(socket) do
@@ -179,6 +179,12 @@ defmodule SignuisWeb.Facilities.DashboardLive do
 
     end
 
+    {:noreply, socket}
+  end
+
+  def handle_event("report_callbacks::close", %{"report_callback_id" => report_callback_id}, socket) do
+    report_callback = Messaging.get_report_callback!(report_callback_id)
+    Messaging.update_report_callback(report_callback, %{"status" => "closed"})
     {:noreply, socket}
   end
 

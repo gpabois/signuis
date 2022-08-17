@@ -20,7 +20,8 @@ defmodule SignuisWeb.Reporting.HomeLive do
       |> assign(:report_changeset, Reporting.change_report(%Report{}, %{}))
       |> assign(:choices_nuisance_types, choices_nuisance_types)
       |> assign(:display_report_form, false)
-      |> init_map(params, session)
+      |> init_map(params, session),
+      layout: {SignuisWeb.LayoutView, "nowrap.live.html.heex"}
     }
   end
   def update_map(socket) do
