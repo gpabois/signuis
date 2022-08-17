@@ -25,8 +25,8 @@ import "phoenix_html"
 import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 
-import './component/loader'
-import Hooks from './hooks'
+import './component'
+import Hooks from './hooks/index.js'
 
 import topbar from "../vendor/topbar.js"
 import tempusDominus from "../vendor/tempus-dominus/tempus-dominus"

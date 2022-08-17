@@ -55,7 +55,7 @@
             </li>
           <% end %>
         <% end %>
-        <%= live_render(assigns[:conn] || assigns[:socket], SignuisWeb.Notifications.NotificationPaneLive, id: "notification-pane") %>
+        <%= live_render(assigns[:conn] || assigns[:socket], SignuisWeb.Notifications.NotificationPaneLive, id: unique_id("notification-pane")) %>
         <%= if permit?(Administration, {:access, :administration}, assigns[:current_user]) do %>
         <li class="nav-item">
           <%= link "Administration", class: "nav-link", to: Routes.administration_dashboard_path(assigns[:conn] || assigns[:socket], :show) %>

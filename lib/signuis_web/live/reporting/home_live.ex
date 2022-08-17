@@ -6,6 +6,7 @@ defmodule SignuisWeb.Reporting.HomeLive do
   alias SignuisWeb.MapMarker
   alias Signuis.Facilities
   alias Signuis.Reporting
+  alias Signuis.Accounts.{User, Anonymous}
   alias Signuis.Reporting.Report
 
   def mount(params, session, socket) do
@@ -57,7 +58,7 @@ defmodule SignuisWeb.Reporting.HomeLive do
     {:noreply, socket}
   end
 
-  def handle_event("report::validate", %{"report" => report_params}, socket) do
+  def handle_event("form::report::validate", %{"report" => report_params}, socket) do
     changeset = %Report{}
     |> Reporting.change_report(report_params, pre_validations: [&(cast_location(&1, socket.assigns.location))])
     |> Map.put(:action, :insert)
@@ -68,12 +69,10 @@ defmodule SignuisWeb.Reporting.HomeLive do
     {:noreply, socket}
   end
 
-  def handle_event("report::submit", %{"report" => report_params}, socket) do
-    report_params = case socket.assigns do
-      %{current_user: current_user} when not is_nil(current_user) ->
-        %{"user_id" => current_user.id}
-      %{current_session_id: session_id} ->
-        %{"session_id" => session_id}
+  def handle_event("form::report::submit", %{"report" => report_params}, socket) do
+    report_params = case socket.assigns.current_user do
+      %User{id: id} -> %{"user_id" => id}
+      %Anonymous{id: id} -> %{"session_id" => id}
     end |> Map.merge(report_params)
 
     result = Reporting.create_report(report_params, pre_validations: [&(cast_location(&1, socket.assigns.location))])

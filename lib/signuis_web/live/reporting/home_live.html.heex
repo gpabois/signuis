@@ -4,7 +4,7 @@
   </div>
   <div class="row sg-viewport__body__main">
     <%= if "#{Mix.env}" === "dev" do %>
-    <div id="reporting-dev-toolbox" class="col-2 shadow" phx-hook="ReportingDevToolbox">
+    <div id={unique_id("devbox")} class="col-2 shadow" phx-hook="ReportingDevToolbox">
       <h2>Dev Toolbox</h2>
     </div>
     <% end %>
@@ -12,7 +12,7 @@
       <div class="sg-wrapper__overlay sg-fullwidth">
         <ul class="nav justify-content-center sg-fullwidth sg-gap--top">
           <li class="nav-item px-2">
-            <a class="btn btn-primary" id="geolocation" phx-hook="Geolocation" aria-current="page" href="#">Localiser</a>
+            <a class="btn btn-primary" id={unique_id("geolocation")} phx-hook="Geolocation" aria-current="page" href="#">Localiser</a>
           </li>
           <li class="nav-item px-2">
             <a class="btn btn-success" href="#" phx-click="form::report::toggle">Signaler</a>
@@ -43,7 +43,7 @@
   <div class="sg-viewport__body__row sg-menu shadow-lg">
     <div class="container" id="report-form">
       <h3 class="mt-3 mb-3">Signaler une nuisance</h3>
-      <.form let={f} for={@report_changeset} phx-change="report::validate" phx-submit="report::submit">
+      <.form let={f} for={@report_changeset} phx-change="form::report::validate" phx-submit="form::report::submit">
         <div class="form-group mb-3">
           <%= error_tag f, :location %>
         </div>

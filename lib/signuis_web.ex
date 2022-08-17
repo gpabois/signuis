@@ -48,6 +48,9 @@ defmodule SignuisWeb do
       # Include shared imports and aliases for views
       unquote(view_helpers())
       import Surface
+
+
+
     end
   end
 
@@ -117,6 +120,11 @@ defmodule SignuisWeb do
       alias SignuisWeb.Router.Helpers, as: Routes
 
       import SignuisWeb.Components.Map
+
+      def unique_id(prefix) do
+        rsuffix = :crypto.strong_rand_bytes(16) |> Base.url_encode64()
+        "#{prefix}-#{rsuffix}"
+      end
     end
   end
 
