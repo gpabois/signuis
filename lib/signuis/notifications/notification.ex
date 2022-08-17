@@ -8,6 +8,7 @@ defmodule Signuis.Notifications.Notification do
   import Signuis.Utils
 
   alias Signuis.Accounts.{User, Anonymous}
+  alias Signuis.Messaging.Message
 
   alias Signuis.Repo
 
@@ -15,7 +16,9 @@ defmodule Signuis.Notifications.Notification do
     field :session_id, :string
     field :type, :string
     field :user_id, :id
-    field :message_id, :id
+
+    belongs_to :message, Message
+
     field :read, :boolean
 
     timestamps()
@@ -29,6 +32,7 @@ defmodule Signuis.Notifications.Notification do
     |> cast(attrs, [:user_id, :session_id, :type, :message_id, :read])
     |> validate_required([:type])
   end
+
   def list(opts \\ []) do
     filters = Keyword.get(opts, :filter, %{}) |> Enum.into(%{}) |> keys_to_atoms
     preload = Keyword.get(opts, :preload, [])
@@ -39,6 +43,7 @@ defmodule Signuis.Notifications.Notification do
     |> Repo.all
     |> Repo.preload(preload)
   end
+
   def count(opts \\ []) do
     filters = Keyword.get(opts, :filter, %{}) |> Enum.into(%{}) |> keys_to_atoms
 
@@ -47,6 +52,7 @@ defmodule Signuis.Notifications.Notification do
     |> select([b], count(b.id))
     |> Repo.one!
   end
+
   def filter_on_attribute({:read, read}, query) do
     where(query, [b], b.read == ^read)
   end

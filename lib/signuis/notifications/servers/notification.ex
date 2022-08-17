@@ -25,6 +25,8 @@ defmodule Signuis.Notifications.Servers.Messages do
             %{"user_id" => message.to_user_id}
           message.to_session_id ->
             %{"session_id" => message.to_session_id}
+          true ->
+            %{}
         end
 
         notifications_params = Map.merge(to, %{

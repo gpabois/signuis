@@ -17,7 +17,7 @@ defmodule SignuisWeb.Notifications.NotificationPaneLive do
     {:ok,
       socket
       |> assign(:filter, filter)
-      |> assign(:last_notifications, Notifications.list_notifications(filter: filter))
+      |> assign(:last_notifications, Notifications.list_notifications(filter: Map.merge(filter, %{"read" => false}), preload: [message: [:from_facility]]))
       |> assign(:unread_notifications_count, Notifications.count_notifications(filter: Map.merge(filter, %{"read" => false}))),
       layout: {SignuisWeb.LayoutView, "nowrap.live.html"}
     }
@@ -40,8 +40,16 @@ defmodule SignuisWeb.Notifications.NotificationPaneLive do
   end
 
   def handle_event("notification::clicked", %{"notification" => notification_id}, socket) do
-    notif = Notifications.get_notification!(notification_id)
-    Notifications.update_notification(notif, %{"read" => true})
+    notification = Notifications.get_notification!(notification_id)
+    Notifications.update_notification(notification, %{"read" => true})
+    socket = cond do
+      notification.message != nil ->
+        socket
+        |> redirect(to: Routes.messaging_message_path(socket, :index))
+      true ->
+        socket
+    end
+
     {:noreply, socket}
   end
 

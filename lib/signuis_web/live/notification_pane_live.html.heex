@@ -13,7 +13,11 @@
                     <%= if notification.read == false do %>
                         <i class="bi bi-envelope-exclamation"></i>
                     <% end %>
-                    Message reçu
+                    Message reçu de <%= cond do %>
+                        <% notification.message.from_facility != nil -> %>
+                        <%= notification.message.from_facility.name %>
+                        <% true -> %>
+                    <% end %>
                 </a>
             <% _ -> %>
             <% end %>
