@@ -1,27 +1,27 @@
 <div class="container">
-<h1 class="mt-3 mb-3">Liste des installations</h1>
+  <h1 class="mt-3 mb-3">Liste des installations</h1>
 
-<table class="table">
-  <thead>
-    <tr>
-      <th>Nom</th>
-      <th>Voie</th>
-      <th>Commune</th>
-      <th>Code postal</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-<%= for facility <- @facilities do %>
-    <tr>
-      <td><%= link facility.name, to: Routes.facilities_facility_path(@conn, :show, facility) %></td>
-      <td><%= facility.adresse__street %></td>
-      <td><%= facility.adresse__city %></td>
-      <td><%= facility.adresse__zip_code %></td>
-    </tr>
-<% end %>
-  </tbody>
-</table>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Voie</th>
+        <th>Commune</th>
+        <th>Code postal</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+  <%= for facility <- @facilities do %>
+      <tr>
+        <td><%= link facility.name, to: Routes.facilities_facility_path(@conn, :show, facility) %></td>
+        <td><%= facility.adresse__street %></td>
+        <td><%= facility.adresse__city %></td>
+        <td><%= facility.adresse__zip_code %></td>
+      </tr>
+  <% end %>
+    </tbody>
+  </table>
 
-<span><%= link "Nouvelle installation", to: Routes.facilities_facility_path(@conn, :new) %></span>
+  <span><%= link "Nouvelle installation", to: Routes.facilities_facility_path(@conn, :new) %></span>
 </div>

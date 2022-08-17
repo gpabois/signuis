@@ -33,6 +33,19 @@ defmodule Signuis.Facilities.Facility do
     |> Repo.all
   end
 
+  def get!(id) do
+    Repo.get!(__MODULE__, id)
+    |> fill_vfields()
+  end
+
+  def fill_vfields(nil), do: nil
+
+  def fill_vfields(%__MODULE__{location: %Geo.Point{coordinates: {lat, lng}}} = facility) do
+    facility
+    |> Map.put(:location__lat, lat)
+    |> Map.put(:location__lng, lng)
+  end
+
   def filter_on_attribute({:bounds, %{bottom_left: bottom_left, top_right: top_right}}, query) do
     from(
       f in query,
@@ -81,11 +94,20 @@ defmodule Signuis.Facilities.Facility do
   end
 
   def cast_location(changeset) do
-    lat = get_change(changeset, :location__lat)
-    lng = get_change(changeset, :location__lng)
+    if Enum.any?([
+      get_field(changeset, :location__lat) == nil,
+      get_field(changeset, :location__lng) == nil
+    ]) do
+      changeset
+      |> add_error(:location, "missing location")
+    else
+      lat = get_field(changeset, :location__lat)
+      lng = get_field(changeset, :location__lng)
 
-    geo = %Geo.Point{coordinates: {lat, lng}, srid: 4326}
+      geo = %Geo.Point{coordinates: {lat, lng}, srid: 4326}
 
-    changeset |> put_change(:location, geo)
+      changeset |> put_change(:location, geo)
+    end
+
   end
 end

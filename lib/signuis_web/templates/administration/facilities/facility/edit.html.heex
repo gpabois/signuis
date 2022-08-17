@@ -1,5 +1,7 @@
-<h1>Edit Facility</h1>
+<div class="container">
+    <h1 class="mt-3 mb-3">Modifier l'installation <%= @facility.name %></h1>
 
-<%= render "form.html", Map.put(assigns, :action, Routes.administration_facility_path(@conn, :update, @facility)) %>
+    <%= render "form.html", Map.put(assigns, :action, Routes.administration_facility_path(@conn, :update, @facility)) %>
 
-<span><%= link "Back", to: Routes.administration_facility_path(@conn, :index) %></span>
+    <div class="mt-3"><%= link "Retour", to: Routes.administration_facility_path(@conn, :index) %></div>
+</div>

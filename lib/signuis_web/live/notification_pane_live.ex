@@ -18,7 +18,8 @@ defmodule SignuisWeb.Notifications.NotificationPaneLive do
       socket
       |> assign(:filter, filter)
       |> assign(:last_notifications, Notifications.list_notifications(filter: filter))
-      |> assign(:unread_notifications_count, Notifications.count_notifications(filter: Map.merge(filter, %{"read" => false})))
+      |> assign(:unread_notifications_count, Notifications.count_notifications(filter: Map.merge(filter, %{"read" => false}))),
+      layout: {SignuisWeb.LayoutView, "nowrap.live.html"}
     }
   end
 

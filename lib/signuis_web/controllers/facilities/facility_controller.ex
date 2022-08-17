@@ -42,7 +42,7 @@ defmodule SignuisWeb.Facilities.FacilityController do
   end
 
   def new(conn, _params) do
-    changeset = Facilities.change_facility(%Facility{})
+    changeset = Facilities.change_facility(%Facility{}, %{})
     render(conn, "new.html", changeset: changeset)
   end
 
@@ -69,7 +69,7 @@ defmodule SignuisWeb.Facilities.FacilityController do
 
   def edit(conn, %{"id" => id}) do
     facility = Facilities.get_facility!(id)
-    changeset = Facilities.change_facility(facility)
+    changeset = Facilities.change_facility(facility, %{})
     render(conn, "edit.html", facility: facility, changeset: changeset)
   end
 

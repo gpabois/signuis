@@ -1,24 +1,34 @@
-<h1>Listing Facilities</h1>
+<div class="container">
+  <h1 class="mt-3 mb-3">Installations</h1>
 
-<table>
-  <thead>
-    <tr>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+  <%= for facility <- @facilities do %>
+      <tr>
+        <td>
+          <%= link facility.name, to: Routes.administration_facility_path(@conn, :show, facility) %>
+        </td>
+        <td>
+          <%= if permit?(Administration, {:update, :facilities}, @current_user, facility) do %>
+          <span><%= link "Modifier", to: Routes.administration_facility_path(@conn, :edit, facility) %></span>
+          <% end %>
 
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-<%= for facility <- @facilities do %>
-    <tr>
+          <%= if permit?(Administration, {:delete, :facilities}, @current_user, facility) do %>
+          <span><%= link "Supprimer", to: Routes.administration_facility_path(@conn, :delete, facility), method: :delete, data: [confirm: "Êtes-vous sûr ?"] %></span>
+          <% end   %>
+        </td>
+      </tr>
+  <% end %>
+    </tbody>
+  </table>
 
-      <td>
-        <span><%= link "Show", to: Routes.administration_facility_path(@conn, :show, facility) %></span>
-        <span><%= link "Edit", to: Routes.administration_facility_path(@conn, :edit, facility) %></span>
-        <span><%= link "Delete", to: Routes.administration_facility_path(@conn, :delete, facility), method: :delete, data: [confirm: "Are you sure?"] %></span>
-      </td>
-    </tr>
-<% end %>
-  </tbody>
-</table>
-
-<span><%= link "New Facility", to: Routes.administration_facility_path(@conn, :new) %></span>
+  <%= if permit?(Administration, {:add, :facilities}, @current_user) do %>
+    <span><%= link "Nouvelle installation", to: Routes.administration_facility_path(@conn, :new) %></span>
+  <% end %>
+</div>

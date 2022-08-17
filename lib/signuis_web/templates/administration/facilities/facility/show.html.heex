@@ -1,12 +1,8 @@
-<h1><%= @facility.name %></h1>
-<span><%= link "Modifier", to: Routes.administration_facility_path(@conn, :edit, @facility) %></span> |
-<span><%= link "Retour", to: Routes.administration_facility_path(@conn, :index) %></span>
+<div class="container">
+    <h1 class="mt-3 mb-3"><%= @facility.name %></h1>
+    <span><%= link "Modifier", to: Routes.administration_facility_path(@conn, :edit, @facility) %></span> |
+    <span><%= link "Retour", to: Routes.administration_facility_path(@conn, :index) %></span>
 
-<%= @facility.description |> text_to_html %>
-
-<.map 
-    center={@facility.location} 
-    classes={["sg-map-quickview"]} 
-    markers={[%{location: @facility.location}]} />
-
-
+    <p><%= @facility.description |> text_to_html %></p>
+    <.map center={@facility.location}  classes={["sg-map-quickview"]} markers={[SignuisWeb.MapMarker.to(@facility)]} />
+</div>

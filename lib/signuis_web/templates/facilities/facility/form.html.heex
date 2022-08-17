@@ -5,35 +5,49 @@
     </div>
   <% end %>
 
-  <%= label f, :nom %>
-  <%= text_input f, :nom %>
-  <%= error_tag f, :nom %>
+  <div class="mt-3">
+    <%= label f, :name %>
+    <%= text_input f, :name, class: "form-control" %>
+    <%= error_tag f, :name %>
+  </div>
 
+  <div class="mt-3">
   <%= label f, :description %>
-  <%= textarea f, :description %>
+  <%= textarea f, :description, class: "form-control" %>
   <%= error_tag f, :description %>
+  </div>
 
+  <div class="mt-3">
   <%= label f, :location__lat, "Latitude" %>
-  <%= number_input f, :location__lat, step: "any" %>
+  <%= number_input f, :location__lat, step: "any", class: "form-control" %>
   <%= error_tag f, :location__lat %>
+  </div>
 
+  <div class="mt-3">
   <%= label f, :location__lng, "Longitude" %>
-  <%= number_input f, :location__lng, step: "any" %>
+  <%= number_input f, :location__lng, step: "any", class: "form-control" %>
   <%= error_tag f, :location__lng %>
+  </div>
 
-  <%= label f, :adresse__voie %>
-  <%= text_input f, :adresse__voie %>
-  <%= error_tag f, :adresse__voie %>
+  <div class="mt-3">
+  <%= label f, :adresse__street %>
+  <%= text_input f, :adresse__street, class: "form-control" %>
+  <%= error_tag f, :adresse__street %>
+  </div>
 
-  <%= label f, :adresse__commune %>
-  <%= text_input f, :adresse__commune %>
-  <%= error_tag f, :adresse__commune %>
+  <div class="mt-3">
+  <%= label f, :adresse__city %>
+  <%= text_input f, :adresse__city, class: "form-control" %>
+  <%= error_tag f, :adresse__city %>
+  </div>
 
-  <%= label f, :adresse__code_postal %>
-  <%= text_input f, :adresse__code_postal %>
-  <%= error_tag f, :adresse__code_postal %>
+  <div class="mt-3">
+  <%= label f, :adresse__zip_code %>
+  <%= text_input f, :adresse__zip_code, class: "form-control" %>
+  <%= error_tag f, :adresse__zip_code %>
+  </div>
 
-  <div>
-    <%= submit "Save" %>
+  <div class="mt-3">
+    <%= submit "Sauvegarder", class: "btn btn-primary" %>
   </div>
 </.form>

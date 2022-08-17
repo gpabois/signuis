@@ -93,7 +93,7 @@ defmodule Signuis.Facilities do
       ** (Ecto.NoResultsError)
 
   """
-  def get_facility!(id), do: Repo.get!(Facility, id)
+  def get_facility!(id), do: Facility.get!(id)
 
   @doc """
   Creates a facility.
