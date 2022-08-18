@@ -65,7 +65,7 @@
         </div>
         <.map id="map" center={@facility.location} phx-hook="Map" classes={["sg-layer-0", "sg-map", "sg-wrapper__content"]} markers={@markers} heatmap_cells={@heatmap_cells} />
         <div class="sg-wrapper__overlay--bottom sg-fullwidth sg-layer-3">
-          <div class="row sg-fullwidth mb-3 align-items-center">
+          <div class="row sg-fullwidth mb-4 align-items-center">
             <div class="col-auto">
               <%= if @display_history_form do %>
                   <a class="btn btn-danger" href="#" phx-click="form::history::toggle">
@@ -79,15 +79,15 @@
             </div>
             <%= if @display_history_form do %>
             <.form class="col mx-3" let={f} for={@history_changeset} phx-change="form::history::change">
-              <div class="row">
-                <div class="col bg-light p-3">
+              <div class="row bg-light rounded shadow">
+                <div class="col p-3">
                     <div class="row">
                       <label class="label col-auto">Début</label>
                       <%= date_input f, :date_begin, class: "form-control col mx-3" %>
                       <%= time_input f, :time_begin, class: "form-control col" %>
                     </div>
                 </div>
-                <div class="col bg-light p-3">
+                <div class="col p-3 pe-4">
                   <div class="row">
                     <label class="label col-auto ">Fin</label>
                     <%= date_input f, :date_end, class: "form-control col mx-3" %>
@@ -96,6 +96,7 @@
                 </div>
               </div>
             </.form>
+            <div class="col-auto" style="width: 50px"/> 
             <% end %>
           </div>
         </div>
@@ -103,8 +104,8 @@
   </div>
 
   <%= if @display_report_callback_form do %>
-    <div class="sg-viewport__body__row shadow-lg bg-light sg-layer-10">
-      <div class="sg-row-close bg-light">
+    <div class="sg-viewport__body__row shadow-lg bg-light sg-layer-10 rounded-top">
+      <div class="sg-row-close bg-light rounded-top">
         <a href="#" phx-click="form::report_callback::toggle"><i class="bi bi-caret-down-fill"></i></a>
       </div>
       <div class="container">

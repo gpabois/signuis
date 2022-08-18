@@ -224,10 +224,11 @@ defmodule SignuisWeb.Facilities.DashboardLive do
     socket = with {:ok, history} <- HistorySelector.create(history_selector_params) do
       socket = socket
       |> assign(:history, history)
+      |> assign(:history_changeset, HistorySelector.changeset(history, %{}))
       send(self(), :fetch_new_reports)
       socket
     else
-      {:error, changeset} ->
+      {:error, _changeset} ->
         socket
     end
     {:noreply, socket}
@@ -238,7 +239,9 @@ defmodule SignuisWeb.Facilities.DashboardLive do
     |> assign(:display_history_form, not socket.assigns.display_history_form)
 
     socket = if !socket.assigns.display_history_form do
-      socket |> assign(:history, nil)
+      socket
+      |> assign(:history, nil)
+      |> assign(:history_changeset, HistorySelector.changeset(%HistorySelector{}, %{}))
     else
       socket
     end
