@@ -10,6 +10,7 @@ defmodule Signuis.Reporting.Report do
 
   alias Signuis.Accounts.{User, Anonymous}
   alias Signuis.Reporting.NuisanceType
+  alias Signuis.Reporting.HistorySelector
 
   schema "reports" do
     field :location, Geo.PostGIS.Geometry
@@ -44,6 +45,12 @@ defmodule Signuis.Reporting.Report do
     |> Repo.one!
   end
 
+  def filter_on_attribute({:datetime_range, %HistorySelector{datetime_begin: dt_begin, datetime_end: dt_end}}, query) do
+    filter_on_attribute({:datetime_range, {dt_begin, dt_end}}, query)
+  end
+
+  def filter_on_attribute({:datetime_range, nil}, query), do: query
+
   def filter_on_attribute({:user, %Anonymous{id: session_id}}, query) do
     filter_on_attribute({:session_id, session_id}, query)
   end
@@ -70,7 +77,7 @@ defmodule Signuis.Reporting.Report do
   end
 
 
-  def filter_on_attribute({:timerange, {bgt, endt}}, query) do
+  def filter_on_attribute({:datetime_range, {bgt, endt}}, query) do
     query = query
     |> where([b], b.inserted_at >= ^bgt)
 

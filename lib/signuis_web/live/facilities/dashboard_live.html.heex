@@ -1,17 +1,17 @@
 <div class="sg-viewport">
-    <div class="sg-viewport__body__row" style="z-index: 100000;">
+    <div class="sg-viewport__body__row sg-layer-10">
       <%= Phoenix.View.render SignuisWeb.LayoutView, "_user_menu.html", assigns %>
     </div>
     <div class="row sg-viewport__body__main">
-      <div class="col-2">
+      <div class="col-3 sg-layer-2 px-3 bg-light shadow-lg">
         <h2 class="mt-3">Répondeurs</h2>
         <ul class="list-group list-group-flush">
           <%= if Enum.empty?(@opened_report_callbacks) do %>
-          <li class="list-group-item">Aucun répondeur en cours...</li>
+          <li class="list-group-item bg-light">Aucun répondeur en cours...</li>
           <% end %>
           <%= for report_callback <- @opened_report_callbacks do %>
-          <li class="list-group-item">
-              <div class="d-flex w-100 justify-content-between">
+          <li class="list-group-item bg-light">
+              <div class="d-flex justify-content-between">
                 <h5 class="mb-1">
                   <a href="#" phx-click="report_callbacks::close" phx-value-report_callback_id={report_callback.id}>
                     <i class="bi bi-x"></i></a>
@@ -26,8 +26,8 @@
         </ul>
       </div>
       <div class="col sg-wrapper">
-          <div class="sg-wrapper__overlay sg-fullwidth">
-          <ul class="nav justify-content-center sg-fullwidth sg-gap--top">
+        <div class="sg-wrapper__overlay sg-fullwidth sg-layer-3">
+          <ul class="nav justify-content-center sg-fullwidth mt-3">
             <li class="nav-item px-2">
               <%= if @current_production do %>
                 <a class="btn btn-danger" href="#" phx-click="production::toggle">
@@ -40,9 +40,15 @@
               <% end %>
             </li>
 
-            <%= if @current_production do %>
+            <%= if @current_production != nil and @history == nil do %>
             <li class="px-2">
               <a class="btn bg-light">En production depuis <%= @current_production.begin %></a>
+            </li>
+            <% end %>
+
+            <%= if @history do %>
+            <li class="px-2">
+              <a class="btn btn-primary">Mode historique</a>
             </li>
             <% end %>
 
@@ -57,24 +63,52 @@
             </li>
           </ul>
         </div>
-        <.map id="map" center={@facility.location} phx-hook="Map" classes={["sg-map", "wrapper__content"]} markers={@markers} heatmap_cells={@heatmap_cells} />
+        <.map id="map" center={@facility.location} phx-hook="Map" classes={["sg-layer-0", "sg-map", "sg-wrapper__content"]} markers={@markers} heatmap_cells={@heatmap_cells} />
+        <div class="sg-wrapper__overlay--bottom sg-fullwidth sg-layer-3">
+          <div class="row sg-fullwidth mb-3 align-items-center">
+            <div class="col-auto">
+              <%= if @display_history_form do %>
+                  <a class="btn btn-danger" href="#" phx-click="form::history::toggle">
+                    <i class="bi bi-watch"></i>
+                  </a>
+                <% else %>
+                <a class="btn btn-success" href="#" phx-click="form::history::toggle">
+                    <i class="bi bi-watch"></i>
+                  </a>
+                <% end %>
+            </div>
+            <%= if @display_history_form do %>
+            <.form class="col mx-3" let={f} for={@history_changeset} phx-change="form::history::change">
+              <div class="row">
+                <div class="col bg-light p-3">
+                    <div class="row">
+                      <label class="label col-auto">Début</label>
+                      <%= date_input f, :date_begin, class: "form-control col mx-3" %>
+                      <%= time_input f, :time_begin, class: "form-control col" %>
+                    </div>
+                </div>
+                <div class="col bg-light p-3">
+                  <div class="row">
+                    <label class="label col-auto ">Fin</label>
+                    <%= date_input f, :date_end, class: "form-control col mx-3" %>
+                    <%= time_input f, :time_end, class: "form-control col" %>
+                  </div>
+                </div>
+              </div>
+            </.form>
+            <% end %>
+          </div>
+        </div>
       </div>
-      <%= if "#{Mix.env}" === "dev" do %>
-      <div id="reporting-dev-toolbox" class="col-2" phx-hook="ReportingDevToolbox">
-        <h2 class="mt-3 mb-3">Dev Toolbox</h2>
-        <button class="btn" phx-click="dev::reports::delete_all">Tout supprimer</button>
-        <button class="btn" phx-click="dev::reports::generate" phx-value-number="10">Générer 10 signalements</button>
-        <button class="btn" phx-click="dev::reports::generate" phx-value-number="100">Générer 100 signalements</button>
-        <button class="btn" phx-click="dev::reports::generate" phx-value-number="500">Générer 500 signalements</button>
-        <button class="btn" phx-click="dev::reports::generate" phx-value-number="5000">Générer 5000 signalements</button>
-      </div>
-      <% end %>
   </div>
 
   <%= if @display_report_callback_form do %>
-    <div class="sg-viewport__body__row shadow" style="z-index: 1000000;">
+    <div class="sg-viewport__body__row shadow-lg bg-light sg-layer-10">
+      <div class="sg-row-close bg-light">
+        <a href="#" phx-click="form::report_callback::toggle"><i class="bi bi-caret-down-fill"></i></a>
+      </div>
       <div class="container">
-        <h3 class="mt-3 mb-3">Créer un répondeur aux signalements</h3>
+        <h3 class="mb-3">Créer un répondeur aux signalements</h3>
         <.form let={f} for={@report_callback_changeset} phx-change="form::report_callback::validate" phx-submit="form::report_callback::submit">
           <div class="form-group mt-3">
             <%= error_tag f, :facility_id %>

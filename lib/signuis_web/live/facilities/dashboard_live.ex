@@ -9,6 +9,8 @@ defmodule SignuisWeb.Facilities.DashboardLive do
   alias Signuis.Messaging.ReportCallback
   alias Signuis.Reporting
 
+  alias Signuis.Reporting.HistorySelector
+
   @grid_size 0.001
 
   def mount(%{"facility_id" => facility_id} = params, session, socket) do
@@ -20,6 +22,9 @@ defmodule SignuisWeb.Facilities.DashboardLive do
       Phoenix.PubSub.subscribe(Signuis.PubSub, "facilities::#{facility.id}")
 
       socket
+      |> assign(:display_history_form, false)
+      |> assign(:history, nil)
+      |> assign(:history_changeset, HistorySelector.changeset(%HistorySelector{}, %{}))
       |> assign(:current_production, Facilities.current_ongoing_production(facility))
       |> assign(:facility, facility)
       |> assign(:facilities, [])
@@ -68,14 +73,19 @@ defmodule SignuisWeb.Facilities.DashboardLive do
 
     socket = case event do
       :fetch_new_reports ->
+          dateime_range =  if socket.assigns.history, do: socket.assigns.history, else: {alive_threshold_dt, nil}
+          alive_reports_count = Reporting.count_reports(filter: %{
+            "facility" => socket.assigns.facility,
+            "datetime_range" => dateime_range
+          })
 
-        alive_reports_count = Reporting.count_reports(filter: %{
-          "facility" => socket.assigns.facility,
-          "timerange" => {alive_threshold_dt, nil}
-        })
+         socket = if socket.assigns.map_bounds do
+          heatmap = Reporting.get_report_heatmap(
+            grid: @grid_size,
+            bounds: socket.assigns.map_bounds,
+            datetime_range: dateime_range
+          )
 
-        socket = if socket.assigns.map_bounds do
-          heatmap = Reporting.get_report_heatmap(grid: @grid_size, bounds: socket.assigns.map_bounds, timerange: {alive_threshold_dt, nil})
           socket
           |> assign(:report_heatmap, heatmap)
           |> update_map
@@ -99,6 +109,7 @@ defmodule SignuisWeb.Facilities.DashboardLive do
       {:updated_report_callback, report_callback} ->
         socket
         |> assign(:opened_report_callbacks, Messaging.list_report_callbacks(filter: %{"facility" => socket.assigns.facility, "status" => "opened"}))
+
       {"map::marker-clicked", marker} ->
           entity = MapMarker.from(marker)
 
@@ -115,9 +126,8 @@ defmodule SignuisWeb.Facilities.DashboardLive do
       {"map::bounds-updated", bounds} ->
           socket
           |> assign(:map_bounds, bounds)
-          |> assign(:facilities, Facilities.list_facilities(filter: [bounds: bounds]))
-          |> assign(:report_heatmap, Reporting.get_report_heatmap(grid: @grid_size, bounds: bounds, timerange: {alive_threshold_dt, nil}))
-          |> update_map
+          send(self(), :fetch_new_reports)
+          socket
 
       _ -> socket
     end
@@ -210,4 +220,28 @@ defmodule SignuisWeb.Facilities.DashboardLive do
     {:noreply, socket}
   end
 
+  def handle_event("form::history::change", %{"history_selector" => history_selector_params}, socket) do
+    socket = with {:ok, history} <- HistorySelector.create(history_selector_params) do
+      socket = socket
+      |> assign(:history, history)
+      send(self(), :fetch_new_reports)
+      socket
+    else
+      {:error, changeset} ->
+        socket
+    end
+    {:noreply, socket}
+  end
+
+  def handle_event("form::history::toggle", _, socket) do
+    socket = socket
+    |> assign(:display_history_form, not socket.assigns.display_history_form)
+
+    socket = if !socket.assigns.display_history_form do
+      socket |> assign(:history, nil)
+    else
+      socket
+    end
+    {:noreply, socket}
+  end
 end

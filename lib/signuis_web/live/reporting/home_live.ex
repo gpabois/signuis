@@ -40,17 +40,6 @@ defmodule SignuisWeb.Reporting.HomeLive do
     |> set_map_data(markers)
   end
 
-  def cast_location(changeset, location) do
-    case location do
-      %Geo.Point{coordinates: {lat, long}, srid: 4326} ->
-        changeset
-        |> Ecto.Changeset.put_change(:location__lat, lat)
-        |> Ecto.Changeset.put_change(:location__lng, long)
-      _ ->
-        changeset
-        |> Ecto.Changeset.add_error(:location, "veuillez activer la géolocalisation")
-    end
-  end
 
   def handle_event("form::report::toggle", _value, socket) do
     socket = socket
@@ -60,7 +49,10 @@ defmodule SignuisWeb.Reporting.HomeLive do
 
   def handle_event("form::report::validate", %{"report" => report_params}, socket) do
     changeset = %Report{}
-    |> Reporting.change_report(report_params, pre_validations: [&(cast_location(&1, socket.assigns.location))])
+    |> Reporting.change_report(report_params, pre_validations: [
+      &(cast_user(&1, socket.assigns.current_user)),
+      &(cast_location(&1, socket.assigns.location))
+    ])
     |> Map.put(:action, :insert)
 
     socket = socket
@@ -70,12 +62,10 @@ defmodule SignuisWeb.Reporting.HomeLive do
   end
 
   def handle_event("form::report::submit", %{"report" => report_params}, socket) do
-    report_params = case socket.assigns.current_user do
-      %User{id: id} -> %{"user_id" => id}
-      %Anonymous{id: id} -> %{"session_id" => id}
-    end |> Map.merge(report_params)
-
-    result = Reporting.create_report(report_params, pre_validations: [&(cast_location(&1, socket.assigns.location))])
+    result = Reporting.create_report(report_params, pre_validations: [
+      &(cast_user(&1, socket.assigns.current_user)),
+      &(cast_location(&1, socket.assigns.location))
+    ])
 
     socket = case result do
       {:ok, _report} ->
@@ -129,4 +119,23 @@ defmodule SignuisWeb.Reporting.HomeLive do
     {:noreply, socket}
   end
 
+  def cast_user(changeset, user) do
+    case user do
+      %User{id: id} -> Ecto.Changeset.put_change(:user_id, id)
+      %Anonymous{id: id} -> Ecto.Changeset.put_change(:session_id, id)
+      _ -> Ecto.Changeset.add_error(:user, "no known user")
+    end
+  end
+
+  def cast_location(changeset, location) do
+    case location do
+      %Geo.Point{coordinates: {lat, long}, srid: 4326} ->
+        changeset
+        |> Ecto.Changeset.put_change(:location__lat, lat)
+        |> Ecto.Changeset.put_change(:location__lng, long)
+      _ ->
+        changeset
+        |> Ecto.Changeset.add_error(:location, "veuillez activer la géolocalisation")
+    end
+  end
 end

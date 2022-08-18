@@ -7,7 +7,7 @@ defmodule Signuis.Reporting do
   import Geo.PostGIS
   alias Signuis.Repo
 
-  alias Signuis.Reporting.{NuisanceType, Report}
+  alias Signuis.Reporting.{NuisanceType, Report, HistorySelector}
 
   @doc """
   Returns the list of nuisances_types.
@@ -154,6 +154,10 @@ defmodule Signuis.Reporting do
         query
         |> where([r], r.inserted_at >= ^bgt)
       {bgt, endt} ->
+        query
+        |> where([r], r.inserted_at >= ^bgt)
+        |> where([r], r.inserted_at <= ^endt)
+      %HistorySelector{datetime_begin: bgt, datetime_end: endt} ->
         query
         |> where([r], r.inserted_at >= ^bgt)
         |> where([r], r.inserted_at <= ^endt)
