@@ -21,7 +21,7 @@ defmodule Signuis.Notifications.Notification do
 
     field :read, :boolean
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   @new_message "new_message"
