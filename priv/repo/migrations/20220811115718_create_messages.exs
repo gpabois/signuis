@@ -14,7 +14,7 @@ defmodule Signuis.Repo.Migrations.CreateMessages do
       add :from_user_id, references(:users, on_delete: :delete_all)
       add :from_facility_id, references(:facilities, on_delete: :delete_all)
 
-      timestamps()
+      timestamps(type: :timestamptz)
     end
 
     create index(:messages, [:to_user_id])

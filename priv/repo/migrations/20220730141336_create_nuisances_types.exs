@@ -7,7 +7,7 @@ defmodule Signuis.Repo.Migrations.CreateNuisancesTypes do
       add :family, :string
       add :description, :text
 
-      timestamps()
+      timestamps(type: :timestamptz)
     end
   end
 end

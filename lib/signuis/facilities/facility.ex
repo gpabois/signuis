@@ -22,7 +22,7 @@ defmodule Signuis.Facilities.Facility do
     field :name, :string
     field :valid, :boolean, default: false
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   def list(opts \\ []) do

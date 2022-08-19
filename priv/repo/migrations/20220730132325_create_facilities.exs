@@ -14,7 +14,7 @@ defmodule Signuis.Repo.Migrations.CreateFacilities do
       add :adresse__city, :string
       add :adresse__zip_code, :string
 
-      timestamps()
+      timestamps(type: :timestamptz)
     end
 
     # Add location column

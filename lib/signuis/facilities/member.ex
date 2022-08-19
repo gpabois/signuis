@@ -18,7 +18,7 @@ defmodule Signuis.Facilities.Member do
 
     field :email, :string, virtual: true
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   def is_member?(%Facility{} = facility, %User{} = user) do

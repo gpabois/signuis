@@ -7,7 +7,7 @@ defmodule Signuis.Repo.Migrations.CreateFacilitiesProductions do
       add :end, :naive_datetime
       add :facility_id, references(:facilities, on_delete: :nothing)
 
-      timestamps()
+      timestamps(type: :timestamptz)
     end
 
     create index(:facilities_productions, [:facility_id])

@@ -23,7 +23,7 @@ defmodule Signuis.Reporting.Report do
     field :user_id, :id
     field :session_id, :string
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   def list(opts \\ []) do
@@ -45,7 +45,7 @@ defmodule Signuis.Reporting.Report do
     |> Repo.one!
   end
 
-  def filter_on_attribute({:datetime_range, %HistorySelector{datetime_begin: dt_begin, datetime_end: dt_end}}, query) do
+  def filter_on_attribute({:datetime_range, %HistorySelector{begin_datetime: dt_begin, end_datetime: dt_end}}, query) do
     filter_on_attribute({:datetime_range, {dt_begin, dt_end}}, query)
   end
 
@@ -70,23 +70,15 @@ defmodule Signuis.Reporting.Report do
 
   def filter_on_attribute({:facility, facility}, query) do
     from(b in query,
-      join: f in "reports_facilities",
+      inner_join: f in "reports_facilities",
       on: f.report_id == b.id,
       where: f.facility_id == ^facility.id
     )
   end
 
-
-  def filter_on_attribute({:datetime_range, {bgt, endt}}, query) do
-    query = query
-    |> where([b], b.inserted_at >= ^bgt)
-
-    if endt do
-      query
-      |> where([b], b.inserted_at <= ^endt)
-    else
-      query
-    end
+  def filter_on_attribute({:datetime_range, {begin_dt, end_dt}}, query) do
+    query = if begin_dt, do: where(query, [b], b.inserted_at >= ^begin_dt), else: query
+    if end_dt, do: where(query, [b], b.inserted_at <= ^end_dt), else: query
   end
 
   def filter_on_attribute({:"not-report-callback", report_callback}, query) do
@@ -107,7 +99,7 @@ defmodule Signuis.Reporting.Report do
     pre_validations = Keyword.get(opts, :pre_validations, [])
 
     changeset = report
-    |> cast(attrs, [:nuisance_level, :nuisance_type_id, :user_id, :session_id, :location__lat, :location__lng])
+    |> cast(attrs, [:nuisance_level, :nuisance_type_id, :user_id, :session_id, :location__lat, :location__lng, :inserted_at])
 
     changeset = Enum.reduce(pre_validations, changeset, &(&1.(&2)))
 

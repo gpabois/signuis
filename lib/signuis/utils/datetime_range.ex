@@ -1,27 +1,26 @@
 defmodule Signuis.Utils.DateTimeRange.Form do
   import Ecto.Changeset
 
-  defstruct [date_begin: nil, time_begin: nil, date_end: nil, time_end: nil]
+  defstruct [begin_date: nil, begin_time: nil, end_date: nil, end_time: nil]
 
   @types %{
-    date_begin: :date,
-    time_begin: :time,
-    date_end: :date,
-    time_end: :time
+    begin_date: :date,
+    begin_time: :time,
+    end_date: :date,
+    end_time: :time
   }
 
   def changeset(object, attrs) do
     {object, @types}
     |> cast(attrs, Map.keys(@types))
-    |> validate_required(Map.keys(@types))
   end
 
   def cast_datetime_range(changeset, attrs, opts \\ []) do
     bindings = %{
-      date_begin: Keyword.get(opts, :date_begin, :date_begin),
-      time_begin: Keyword.get(opts, :time_begin, :time_begin),
-      date_end: Keyword.get(opts, :date_end, :date_end),
-      time_end: Keyword.get(opts, :time_end, :time_end),
+      begin_date: Keyword.get(opts, :begin_date, :begin_date),
+      begin_time: Keyword.get(opts, :begin_time, :begin_time),
+      end_date: Keyword.get(opts, :end_date, :end_date),
+      end_time: Keyword.get(opts, :end_time, :end_time),
     }
 
     changeset = changeset
@@ -36,15 +35,15 @@ defmodule Signuis.Utils.DateTimeRange.Form do
 
     dtr_changeset = changeset(%__MODULE__{}, attrs)
 
-    with {:ok, %{date_begin: date_begin, time_begin: time_begin, date_end: date_end, time_end: time_end}} <-  apply_action(dtr_changeset, :get) do
+    with {:ok, %{begin_date: begin_date, begin_time: begin_time, end_date: end_date, end_time: end_time}} <-  apply_action(dtr_changeset, :get) do
       attrs = %{
-        datetime_begin:  NaiveDateTime.new!(date_begin, time_begin),
-        datetime_end: NaiveDateTime.new!(date_end, time_end)
+        begin_datetime: (if nil in [begin_date, begin_time], do: nil, else: DateTime.new!(begin_date, begin_time)),
+        end_datetime: (if nil in [end_date, end_time], do: nil, else: DateTime.new!(end_date, end_time))
       }
 
       bindings = %{
-        datetime_begin: Keyword.get(opts, :datetime_begin, :datetime_begin),
-        datetime_end: Keyword.get(opts, :datetime_end, :datetime_end)
+        begin_datetime: Keyword.get(opts, :begin_datetime, :begin_datetime),
+        end_datetime: Keyword.get(opts, :end_datetime, :end_datetime)
       }
 
       changeset = Enum.reduce(

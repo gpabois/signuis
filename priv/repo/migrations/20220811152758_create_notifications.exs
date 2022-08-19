@@ -12,7 +12,7 @@ defmodule Signuis.Repo.Migrations.CreateNotifications do
       add :message_id, references(:messages, on_delete: :delete_all)
 
       add :read, :boolean, default: false
-      timestamps()
+      timestamps(type: :timestamptz)
     end
 
     create index(:notifications, [:user_id])

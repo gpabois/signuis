@@ -9,7 +9,7 @@ defmodule Signuis.Repo.Migrations.CreateReports do
       add :nuisance_type_id, references(:nuisances_types, on_delete: :delete_all)
       add :user_id, references(:users, on_delete: :nilify_all)
 
-      timestamps()
+      timestamps(type: :timestamptz)
     end
 
     create index(:reports, [:nuisance_type_id])

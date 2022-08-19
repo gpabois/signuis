@@ -3,23 +3,23 @@ defmodule Signuis.Reporting.HistorySelector do
   import Ecto.Changeset
 
   defstruct [
-    date_begin: nil,
-    time_begin: nil,
-    date_end: nil,
-    time_end: nil,
+    begin_date: nil,
+    begin_time: nil,
+    end_date: nil,
+    end_time: nil,
 
-    datetime_begin: nil,
-    datetime_end: nil
+    begin_datetime: nil,
+    end_datetime: nil
   ]
 
   @types %{
-    date_begin: :date,
-    time_begin: :time,
-    date_end: :date,
-    time_end: :time,
+    begin_date: :date,
+    begin_time: :time,
+    end_date: :date,
+    end_time: :time,
 
-    datetime_begin: :naive_datetime,
-    datetime_end: :naive_datetime
+    begin_datetime: :naive_datetime,
+    end_datetime: :naive_datetime
   }
 
   def changeset(history_selector, attrs) do

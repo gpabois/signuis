@@ -25,7 +25,7 @@ defmodule Signuis.Messaging.Message do
     belongs_to :from_facility, Facility
     belongs_to :from_user, User
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   def list(opts \\ []) do

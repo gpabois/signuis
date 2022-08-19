@@ -4,10 +4,10 @@ defmodule Signuis.Repo.Migrations.CreateFacilitiesMembers do
   def change do
     create table(:facilities_members) do
       add :roles, {:array, :string}
-      add :user_id, references(:users, on_delete: :nothing)
-      add :facility_id, references(:facilities, on_delete: :nothing)
+      add :user_id, references(:users, on_delete: :delete_all)
+      add :facility_id, references(:facilities, on_delete: :delete_all)
 
-      timestamps()
+      timestamps(type: :timestamptz)
     end
 
     create index(:facilities_members, [:user_id])

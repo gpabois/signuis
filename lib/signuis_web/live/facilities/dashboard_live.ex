@@ -69,12 +69,11 @@ defmodule SignuisWeb.Facilities.DashboardLive do
   end
 
   def handle_info(event, socket) do
-    alive_threshold_dt = NaiveDateTime.add(NaiveDateTime.utc_now(), -1800) # Now - 30 mn (Reports are alive during 30 minutes)
+    alive_threshold_dt = DateTime.add(DateTime.utc_now(), -1800, :second) # Now - 30 mn (Reports are alive during 30 minutes)
 
     socket = case event do
       :fetch_reports ->
           datetime_range =  if socket.assigns.history, do: socket.assigns.history, else: {alive_threshold_dt, nil}
-
           alive_reports_count = Reporting.count_reports(filter: %{
             "facility" => socket.assigns.facility,
             "datetime_range" => datetime_range

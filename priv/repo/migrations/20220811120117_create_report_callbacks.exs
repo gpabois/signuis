@@ -14,7 +14,7 @@ defmodule Signuis.Repo.Migrations.CreateReportCallbacks do
       add :begin, :naive_datetime
       add :end, :naive_datetime
 
-      timestamps()
+      timestamps(type: :timestamptz)
     end
 
     create index(:reports_callbacks, [:facility_id])

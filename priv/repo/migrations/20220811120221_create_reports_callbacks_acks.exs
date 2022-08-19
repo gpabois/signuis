@@ -7,7 +7,7 @@ defmodule Signuis.Repo.Migrations.CreateReportsCallbacksAcks do
       add :report_id, references(:reports, on_delete: :delete_all)
       add :message_id, references(:messages, on_delete: :delete_all)
 
-      timestamps()
+      timestamps(type: :timestamptz)
     end
 
     create index(:reports_callbacks_acks, [:report_callback_id])

@@ -26,7 +26,7 @@ defmodule Signuis.Messaging.ReportCallback do
     field :begin, :naive_datetime
     field :end, :naive_datetime
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   def list(opts \\ []) do
@@ -40,7 +40,7 @@ defmodule Signuis.Messaging.ReportCallback do
   end
 
   def filter_on_attribute({:facility_production, facility_production}, query) do
-    where(query, [b], b.facility_production == ^facility_production.id)
+    where(query, [b], b.facility_production_id == ^facility_production.id)
   end
 
   def filter_on_attribute({:facility, facility}, query) do

@@ -8,7 +8,7 @@ defmodule Signuis.Messaging.ReportCallbackAck do
     field :report_callback_id, :id
     field :message_id, :id
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   @doc false

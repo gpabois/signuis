@@ -19,7 +19,7 @@ defmodule Signuis.Accounts.UserToken do
     field :sent_to, :string
     belongs_to :user, Signuis.Accounts.User
 
-    timestamps(updated_at: false)
+    timestamps(updated_at: false, type: :utc_datetime)
   end
 
   @doc """

@@ -152,6 +152,8 @@ defmodule Signuis.Reporting do
 
     query = case timerange do
       nil -> query
+      {nil, nil} ->
+        query
       {bgt, nil} ->
         query
         |> where([r], r.inserted_at >= ^bgt)
@@ -159,10 +161,10 @@ defmodule Signuis.Reporting do
         query
         |> where([r], r.inserted_at >= ^bgt)
         |> where([r], r.inserted_at <= ^endt)
-      %HistorySelector{datetime_begin: bgt, datetime_end: endt} ->
+      %HistorySelector{begin_datetime: bgt, end_datetime: endt} ->
+        query = if bgt, do: query |> where([r], r.inserted_at >= ^bgt), else: query
+        query = if endt, do: query |> where([r], r.inserted_at <= ^endt), else: query
         query
-        |> where([r], r.inserted_at >= ^bgt)
-        |> where([r], r.inserted_at <= ^endt)
     end
 
     query = if bounds != nil do

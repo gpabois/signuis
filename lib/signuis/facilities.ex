@@ -148,9 +148,9 @@ defmodule Signuis.Facilities do
     Repo.transaction fn ->
       with {:ok, facility} <- create_facility(attrs),
           {:ok, _member} <- create_member(
-            [user_id: admin.id, facility_id: facility.id, roles: [:admin]] |> Enum.into(%{}),
+            [user_id: admin.id, facility_id: facility.id, roles: ["admin"]] |> Enum.into(%{}),
             mode: :direct_new) do
-        {:ok, facility}
+        facility
       end
     end
   end

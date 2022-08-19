@@ -13,7 +13,7 @@ defmodule Signuis.Facilities.Production do
     field :end, :naive_datetime
     field :facility_id, :id
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   @doc false

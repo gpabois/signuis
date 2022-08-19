@@ -7,7 +7,7 @@ defmodule Signuis.Reporting.NuisanceType do
     field :family, :string
     field :label, :string
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   def families, do: [

@@ -9,7 +9,7 @@ defmodule Signuis.Accounts.User do
     field :confirmed_at, :naive_datetime
     field :roles, {:array, :string}, default: []
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   @doc """
