@@ -37,7 +37,7 @@ defmodule SignuisWeb.Facilities.FacilityController do
 
 
   def index(conn, _params) do
-    facilities = Facilities.list_facilities()
+    facilities = Facilities.list_facilities(filter: %{"valid" => true})
     render(conn, "index.html", facilities: facilities)
   end
 

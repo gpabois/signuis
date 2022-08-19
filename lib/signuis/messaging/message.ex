@@ -39,6 +39,13 @@ defmodule Signuis.Messaging.Message do
     |> Repo.preload(preload)
   end
 
+  def delete_all(opts \\ []) do
+    filters = Keyword.get(opts, :filter, %{}) |> Enum.into(%{}) |> keys_to_atoms
+    __MODULE__
+    |> filter(filters, __MODULE__)
+    |> Repo.delete_all
+  end
+
   def filter_on_attribute({:to, %Anonymous{id: session_id}}, query) do
     filter_on_attribute({:to_session_id, session_id}, query)
   end

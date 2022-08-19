@@ -17,22 +17,25 @@ defmodule SignuisWeb.Notifications.NotificationPaneLive do
     {:ok,
       socket
       |> assign(:filter, filter)
-      |> assign(:last_notifications, Notifications.list_notifications(filter: Map.merge(filter, %{"read" => false}), preload: [message: [:from_facility]]))
-      |> assign(:unread_notifications_count, Notifications.count_notifications(filter: Map.merge(filter, %{"read" => false}))),
+      |> load_status(),
       layout: {SignuisWeb.LayoutView, "nowrap.live.html"}
     }
+  end
+
+  def load_status(socket) do
+    socket
+    |> assign(:last_notifications, Notifications.list_notifications(filter: Map.merge(socket.assigns.filter, %{"read" => false}), preload: [:message, message: [:from_facility]]))
+    |> assign(:unread_notifications_count, Notifications.count_notifications(filter: Map.merge(socket.assigns.filter, %{"read" => false})))
   end
 
   def handle_info(event, socket) do
     socket = case event do
       {:new_notification, _} ->
         socket
-        |> assign(:last_notifications, Notifications.list_notifications(filter: socket.assigns.filter))
-        |> assign(:unread_notifications_count, Notifications.count_notifications(filter: Map.merge(socket.assigns.filter, %{"read" => false})))
+        |> load_status()
       {:updated_notification, _} ->
           socket
-          |> assign(:last_notifications, Notifications.list_notifications(filter: socket.assigns.filter))
-          |> assign(:unread_notifications_count, Notifications.count_notifications(filter: Map.merge(socket.assigns.filter, %{"read" => false})))
+          |> load_status()
       _ -> socket
     end
 

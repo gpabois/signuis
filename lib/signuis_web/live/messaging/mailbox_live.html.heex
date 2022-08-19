@@ -1,0 +1,28 @@
+<div class="container">
+  <h1 class="mt-3 mb-3">Messages</h1>
+
+  <%= if not Enum.empty?(@messages) do %>
+
+  <a href="#" phx-click="messages::delete_all" class="btn btn-danger mb-3">Tout supprimer</a>
+
+  <%= for message <- @messages do %>
+  <div class="card mb-3 shadow">
+    <div class="card-body">
+      <h5 class="card-title"><%= message.title %></h5>
+      <h6 class="card-subtitle mb-2 text-muted">
+        <%= message.inserted_at |> Timex.from_now %><%= cond do %>
+          <% message.from_facility -> %>
+            par <%= link message.from_facility.name, to: Routes.facilities_facility_path(@socket, :show, message.from_facility) %>
+            <%= true -> %>
+          <% end %>
+      </h6>
+      <p class="card-text"><%= message.content %></p>
+    </div>
+  </div>
+  <% end %>
+  <% else %>
+  <p class="lead">
+    <i>Aucun message reçu...</i>
+  </p>
+  <% end %>
+</div>

@@ -6,6 +6,8 @@ defmodule Signuis.Reporting do
   import Ecto.Query, warn: false
   import Geo.PostGIS
   alias Signuis.Repo
+  alias Ecto.Multi
+
 
   alias Signuis.Reporting.{NuisanceType, Report, HistorySelector}
 
@@ -139,7 +141,7 @@ defmodule Signuis.Reporting do
   def get_report_heatmap(opts \\ []) do
     grid_size = Keyword.get(opts, :grid, 0.001)
     bounds    = Keyword.get(opts, :bounds, nil)
-    timerange = Keyword.get(opts, :timerange, nil)
+    timerange = Keyword.get(opts, :datetime_range, nil)
 
     query = from(r in Report,
       inner_join: grid in fragment("ST_SquareGrid(?, ?)", ^grid_size, r.location),
@@ -201,6 +203,70 @@ defmodule Signuis.Reporting do
       Signuis.EventTypes.new_report(report)
       {:ok, report}
     end
+  end
+
+  def multi_create_report(multi, report_params, opts \\ []) do
+    changeset = Report.changeset(%Report{}, report_params, opts)
+    name = Keyword.get(opts, :name, {:report, Signuis.Utils.uid()})
+    notify = Keyword.get(opts, :notify, true)
+    run_after = Keyword.get(opts, :run_after, nil)
+
+    multi = Multi.insert(multi, name, changeset)
+
+    multi = if notify do
+      multi = Multi.run(multi, {:notify, name}, fn _repo, catalog ->
+        report = catalog[name]
+        Signuis.EventTypes.new_report(report)
+        {:ok, nil}
+      end)
+    else
+      multi
+    end
+
+    multi = if run_after do
+      run_after.(multi, name)
+    else
+      multi
+    end
+
+    multi
+  end
+
+  @doc """
+  Creates a batch of reports, will chunk every 500 reports.
+
+  ## Examples
+
+      iex> create_reports([%{field: value}])
+      :ok
+
+      iex> create_report(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_reports(reports_params, opts \\ []) do
+    chunks = Enum.chunk_every(reports_params, 500)
+
+    reports = for chunk <- chunks, reduce: [] do
+      reports ->
+
+      {:ok, changes} = for report_params <- chunk, reduce: Ecto.Multi.new() do
+        multi ->
+          multi_create_report(multi, report_params, notify: false)
+      end |> Repo.transaction
+
+      chunk_reports = Enum.filter(changes, fn {_, value} -> is_struct(value, Report) end)
+      |> Enum.map(fn {_, value} -> value end)
+
+      Signuis.EventTypes.new_reports(chunk_reports)
+
+      Enum.concat([
+        chunk_reports,
+        reports
+      ])
+    end
+
+    {:ok, reports}
   end
 
   @doc """

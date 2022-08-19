@@ -28,11 +28,34 @@ defmodule Signuis.Facilities do
     Assign a report to a list of facilities
   """
   def assign_report(facilities, %Report{id: report_id} = report) when is_list(facilities) do
-    inserts = Enum.map(facilities, &[facility_id: &1.id, report_id: report_id])
+    inserts = for facility <- facilities, reduce: [] do
+      inserts ->
+        [[facility_id: facility.id, report_id: report.id] | inserts]
+    end
+
     Repo.insert_all("reports_facilities", inserts)
 
     for facility <- facilities do
       Signuis.EventTypes.new_assigned_report(facility, report)
+    end
+  end
+
+  def assign_reports(facilities, reports) when is_list(facilities) and is_list(reports) do
+    inserts = for facility <- facilities, reduce: [] do
+      inserts ->
+        Enum.concat([
+          inserts,
+          for report <- reports, reduce: [] do
+            inserts ->
+              [[facility_id: facility.id, report_id: report.id] | inserts]
+          end
+        ])
+    end
+
+    Repo.insert_all("reports_facilities", inserts)
+
+    for facility <- facilities do
+      Signuis.EventTypes.new_assigned_reports(facility, reports)
     end
   end
 

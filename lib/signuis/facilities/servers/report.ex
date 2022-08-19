@@ -27,6 +27,13 @@ defmodule Signuis.Facilities.Servers.Report do
           report
         )
         state
+      {:new_reports, reports} ->
+        facilities = Facilities.list_facilities()
+        Facilities.assign_reports(
+          facilities,
+          reports
+        )
+        state
       _ -> state
     end
     {:noreply, state}

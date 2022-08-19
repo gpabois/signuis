@@ -98,7 +98,7 @@ defmodule SignuisWeb.Reporting.HomeLive do
   def handle_info({"map::bounds-updated", bounds}, socket) do
     {:noreply,
       socket
-      |> assign(:facilities, Facilities.list_facilities(filter: [bounds: bounds]))
+      |> assign(:facilities, Facilities.list_facilities(filter: %{"bounds" =>  bounds, "valid" => true}))
       |> update_map
     }
   end

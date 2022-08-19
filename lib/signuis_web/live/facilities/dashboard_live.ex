@@ -17,7 +17,7 @@ defmodule SignuisWeb.Facilities.DashboardLive do
     facility = Facilities.get_facility!(facility_id)
 
     socket = if permit?(Facilities, {:access, :dashboard}, socket.assigns.current_user, facility) do
-      :timer.send_interval(10000, :fetch_new_reports)
+      :timer.send_interval(10000, :fetch_reports)
 
       Phoenix.PubSub.subscribe(Signuis.PubSub, "facilities::#{facility.id}")
 
@@ -72,18 +72,19 @@ defmodule SignuisWeb.Facilities.DashboardLive do
     alive_threshold_dt = NaiveDateTime.add(NaiveDateTime.utc_now(), -1800) # Now - 30 mn (Reports are alive during 30 minutes)
 
     socket = case event do
-      :fetch_new_reports ->
-          dateime_range =  if socket.assigns.history, do: socket.assigns.history, else: {alive_threshold_dt, nil}
+      :fetch_reports ->
+          datetime_range =  if socket.assigns.history, do: socket.assigns.history, else: {alive_threshold_dt, nil}
+
           alive_reports_count = Reporting.count_reports(filter: %{
             "facility" => socket.assigns.facility,
-            "datetime_range" => dateime_range
+            "datetime_range" => datetime_range
           })
 
-         socket = if socket.assigns.map_bounds do
+         socket = if socket.assigns.map_bounds != nil do
           heatmap = Reporting.get_report_heatmap(
             grid: @grid_size,
             bounds: socket.assigns.map_bounds,
-            datetime_range: dateime_range
+            datetime_range: datetime_range
           )
 
           socket
@@ -124,9 +125,9 @@ defmodule SignuisWeb.Facilities.DashboardLive do
           |> assign(:focused_entity, entity)
 
       {"map::bounds-updated", bounds} ->
-          socket
+          socket = socket
           |> assign(:map_bounds, bounds)
-          send(self(), :fetch_new_reports)
+          send(self(), :fetch_reports)
           socket
 
       _ -> socket
@@ -225,7 +226,7 @@ defmodule SignuisWeb.Facilities.DashboardLive do
       socket = socket
       |> assign(:history, history)
       |> assign(:history_changeset, HistorySelector.changeset(history, %{}))
-      send(self(), :fetch_new_reports)
+      send(self(), :fetch_reports)
       socket
     else
       {:error, _changeset} ->

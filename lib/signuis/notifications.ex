@@ -62,6 +62,23 @@ defmodule Signuis.Notifications do
     end
   end
 
+  def multi_create_notification(multi, notification_params) do
+    Ecto.Multi.insert(
+      multi,
+      {:notification, Signuis.Utils.uid(16)},
+      Notification.changeset(%Notification{}, notification_params)
+    )
+  end
+
+  def notify_new_notifications(result) do
+    case result do
+      {:ok, changes} ->
+        notifications = Enum.filter(changes, fn {_, value} -> is_struct(value, Notification) end)
+        |> Enum.map(fn {_, value} -> value end)
+        Signuis.EventTypes.new_notifications(notifications)
+    end
+  end
+
   @doc """
   Updates a notification.
 

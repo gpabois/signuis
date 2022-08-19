@@ -46,7 +46,14 @@ defmodule Signuis.Facilities.Facility do
     |> Map.put(:location__lng, lng)
   end
 
-  def filter_on_attribute({:bounds, %{bottom_left: bottom_left, top_right: top_right}}, query) do
+  def filter_on_attribute({"valid", valid}, query) do
+    from(
+      f in query,
+      where: f.valid == ^valid
+    )
+  end
+
+  def filter_on_attribute({"bounds", %{bottom_left: bottom_left, top_right: top_right}}, query) do
     from(
       f in query,
       where: st_within(

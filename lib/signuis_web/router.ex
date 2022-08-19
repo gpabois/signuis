@@ -47,6 +47,7 @@ defmodule SignuisWeb.Router do
       pipe_through :browser
 
       live_dashboard "/dashboard", metrics: SignuisWeb.Telemetry
+      live "/dev/toolbox", SignuisWeb.Dev.ToolboxLive
     end
   end
 
@@ -101,7 +102,7 @@ defmodule SignuisWeb.Router do
   ## Messages
   scope "/messages", SignuisWeb.Messaging, as: :messaging do
     pipe_through [:browser]
-    resources "/", MessageController, only: [:index]
+    live "/", MailboxLive
   end
 
   # Reports

@@ -6,6 +6,7 @@ defmodule Signuis.Messaging do
   import Ecto.Query, warn: false
   alias Signuis.Repo
 
+  alias Signuis.Messaging
   alias Signuis.Messaging.Message
   alias Signuis.Reporting
   alias Signuis.Facilities
@@ -61,6 +62,63 @@ defmodule Signuis.Messaging do
   end
 
   @doc """
+    Used to notify new message, after a successful db transaction
+  """
+  def notify_new_messages(result) do
+    case result do
+      {:ok, changes} ->
+        messages = changes
+        |> Enum.filter(fn {_, value} -> is_struct(value, Message) end)
+        |> Enum.map(fn {_, value} -> value end)
+
+      Signuis.EventTypes.new_messages(messages)
+      result
+      {:error, changes} -> result
+    end
+  end
+
+  @doc """
+    Enqueue a message insertion into the Ecto.Multi
+
+    This will trigger a {:new_message, message} notification.
+  """
+  def multi_create_message(multi, message_params, opts) do
+    name = Keyword.get(opts, :name, {:message, Signuis.Utils.uid(16)})
+    run_after = Keyword.get(opts, :run_after, nil)
+
+    changeset = Messaging.change_message(%Message{}, message_params)
+
+    multi = Ecto.Multi.insert(multi, name, changeset)
+
+    if run_after do
+      run_after.(multi, name)
+    else
+      multi
+    end
+  end
+
+  @doc """
+    Enqueue message insertions into the Ecto.Multi
+
+    This will trigger a batch notification {:new_messages, messages}.
+  """
+  def multi_create_messages(multi, messages_commands) do
+    # Create random names for insertions operations
+      for message_command <- messages_commands, reduce: multi do
+      multi ->
+        {message_params, opts} = case message_command do
+
+        {message_params, opts} ->
+          {message_params, opts}
+        message_params ->
+          {message_params, []}
+      end
+
+      multi_create_message(multi, message_params, opts)
+    end
+  end
+
+  @doc """
   Updates a message.
 
   ## Examples
@@ -94,6 +152,10 @@ defmodule Signuis.Messaging do
     Repo.delete(message)
   end
 
+  def delete_all_messages(opts \\ []) do
+    Message.delete_all(opts)
+  end
+
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking message changes.
 
@@ -117,7 +179,7 @@ defmodule Signuis.Messaging do
       Reporting.list_reports(filter: %{
         "facility"             => facility,
         "not-report-callback" => report_callback,
-        "timerange"           => {facility_production.begin, facility_production.end}
+        "datetime_range"           => {facility_production.begin, facility_production.end}
       })
     else
       []
@@ -132,7 +194,7 @@ defmodule Signuis.Messaging do
       Reporting.count_reports(filter: %{
         "facility"             => facility,
         "not-report-callback" => report_callback,
-        "timerange"           => {facility_production.begin, facility_production.end}
+        "datetime_range"           => {facility_production.begin, facility_production.end}
       }) > 0
     else
       false
@@ -288,6 +350,13 @@ defmodule Signuis.Messaging do
     %ReportCallbackAck{}
     |> ReportCallbackAck.changeset(attrs)
     |> Repo.insert()
+  end
+
+  def multi_create_report_callback_ack(multi, name, attrs) do
+    changeset = %ReportCallbackAck{}
+    |> ReportCallbackAck.changeset(attrs)
+
+    Ecto.Multi.insert(multi, name, changeset)
   end
 
   @doc """

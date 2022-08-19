@@ -19,4 +19,8 @@ defmodule Signuis.Utils do
       top_right: bounds["top_right"] |> decode_js_position
     }
   end
+
+  def uid(size \\ 64) do
+    :crypto.strong_rand_bytes(size) |> Base.url_encode64()
+  end
 end
