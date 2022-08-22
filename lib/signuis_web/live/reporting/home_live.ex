@@ -121,8 +121,8 @@ defmodule SignuisWeb.Reporting.HomeLive do
 
   def cast_user(changeset, user) do
     case user do
-      %User{id: id} -> Ecto.Changeset.put_change(:user_id, id)
-      %Anonymous{id: id} -> Ecto.Changeset.put_change(:session_id, id)
+      %User{id: id} -> Ecto.Changeset.put_change(changeset, :user_id, id)
+      %Anonymous{id: id} -> Ecto.Changeset.put_change(changeset, :session_id, id)
       _ -> Ecto.Changeset.add_error(:user, "no known user")
     end
   end
