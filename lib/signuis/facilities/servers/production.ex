@@ -17,10 +17,10 @@ defmodule Signuis.Facilities.Servers.Production do
   def handle_call({:toggle_production, %Facility{} = facility}, _from, state) do
     result = case Facilities.current_ongoing_production(facility) do
       nil ->
-        params = %{facility_id: facility.id, begin: NaiveDateTime.utc_now(), end: nil}
+        params = %{facility_id: facility.id, begin: DateTime.utc_now(), end: nil}
         Facilities.create_production(params, mode: :toggle)
       production ->
-        Facilities.update_production(production, %{end: NaiveDateTime.utc_now()}, mode: :toggle)
+        Facilities.update_production(production, %{end: DateTime.utc_now()}, mode: :toggle)
     end
     {:reply, result, state}
   end
