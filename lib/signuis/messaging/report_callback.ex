@@ -59,12 +59,12 @@ defmodule Signuis.Messaging.ReportCallback do
       report_callback.facility_production_id != nil ->
         facility_production = Facilities.get_production!(report_callback.facility_production_id)
         cond do
-          facility_production.end != nil and facility_production.end <= NaiveDateTime.utc_now() ->
+          facility_production.end != nil and facility_production.end <= DateTime.utc_now() ->
             true
           true ->
             false
         end
-      report_callback.end <= NaiveDateTime.utc_now() ->
+      report_callback.end <= DateTime.utc_now() ->
         true
       true -> false
     end
