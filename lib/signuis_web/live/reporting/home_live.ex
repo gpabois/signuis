@@ -70,7 +70,7 @@ defmodule SignuisWeb.Reporting.HomeLive do
     socket = case result do
       {:ok, _report} ->
         socket
-        |> put_flash(:info, "Report created successfully")
+        |> put_flash(:info, "Le signalement a été enregistré.")
         |> assign(:display_report_form, false)
 
       {:error, changeset} ->

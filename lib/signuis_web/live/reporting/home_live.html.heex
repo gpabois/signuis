@@ -2,6 +2,23 @@
   <div class="sg-viewport__body__row sg-menu shadow-lg sg-layer-10">
     <%= Phoenix.View.render SignuisWeb.LayoutView, "_user_menu.html", assigns %>
   </div>
+  <%= case  live_flash(@flash, :info) do %>
+    <% nil -> %>
+    <% info -> %>
+      <div class="sg-viewport__body__row alert alert-info shadow-lg sg-layer-10 mb-0" phx-click="lv:clear-flash" phx-value-key="info">
+        <%= info %>
+      </div>
+    <% end %>
+
+    <%= case  live_flash(@flash, :error) do %>
+    <% nil -> %>
+    <% error -> %>
+      <div class="sg-viewport__body__row shadow-lg sg-layer-10">
+      <p class="alert alert-danger" role="alert"
+      phx-click="lv:clear-flash"
+      phx-value-key="info"><%= error %></p>
+      </div>
+  <% end %>
   <div class="no-gutters row sg-viewport__body__main">
     <div class="col-md col-sm-12 sg-wrapper">
       <div class="sg-wrapper__overlay sg-fullwidth sg-layer-1">
