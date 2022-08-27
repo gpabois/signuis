@@ -12,6 +12,7 @@ defmodule SignuisWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_current_user
+    plug SignuisWeb.Plugs.Tz
   end
 
   pipeline :api do

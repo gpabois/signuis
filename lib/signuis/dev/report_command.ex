@@ -23,18 +23,18 @@ defmodule Signuis.Dev.ReportCommand do
     end_date: :date,
     end_time: :time,
 
-    begin_datetime: :naive_datetime,
-    end_datetime: :naive_datetime
+    begin_datetime: :utc_datetime,
+    end_datetime: :utc_datetime
   }
 
-  def changeset(%__MODULE__{} = report_command, attrs) do
+  def changeset(%__MODULE__{} = report_command, attrs, opts \\ []) do
     {report_command, @types}
     |> cast(attrs, Map.keys(@types))
-    |> Signuis.Utils.DateTimeRange.Form.cast_datetime_range(attrs)
+    |> Signuis.Utils.DateTimeRange.Form.cast_datetime_range(attrs, opts)
   end
 
-  def execute(attrs) do
-    with {:ok, report_command} <- apply_action(changeset(%__MODULE__{}, attrs), :insert) do
+  def execute(attrs, opts \\ []) do
+    with {:ok, report_command} <- apply_action(changeset(%__MODULE__{}, attrs, opts), :insert) do
       facility = Signuis.Facilities.get_facility!(report_command.facility_id)
 
       for _i <- 0..report_command.count, reduce: [] do

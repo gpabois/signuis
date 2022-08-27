@@ -18,18 +18,18 @@ defmodule Signuis.Reporting.HistorySelector do
     end_date: :date,
     end_time: :time,
 
-    begin_datetime: :naive_datetime,
-    end_datetime: :naive_datetime
+    begin_datetime: :utc_datetime,
+    end_datetime: :utc_datetime
   }
 
-  def changeset(history_selector, attrs) do
+  def changeset(history_selector, attrs, opts \\ []) do
     {history_selector, @types}
-    |> DateTimeRangeForm.cast_datetime_range(attrs)
+    |> DateTimeRangeForm.cast_datetime_range(attrs, opts)
   end
 
-  def create(attrs) do
+  def create(attrs, opts \\ []) do
     %__MODULE__{}
-    |> changeset(attrs)
+    |> changeset(attrs, opts)
     |> apply_action(:create)
   end
 end

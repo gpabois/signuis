@@ -3,8 +3,8 @@ defmodule Signuis.Repo.Migrations.CreateFacilitiesProductions do
 
   def change do
     create table(:facilities_productions) do
-      add :begin, :naive_datetime
-      add :end, :naive_datetime
+      add :begin, :timestamptz
+      add :end, :timestamptz
       add :facility_id, references(:facilities, on_delete: :nothing)
 
       timestamps(type: :timestamptz)

@@ -42,7 +42,7 @@
 
             <%= if @current_production != nil and @history == nil do %>
             <li class="px-2">
-              <a class="btn bg-light">En production depuis <%= @current_production.begin %></a>
+              <a class="btn bg-light">En production depuis <%= @current_production.begin |> display_datetime(tz: @tz) %></a>
             </li>
             <% end %>
 

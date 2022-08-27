@@ -21,7 +21,7 @@ defmodule SignuisWeb.Dev.ToolboxLive do
         Reporting.delete_all_reports()
         socket
       {"form::report_command::submit", %{"report_command" => report_command_params}} ->
-        Task.start(fn -> ReportCommand.execute(report_command_params) end)
+        Task.start(fn -> ReportCommand.execute(report_command_params, tz: socket.assigns.tz) end)
         socket
     end
     {:noreply, socket}

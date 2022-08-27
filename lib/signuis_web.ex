@@ -66,6 +66,7 @@ defmodule SignuisWeb do
       import Bodyguard
 
       on_mount {SignuisWeb.Accounts.LiveUserAuth, :assign_current_user}
+      on_mount {SignuisWeb.Plugs.LiveTz, :assign_tz}
 
       unquote(view_helpers())
     end
@@ -124,6 +125,13 @@ defmodule SignuisWeb do
       def unique_id(prefix) do
         rsuffix = :crypto.strong_rand_bytes(16) |> Base.url_encode64()
         "#{prefix}-#{rsuffix}"
+      end
+
+      def display_datetime(datetime, opts \\ []) do
+        tz = Keyword.get(opts, :tz, "Europe/Paris")
+
+        Timex.Timezone.convert(datetime, tz)
+        |> Timex.format!("{0h24}:{0m}:{0s} ({0D}/{0M}/{YY})")
       end
     end
   end

@@ -16,6 +16,8 @@ defmodule Signuis.Utils.DateTimeRange.Form do
   end
 
   def cast_datetime_range(changeset, attrs, opts \\ []) do
+    tz = Keyword.get(opts, :tz, "Etc/UTC")
+
     bindings = %{
       begin_date: Keyword.get(opts, :begin_date, :begin_date),
       begin_time: Keyword.get(opts, :begin_time, :begin_time),
@@ -37,8 +39,8 @@ defmodule Signuis.Utils.DateTimeRange.Form do
 
     with {:ok, %{begin_date: begin_date, begin_time: begin_time, end_date: end_date, end_time: end_time}} <-  apply_action(dtr_changeset, :get) do
       attrs = %{
-        begin_datetime: (if nil in [begin_date, begin_time], do: nil, else: DateTime.new!(begin_date, begin_time)),
-        end_datetime: (if nil in [end_date, end_time], do: nil, else: DateTime.new!(end_date, end_time))
+        begin_datetime: (if nil in [begin_date, begin_time], do: nil, else: DateTime.new!(begin_date, begin_time, tz)),
+        end_datetime: (if nil in [end_date, end_time], do: nil, else: DateTime.new!(end_date, end_time, tz))
       }
 
       bindings = %{

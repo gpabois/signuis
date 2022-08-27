@@ -23,8 +23,8 @@ defmodule Signuis.Messaging.ReportCallback do
     field :facility_id, :id
     field :facility_production_id, :id
 
-    field :begin, :naive_datetime
-    field :end, :naive_datetime
+    field :begin, :utc_datetime
+    field :end, :utc_datetime
 
     timestamps(type: :utc_datetime)
   end

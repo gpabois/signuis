@@ -9,8 +9,8 @@ defmodule Signuis.Facilities.Production do
   import Signuis.Filter
 
   schema "facilities_productions" do
-    field :begin, :naive_datetime
-    field :end, :naive_datetime
+    field :begin, :utc_datetime
+    field :end, :utc_datetime
     field :facility_id, :id
 
     timestamps(type: :utc_datetime)

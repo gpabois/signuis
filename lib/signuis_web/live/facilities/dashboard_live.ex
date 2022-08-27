@@ -69,7 +69,7 @@ defmodule SignuisWeb.Facilities.DashboardLive do
   end
 
   def handle_info(event, socket) do
-    alive_threshold_dt = DateTime.add(DateTime.utc_now(), -1800, :second) # Now - 30 mn (Reports are alive during 30 minutes)
+    alive_threshold_dt = DateTime.add(Timex.now(socket.assigns.tz), -1800, :second) # Now - 30 mn (Reports are alive during 30 minutes)
 
     socket = case event do
       :fetch_reports ->
@@ -221,7 +221,7 @@ defmodule SignuisWeb.Facilities.DashboardLive do
   end
 
   def handle_event("form::history::change", %{"history_selector" => history_selector_params}, socket) do
-    socket = with {:ok, history} <- HistorySelector.create(history_selector_params) do
+    socket = with {:ok, history} <- HistorySelector.create(history_selector_params, tz: socket.assigns.tz) do
       socket = socket
       |> assign(:history, history)
       |> assign(:history_changeset, HistorySelector.changeset(history, %{}))
