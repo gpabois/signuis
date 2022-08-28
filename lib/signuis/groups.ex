@@ -8,6 +8,8 @@ defmodule Signuis.Groups do
 
   alias Signuis.Groups.Group
 
+  defdelegate authorize(action, user, params), to: Signuis.Groups.Policy
+
   @doc """
   Returns the list of groups.
 
@@ -145,9 +147,9 @@ defmodule Signuis.Groups do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_member(attrs \\ %{}) do
+  def create_member(attrs, opts \\ []) do
     %Member{}
-    |> Member.changeset(attrs)
+    |> Member.changeset(attrs, opts)
     |> Repo.insert()
   end
 
@@ -163,9 +165,9 @@ defmodule Signuis.Groups do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_member(%Member{} = member, attrs) do
+  def update_member(%Member{} = member, attrs, opts \\ []) do
     member
-    |> Member.changeset(attrs)
+    |> Member.changeset(attrs, opts)
     |> Repo.update()
   end
 
@@ -194,7 +196,7 @@ defmodule Signuis.Groups do
       %Ecto.Changeset{data: %Member{}}
 
   """
-  def change_member(%Member{} = member, attrs \\ %{}) do
-    Member.changeset(member, attrs)
+  def change_member(%Member{} = member, attrs, opts \\ []) do
+    Member.changeset(member, attrs, opts)
   end
 end
