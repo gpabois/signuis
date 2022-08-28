@@ -8,7 +8,7 @@ defmodule Signuis.Repo.Migrations.CreateGroups do
       add :roles, {:array, :string}
       add :valid, :boolean, default: false, null: false
 
-      timestamps(type: timestampz)
+      timestamps(type: :timestamptz)
     end
   end
 end

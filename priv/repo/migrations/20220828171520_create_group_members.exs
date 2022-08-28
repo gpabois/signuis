@@ -7,7 +7,7 @@ defmodule Signuis.Repo.Migrations.CreateGroupMembers do
       add :user_id, references(:users, on_delete: :delete_all)
       add :group_id, references(:groups, on_delete: :delete_all)
 
-      timestamps(type: timestampz)
+      timestamps(type: :timestamptz)
     end
 
     create index(:group_members, [:user_id])
