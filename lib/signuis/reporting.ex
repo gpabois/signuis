@@ -114,13 +114,11 @@ defmodule Signuis.Reporting do
       [%Report{}, ...]
 
   """
-  def list_reports(opts \\ []) do
-    Report.list(opts)
-  end
+  def list_reports(opts \\ []), do: Report.list(opts)
 
-  def count_reports(opts \\ []) do
-    Report.count(opts)
-  end
+  def paginate_reports(opts \\ []), do: Report.paginate(opts)
+
+  def count_reports(opts \\ []), do:  Report.count(opts)
 
   @doc """
   Gets a single report.

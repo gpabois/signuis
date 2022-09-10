@@ -65,6 +65,7 @@ defmodule Signuis.Facilities do
       select: count(j.id)
     ) |> Repo.one!
   end
+
   def list_facilities_reports(%Facility{id: facility_id}, opts \\ []) do
     chunk = Keyword.get(opts, :chunk, nil)
 

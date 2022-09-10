@@ -6,7 +6,6 @@ defmodule Signuis.Reporting.Report do
 
   alias Signuis.Repo
   import Signuis.Utils
-  import Signuis.Filter
 
   alias Signuis.Accounts.{User, Anonymous}
   alias Signuis.Reporting.NuisanceType
@@ -27,20 +26,37 @@ defmodule Signuis.Reporting.Report do
   end
 
   def list(opts \\ []) do
-    filters = Keyword.get(opts, :filter, %{}) |> Enum.into(%{}) |> keys_to_atoms
-    preload = Keyword.get(opts, :preload, [])
-
     __MODULE__
-    |> filter(filters, __MODULE__)
+    |> filter(opts)
     |> Repo.all
-    |> Repo.preload(preload)
+    |> load(opts)
+  end
+
+  defp load(query, opts) do
+    preloads = Keyword.get(opts, :preload, [])
+    Repo.preload(query, preloads)
+  end
+
+  def filter(query, opts \\ []) do
+    filters = Keyword.get(opts, :filter, %{}) |> Enum.into(%{}) |> keys_to_atoms
+    Signuis.Filter.filter(query, filters, __MODULE__)
+  end
+
+  def paginate(opts \\ []) do
+    nb_elements = count(opts)
+
+    elements = __MODULE__
+    |> filter(opts)
+    |> Signuis.Pagination.paginate(opts)
+    |> Repo.all
+    |> load(opts)
+
+    %{elements: elements, pagination: Signuis.Pagination.get_pagination(count(opts), opts)}
   end
 
   def count(opts \\ []) do
-    filters = Keyword.get(opts, :filter, %{}) |> Enum.into(%{}) |> keys_to_atoms
-
     __MODULE__
-    |> filter(filters, __MODULE__)
+    |> filter(opts)
     |> select([b], count(b.id))
     |> Repo.one!
   end
@@ -92,7 +108,6 @@ defmodule Signuis.Reporting.Report do
       where: b.id not in subquery(sq)
     )
   end
-
 
   @doc false
   def changeset(report, attrs, opts \\ []) do

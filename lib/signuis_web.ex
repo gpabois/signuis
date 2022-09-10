@@ -122,6 +122,10 @@ defmodule SignuisWeb do
 
       import SignuisWeb.Components.Map
 
+      def render_pagination(pagination, route) do
+        Phoenix.View.render(SignuisWeb.PaginationView, "_pagination.html", [pagination: pagination, route: route])
+      end
+
       def unique_id(prefix) do
         rsuffix = :crypto.strong_rand_bytes(16) |> Base.url_encode64()
         "#{prefix}-#{rsuffix}"
