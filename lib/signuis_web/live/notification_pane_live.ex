@@ -45,10 +45,10 @@ defmodule SignuisWeb.Notifications.NotificationPaneLive do
   def handle_event("notification::clicked", %{"notification" => notification_id}, socket) do
     notification = Notifications.get_notification!(notification_id)
     Notifications.update_notification(notification, %{"read" => true})
+
     socket = cond do
       notification.message != nil ->
-        socket
-        |> redirect(to: Routes.messaging_message_path(socket, :index))
+        redirect(socket, to: Routes.messaging_live_path(socket, SignuisWeb.Messaging.MailboxLive))
       true ->
         socket
     end

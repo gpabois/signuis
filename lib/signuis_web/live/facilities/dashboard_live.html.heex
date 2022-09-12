@@ -2,9 +2,15 @@
     <div class="sg-viewport__body__row sg-layer-10">
       <%= Phoenix.View.render SignuisWeb.LayoutView, "_user_menu.html", assigns %>
     </div>
+
     <div class="no-gutters row sg-viewport__body__main">
-      <div class="col-3 sg-layer-2 px-3 bg-light shadow-lg">
+      <%= if @display_action_panel do %>
+      <!-- Action Panel -->
+      <div class="col-md-3 col-12 sg-layer-2 px-3 bg-light shadow-lg order-md-first order-last">
         <h2 class="mt-3">Répondeurs</h2>
+        <button class="btn btn-primary" phx-click="form::report_callback::toggle">
+          Ajouter
+        </button>
         <ul class="list-group list-group-flush">
           <%= if Enum.empty?(@opened_report_callbacks) do %>
           <li class="list-group-item bg-light">Aucun répondeur en cours...</li>
@@ -25,48 +31,48 @@
           <% end %>
         </ul>
       </div>
-      <div class="col sg-wrapper">
+      <% end %>
+      <!-- Map -->
+      <div class="sg-wrapper col-md col-12 order-first order-md-last">
         <div class="sg-wrapper__overlay sg-fullwidth sg-layer-3">
-          <ul class="nav justify-content-center sg-fullwidth mt-3">
-            <li class="nav-item px-2">
-              <%= if @current_production do %>
-                <a class="btn btn-danger" href="#" phx-click="production::toggle">
-                  <i class="bi bi-stop-circle-fill"></i>
-                </a>
-              <% else %>
-              <a class="btn btn-success" href="#" phx-click="production::toggle">
-                  <i class="bi bi-play-circle-fill"></i>
-                </a>
+          <div class="row justify-content-center sg-fullwidth mt-3">
+            <div class="col-auto col-sm-auto">
+              <a class="btn bg-light" phx-click="action_panel::toggle">
+                <i class="bi bi-list"></i>
+              </a>
+            </div>
+            <div class="col-auto col-sm-auto">
+                <div class="row">
+                  <div class="col-12 col-sm-auto">
+                  <%= if @current_production do %>
+                  <a class="btn btn-danger" href="#" phx-click="production::toggle">
+                    <i class="bi bi-stop-circle-fill"></i>
+                  </a>
+                <% else %>
+                <a class="btn btn-success" href="#" phx-click="production::toggle">
+                    <i class="bi bi-play-circle-fill"></i>
+                  </a>
+                <% end %>
+                </div>
+                <%= if @current_production != nil and @history == nil do %>
+                <div class="col-auto d-none d-sm-block">
+                  <a class="btn bg-light">En production depuis <%= @current_production.begin |> display_datetime(tz: @tz) %></a>
+                </div>
               <% end %>
-            </li>
+                </div>
 
-            <%= if @current_production != nil and @history == nil do %>
-            <li class="px-2">
-              <a class="btn bg-light">En production depuis <%= @current_production.begin |> display_datetime(tz: @tz) %></a>
-            </li>
-            <% end %>
-
+            </div>
             <%= if @history do %>
-            <li class="px-2">
+            <div class="col-sm-auto">
               <a class="btn btn-primary">Mode historique</a>
-            </li>
+            </div>
             <% end %>
-
-            <%= if @alive_reports_count do %>
-            <li class="px-2">
-              <a class="btn bg-light"><%= @alive_reports_count %> signalement(s)</a>
-            </li>
-            <% end %>
-
-            <li class="px-2">
-              <a class="btn bg-light" phx-click="form::report_callback::toggle">Répondeur</a>
-            </li>
-          </ul>
+          </div>
         </div>
         <.map id="map" center={@facility.location} phx-hook="Map" classes={["sg-layer-0", "sg-map", "sg-wrapper__content"]} markers={@markers} heatmap_cells={@heatmap_cells} />
         <div class="sg-wrapper__overlay--bottom sg-fullwidth sg-layer-3">
           <div class="row sg-fullwidth mb-4 align-items-center">
-            <div class="col-auto">
+            <div class="col-12 col-sm-1 mb-xs-3">
               <%= if @display_history_form do %>
                   <a class="btn btn-danger" href="#" phx-click="form::history::toggle">
                     <i class="bi bi-watch"></i>
@@ -78,7 +84,7 @@
                 <% end %>
             </div>
             <%= if @display_history_form do %>
-            <.form class="col mx-3" let={f} for={@history_changeset} phx-change="form::history::change">
+            <.form class="col-11 col-sm-10 mx-sm-3" let={f} for={@history_changeset} phx-change="form::history::change">
               <div class="row bg-light rounded shadow">
                 <div class="col p-3">
                     <div class="row">

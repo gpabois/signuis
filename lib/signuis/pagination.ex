@@ -4,9 +4,20 @@ defmodule Signuis.Pagination do
   def paginate(query, opts \\ []) do
     case Keyword.get(opts, :page, nil) do
       %{"index" => index, "size" => size} ->
+
+        index = case index do
+          x when is_binary(x) -> String.to_integer(x)
+          x -> x
+        end
+
+        size = case size do
+          x when is_binary(x) -> String.to_integer(x)
+          x -> x
+        end
+
         size = max(size, 50)
         index = max(0, index)
-        offset = String.to_integer(index) * String.to_integer(size)
+        offset = index * size
 
         query
         |> limit(^size)
@@ -22,10 +33,21 @@ defmodule Signuis.Pagination do
       _ -> %{"index" => 0, "size" => 50}
     end
 
+    index = case index do
+      x when is_binary(x) -> String.to_integer(x)
+      x -> x
+    end
+
+    size = case size do
+      x when is_binary(x) -> String.to_integer(x)
+      x -> x
+
+    end
+
     %{
-      current: String.to_integer(index),
-      last: div(count, String.to_integer(size)) + (if rem(count, String.to_integer(size)) > 0, do: 1, else: 0),
-      size: String.to_integer(size)
+      current: index,
+      last: div(count, size),
+      size: size
     }
   end
 

@@ -1,5 +1,7 @@
 <div class="container">
-  <h1 class="mt-3 mb-3">Signalements</h1>
+  <h1 class="mt-3 mb-3">Mes signalements</h1>
+
+  <%= render_pagination @pagination, &Routes.reporting_report_path(@conn, :index, filter: @filter, page: &1) %>
 
   <%= if not Enum.empty?(@reports) do %>
   <table class="table">
@@ -25,4 +27,6 @@
     <i>Aucun signalement enregistré...</i>
   </p>
   <% end %>
+
+  <%= render_pagination @pagination, &Routes.reporting_report_path(@conn, :index, filter: @filter, page: &1) %>
 </div>

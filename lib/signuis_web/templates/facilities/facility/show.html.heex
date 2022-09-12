@@ -1,8 +1,8 @@
 <div class="container">
   <div class="row align-items-center mt-3 mb-3">
-    <h1 class="col">Installation <%= @facility.name %></h1>
+    <h1 class="col-sm">Installation <%= @facility.name %></h1>
     <%= if permit?(Facilities, {:update, :facilities}, @current_user, @facility) do %>
-      <div class="col-2">
+      <div class="col-sm-2">
         <%= link "Modifier", to: Routes.facilities_facility_path(@conn, :edit, @facility), class: "btn btn-primary" %>
       </div>
     <% end %>

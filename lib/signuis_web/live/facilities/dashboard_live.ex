@@ -22,12 +22,12 @@ defmodule SignuisWeb.Facilities.DashboardLive do
       Phoenix.PubSub.subscribe(Signuis.PubSub, "facilities::#{facility.id}")
 
       socket
+      |> assign(:display_action_panel, false)
       |> assign(:display_history_form, false)
       |> assign(:history, nil)
       |> assign(:history_changeset, HistorySelector.changeset(%HistorySelector{}, %{}))
       |> assign(:current_production, Facilities.current_ongoing_production(facility))
       |> assign(:facility, facility)
-      |> assign(:facilities, [])
       |> assign(:opened_report_callbacks, Messaging.list_report_callbacks(filter: %{"facility" => facility, "status" => "opened"}))
       |> assign(:focused_entity, nil)
       |> assign(:report_heatmap, [])
@@ -46,10 +46,9 @@ defmodule SignuisWeb.Facilities.DashboardLive do
   end
 
   def update_map(socket) do
-    markers = []
+    markers = [MapMarker.to(socket.assigns.facility)]
     heatmap_cells = []
 
-    markers = markers ++ Enum.map(socket.assigns.facilities, &MapMarker.to/1)
     heatmap_cells = heatmap_cells ++ Enum.map(socket.assigns.report_heatmap, &HeatmapCell.to/1)
 
     socket
@@ -149,10 +148,8 @@ defmodule SignuisWeb.Facilities.DashboardLive do
     {:noreply, socket}
   end
 
-  def handle_event("dev::reports::delete_all", _, socket) do
-    Reporting.delete_all_reports()
-
-    {:noreply, socket}
+  def handle_event("action_panel::toggle", _, socket) do
+    {:noreply, assign(socket, :display_action_panel, not socket.assigns.display_action_panel)}
   end
 
   def handle_event("form::report_callback::toggle", _, socket) do
