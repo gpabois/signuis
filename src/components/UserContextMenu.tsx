@@ -5,13 +5,17 @@ import { useCurrentSession } from "@/hooks/useCurrentSession";
 import { Button } from "./common/Button";
 import Link from "next/link";
 import { Can } from "./Can";
+import { useState } from "react";
 
 export function UserContextMenu() {
     const session = useCurrentSession();
+    const [display, setDisplay] = useState(false);
+
+    const toggle = () => setDisplay(d => !d)
 
     if(session) {
-        return <div className="flex flex-col">
-            <Button className="
+        return <div>
+            <Button onClick={toggle} className="
                 relative 
                 inline-flex 
                 items-center 
@@ -27,7 +31,7 @@ export function UserContextMenu() {
                 ">
             {session.user.image ? <img src={session.user.image}/> : session.user.name.at(0)?.toUpperCase()}
         </Button>
-        <div id="userDropdown" className="z-10 mt-2 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600">
+        <div id="userDropdown" className={`${display ? '' : 'hidden'} absolute right-3 origin-top-right z-10 mt-2 bg-white divide-y divide-gray-100 rounded-lg shadow-lg w-44 dark:bg-gray-700 dark:divide-gray-600`}>
             <div className="px-4 py-3 text-sm text-gray-900 dark:text-white">
             <div>{session.user.name}</div>
             <div className="font-medium truncate">{session.user.email}</div>

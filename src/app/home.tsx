@@ -20,7 +20,7 @@ export type HomeProps = {
 
 export function Home(props: HomeProps) {
   const [map, setMap] = useState<LeafletMap|null>(null);
-  const [displayReportForm, setDisplayReportForm] = useState(true);
+  const [displayReportForm, setDisplayReportForm] = useState(false);
   const [currentPosition, setCurrentPosition] = useState<[number, number]|null>(null);
   const [_, setGeoLocation] = useState<GeolocationCoordinates|null>(null);
 
@@ -47,13 +47,13 @@ export function Home(props: HomeProps) {
 
   return (
     <main className="h-screen w-screen flex flex-col">
-        <ToastContainer position="top-right" autoClose={2000} hideProgressBar={false} newestOnTop={false} closeOnClick
+        <ToastContainer position="top-left" autoClose={2000} hideProgressBar={false} newestOnTop={false} closeOnClick
         rtl={false}
         draggable
         theme="light"
         />
       <div id="viewport" className="relative h-full w-full flex-1">
-        <div className='absolute inset-O z-20 py-2 px-2 w-full flex items-start place-content-end space-x-2'>
+        <div className='absolute inset-O z-20 py-2 px-2 w-full flex items-center place-content-end space-x-2'>
           <Button onClick={() => setDisplayReportForm((e) => !e)}>
             {displayReportForm ? <XMarkIcon className='h-5 w-5'/> :  <MegaphoneIcon className='h-5 w-5'/>}
           </Button>
