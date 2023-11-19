@@ -1,0 +1,1 @@
+export const SessionTokenCookieName = "signuis.session.token"

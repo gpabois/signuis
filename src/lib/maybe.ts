@@ -1,0 +1,1 @@
+export type Maybe<D> = D | null | undefined;
