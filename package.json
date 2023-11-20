@@ -8,6 +8,7 @@
     "dev:migrate": "NODE_ENV=development tsx src/cli/migrate",
     "dev:rollback": "NODE_ENV=development tsx src/cli/rollback",
     "dev:reset": "NODE_ENV=development tsx src/cli/rollback && NODE_ENV=development tsx src/cli/migrate && NODE_ENV=development tsx src/cli/fixture",
+    "dev:reset:win": "set \"NODE_ENV=development\" && tsx src/cli/rollback && tsx src/cli/migrate && tsx src/cli/fixture",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

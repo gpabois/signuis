@@ -6,6 +6,7 @@ import { NuisanceType, Report } from "@/lib/model";
 import { Cursor } from "@/lib/utils/cursor";
 import { getReportingService } from "@/actions/getReportingService";
 import { revalidatePath } from "next/cache";
+import { getAbility } from "../authz/getAbility";
 
 export const findNuisanceTypesBy = async function(filter: Partial<NuisanceType>, cursor?: Cursor): Promise<NuisanceType[]> {
     const reporting = await getReportingService();
@@ -17,10 +18,17 @@ export const countNuisanceTypesBy = async function(filter: Partial<NuisanceType>
     return await reporting.countNuisanceTypesBy(filter);
 }
 
+/**
+ * Delete a type of nuisance
+ * @param nuisanceType 
+ */
 export async function deleteNuisanceType({id}: NuisanceType): Promise<void> {
+    const ability = await getAbility();
     const reporting = await getReportingService();
-    await reporting.removeNuisanceType(id);
-    revalidatePath("/", "layout")
+   
+    if(ability.can("delete", "nuisance-types")) {
+        await reporting.removeNuisanceType(id);
+    }
 }
 
 export const findReportsBy = async function(filter: Partial<Report>, cursor?: Cursor): Promise<Array<Report>> {

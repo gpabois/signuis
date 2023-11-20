@@ -3,12 +3,6 @@ import dotenv from "dotenv";
 
 let ENV_FILENAME = ".env";
 
-if (process.env.NODE_ENV == "production") ENV_FILENAME = "prod.env";
-else if(process.env.NODE_ENV == "development") ENV_FILENAME = "dev.env";
-else if(process.env.NODE_ENV == "test") ENV_FILENAME = "test.env";
-
-dotenv.config({ path: path.resolve(process.cwd(), ENV_FILENAME) });
-
 export interface Config {
     database: {
         name: string,
@@ -19,6 +13,14 @@ export interface Config {
 }
 
 function loadConfig(): Config {
+    if (process.env.NODE_ENV == "production") ENV_FILENAME = "prod.env";
+    else if(process.env.NODE_ENV == "development") ENV_FILENAME = "dev.env";
+    else if(process.env.NODE_ENV == "test") ENV_FILENAME = "test.env";
+    
+    console.log(`Configuring for ${process.env.NODE_ENV} environment...`)
+    dotenv.config({ path: path.resolve(process.cwd(), ENV_FILENAME) });
+
+    
     return {
         database: {
             name: process.env.DATABASE_NAME,

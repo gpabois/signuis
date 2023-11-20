@@ -7,6 +7,7 @@ import { ReportingService } from "@/lib/services/reporting";
 import { createSignals } from "@/lib/signals";
 
 async function execute() {
+    console.log("Generating fixture...")
     const db = getDatabaseConnection();
     const signals = createSignals();
     const reports = new PgReportRepository(db);

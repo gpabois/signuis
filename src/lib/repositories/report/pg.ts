@@ -120,6 +120,7 @@ export class PgReportRepository implements IReportRepository {
                 "NuisanceType.description as nuisanceType__description"
             ])
             .where(eb => eb.and(filter)) 
+            .orderBy("Report.createdAt desc")
         
         if(cursor.size > 0) {
             query = query.limit(cursor.size).offset(cursor.size * cursor.page)

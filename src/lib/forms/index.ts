@@ -18,6 +18,7 @@ export const CredentialsSchema = z.object({
 export const CreateReportSchema = z.object({
     location: PointSchema,
     nuisanceTypeId: z.string(),
+    userId: z.string().optional(),
     intensity: z.coerce.number().min(1).max(10)
 })
 

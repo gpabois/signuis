@@ -3,7 +3,7 @@
 import { NuisanceType } from "@/lib/model";
 import { Cursor } from "@/lib/utils/cursor";
 import { useEffect, useState } from "react";
-import { deleteNuisanceType, getNuisanceTypesBy } from "../../../actions/nuisance-types/actions";
+import { deleteNuisanceType, findNuisanceTypesBy } from "@/actions/nuisance-types/actions";
 import { Button } from "@/components/common/Button";
 import { TrashIcon } from "@heroicons/react/20/solid";
 
@@ -13,7 +13,7 @@ export function NuisanceTypePage(props: {page: Array<NuisanceType>, cursor: Curs
     const [count, setCount] = useState(props.count);
 
     useEffect(() => {
-        getNuisanceTypesBy({}, cursor).then((page) => setPage(page))
+        findNuisanceTypesBy({}, cursor).then((page) => setPage(page))
     }, [cursor])
 
     async function doDeleteNuisanceType(item: NuisanceType) {

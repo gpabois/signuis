@@ -2,6 +2,7 @@ import { destroyDatabaseConnection, getDatabaseConnection } from "@/lib/database
 import { migrateToLatest } from "@/lib/database/migrations";
 
 async function executeCmd() {
+    console.log("Migrating database...")
     const db = getDatabaseConnection();
     const result = await migrateToLatest(db);
     

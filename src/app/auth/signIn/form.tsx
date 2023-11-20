@@ -3,8 +3,8 @@
 import { Input } from "@/components/common/forms/Input";
 import { Password } from "@/components/common/forms/Password";
 import { useFormState } from "react-dom";
-import { signIn } from "@/actions/auth/actions";
 import { FormButton } from "@/components/common/forms/FormButton";
+import { signIn } from "@/actions/auth/signIn";
 
 export function SignInForm() {
     const [state, doSignIn] = useFormState(signIn, {});

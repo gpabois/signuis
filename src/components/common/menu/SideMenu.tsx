@@ -1,7 +1,5 @@
-import Link from "next/link";
-
-export function AdminSideMenu({children}: {children: React.ReactNode}) {
-    return <aside className="z-40 w-64 h-screen 
+export function SideMenu({children}: {children: React.ReactNode}) {
+    return <aside className="z-40 min-h-screen 
     bg-slate-300
     shadow-xl
     dark:bg-gray-800 dark:border-gray-700 dark:text-white" >

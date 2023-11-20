@@ -28,7 +28,7 @@ export interface IReportingService {
      * @param userId 
      * @param cursor 
      */
-    findReportsBy(filter: Partial<Report>, cursor?: Cursor): Promise<Report[]>;
+    findReportsBy(filter: FilterReport, cursor?: Cursor): Promise<Report[]>;
 
     /**
      * Return the number of entries

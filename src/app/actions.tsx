@@ -5,6 +5,7 @@ import { CreateReportSchema } from "@/lib/forms";
 import { NewReport, Report } from "@/lib/model";
 import { Result, failed, success } from "@/lib/result";
 import { getReportingService } from "@/actions/getReportingService";
+import { getCurrentSession } from "@/actions/auth/getCurrentSession";
 
 export default async function createReport(newReportRequest: Partial<NewReport>): Promise<Result<Report, ValidationError>> {
     const reporting = await getReportingService();
@@ -15,6 +16,11 @@ export default async function createReport(newReportRequest: Partial<NewReport>)
             type: "ValidationError",
             fieldErrors: validation.error.formErrors.fieldErrors
         });
+    }
+
+    const session = await getCurrentSession();
+    if(session) {
+        validation.data.userId = session.user.id;
     }
 
     return success(await reporting.addReport(validation.data));
