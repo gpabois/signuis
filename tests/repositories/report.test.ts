@@ -1,7 +1,7 @@
 import { setupDatabase, teardownDatabase } from "./index.setup";
 import { PgReportRepository } from '@/lib/repositories';
 import { getDatabaseConnection } from '@/lib/database';
-import { addNewReportInRepository, generateNewReport } from "../fixtures";
+import { addNewReportInRepository, generateNewReport } from "../../src/lib/fixtures";
 
 
 describe("report repository", () => {

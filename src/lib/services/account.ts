@@ -12,6 +12,11 @@ import { Cursor } from '../utils/cursor';
  * Account service interface 
  */
 export interface IAccountService {
+    registerUser(newUser: NewUser) : Promise<User>;
+    patchUser(patch: PatchUser) : Promise<User>;
+    deleteUser(id: string): Promise<void>;
+    findUserBy(filter: UserFilter) : Promise<Optional<User>> ;
+    findUsersBy(filter: UserFilter, cursor?: Cursor): Promise<Array<User>>;
 }
 
 /**

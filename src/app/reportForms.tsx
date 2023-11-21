@@ -1,11 +1,11 @@
-import { NewReport, NuisanceType, Report } from "@/lib/model";
+import { NewReport, NuisanceType, NuisanceTypeFamilies, Report } from "@/lib/model";
 import { useEffect, useMemo, useState } from "react";
 import { Step, Stepper } from "../components/common/Stepper";
 import { Select, SelectOption } from "@/components/common/forms/Select";
 import { Button } from "../components/common/Button";
 import { Range } from "@/components/common/forms/Range";
 import { FeatureCollection, Point } from "geojson";
-import { CheckCircleIcon, CheckIcon, MegaphoneIcon, XCircleIcon } from "@heroicons/react/20/solid";
+import { ArrowLeftIcon, ArrowRightIcon, CheckCircleIcon, CheckIcon, MegaphoneIcon, XCircleIcon } from "@heroicons/react/20/solid";
 import useSWRMutation from "swr/mutation";
 import createReport from "./actions";
 import { isSuccessful } from "@/lib/result";
@@ -29,7 +29,7 @@ export function CreateReportForm(props: CreateReportFormProps) {
     const [currentStep, setCurrentStep] = useState(1);
     const [nuisanceTypes, setNuisanceTypes] = useState(props.nuisanceTypes || []);
     const [report, setReport] = useState(props.report);
-    const [nearest, setNearest] = useState("---");
+    const [nearest, setNearest] = useState("inconnu");
     
     props.report?.location && getNearest(props.report?.location).then(setNearest);
 
@@ -86,6 +86,13 @@ export function CreateReportForm(props: CreateReportFormProps) {
         </Stepper>
         <div className="my-6">
             <div className={`${currentStep == 1 ? '' : 'hidden'} flex flex-row items-center w-full`}>
+                <Select fieldErrors={fieldErrors} className="grow" name="nuisanceTypeId" onValueChanged={(family) => setNuisanceTypes(props.nuisanceTypes?.filter(n => n.family === family))}>
+                    <SelectOption label="---"></SelectOption>
+                {NuisanceTypeFamilies.map(({value, label}) => 
+                    <SelectOption key={`nuisance-type-family-${value}`} value={value} label={label}/>
+                )}
+                </Select>    
+                <ArrowRightIcon className="w-5 h-5 mx-2"/>            
                 <Select fieldErrors={fieldErrors} className="grow" name="nuisanceTypeId" onValueChanged={(nuisanceTypeId) => setReport(r => ({...r, nuisanceTypeId}))}>
                     <SelectOption label="---"></SelectOption>
                 {nuisanceTypes.map(n => 

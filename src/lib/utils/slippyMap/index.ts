@@ -37,12 +37,12 @@ export namespace tile {
      * @param zoom 
      */
     export function fromPoint<T extends TileIndex>(tile: T, point: Point, zoom: number) {
-        const lng = point.coordinates[0];
+        const lon = point.coordinates[0];
         const lat = point.coordinates[1];
 
-        const n = 2^zoom;
-        tile.x = Math.round(n * ((lng + 180.0) / 360.0));
-        tile.y = Math.round(n * (1.0 - (Math.log(Math.tan(lat) + 1.0 / Math.cos(lat)) / Math.PI)) / 2.0);
+        const n = Math.pow(2, zoom);
+        tile.x = Math.floor(n * ((lon + 180.0) / 360.0));
+        tile.y = Math.floor((1-Math.log(Math.tan(lat*Math.PI/180) + 1/Math.cos(lat*Math.PI/180))/Math.PI)/2 * n);
         tile.z = zoom;
     }
 }

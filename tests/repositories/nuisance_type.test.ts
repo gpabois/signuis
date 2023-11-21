@@ -1,7 +1,7 @@
 import {setupDatabase, teardownDatabase} from './index.setup';
 import { getDatabaseConnection } from "@/lib/database"
 import { PgNuisanceTypeRepository } from "@/lib/repositories"
-import { genNewNuisanceTypeData, genNewNuisanceTypeInRepository } from '../fixtures';
+import { genNewNuisanceTypeData, genNewNuisanceTypeInRepository } from '../../src/lib/fixtures';
 
 describe("nuisance type repository", () => {
     beforeAll(() => setupDatabase());

@@ -1,7 +1,7 @@
 import { setupDatabase, teardownDatabase } from "./index.setup";
 import { PgNuisanceTileRepository, PgReportRepository } from '@/lib/repositories';
 import { getDatabaseConnection } from '@/lib/database';
-import { genNewNuisanceTileData } from "../fixtures";
+import { genNewNuisanceTileData } from "../../src/lib/fixtures";
 
 describe("nuisance tile repository", () => {
     beforeAll(() => setupDatabase());

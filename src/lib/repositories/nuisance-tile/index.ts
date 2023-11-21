@@ -1,4 +1,5 @@
-import { NuisanceTile, NuisanceTileIndex } from "@/lib/model/nuisance-tile";
+import { DeltaNuisanceTile, FilterNuisanceTile, NuisanceTile, NuisanceTileIndex } from "@/lib/model/nuisance-tile";
+import { Cursor } from "@/lib/utils/cursor";
 
 export interface INuisanceTileRepository {
     /**
@@ -6,18 +7,20 @@ export interface INuisanceTileRepository {
      * Creates the tile if it does not exist.
      * @param tile
      */
-    incrementNuisanceTile(tile: NuisanceTile): Promise<void>;
+    incrementNuisanceTile(tile: DeltaNuisanceTile): Promise<void>;
 
     /**
      * Decrements the weight and count of a nuisance tile
      * Creates the tile if it does not exist.
      * @param tile
      */
-    decrementNuisanceTile(tile: NuisanceTile): Promise<void>;
+    decrementNuisanceTile(tile: DeltaNuisanceTile): Promise<void>;
 
     /**
-     * Get a nuisance tile.
+     * Find nuisance tiles by
      * @param tileIndex
      */
-    getNuisanceTile(tileIndex: NuisanceTileIndex): Promise<NuisanceTile|undefined>
+    findBy(filter: FilterNuisanceTile, cursor: Cursor): Promise<Array<NuisanceTile>>
+
+    countBy(filter: FilterNuisanceTile): Promise<number>
 }

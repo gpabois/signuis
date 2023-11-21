@@ -1,13 +1,13 @@
 import { Heading } from "@/components/Heading";
 import { countReportsBy, findReportsBy } from "../../../actions/nuisance-types/actions";
-import { ReportList } from "./list";
+import { ReportBook } from "./book";
 
 export default async function Page() {
     const page = await findReportsBy({});
-    const size = await countReportsBy({});
+    const count = await countReportsBy({});
 
     return <>
         <Heading className="mb-4" level={1}>Signalements</Heading>
-        <ReportList page={page} size={size} />
+        <ReportBook page={page} count={count} />
     </>
 }

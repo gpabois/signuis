@@ -1,9 +1,9 @@
 import { Heading } from "@/components/Heading";
 import { Cursor } from "@/lib/utils/cursor"
-import { countNuisanceTypesBy, findNuisanceTypesBy } from "@/actions/nuisance-types/actions";
 import { ButtonLink } from "@/components/common/ButtonLink";
 import { PlusIcon } from "@heroicons/react/20/solid";
-import { NuisanceTypeCatalog } from "./list";
+import { NuisanceTileBook } from "./book";
+import { countNuisanceTilesBy, findNuisanceTilesBy } from "@/actions/nuisance-tiles/actions";
 
 export default async function Page({searchParams}: {
     params: { slug: string }
@@ -11,8 +11,8 @@ export default async function Page({searchParams}: {
   }) {
     let cursor: Cursor = {page: Number(searchParams.page) || 0, size: Number(searchParams.size) || 20};
     
-    const page  = await findNuisanceTypesBy({}, cursor)
-    const count = await countNuisanceTypesBy({});
+    const page = await findNuisanceTilesBy({}, cursor)
+    const count = await countNuisanceTilesBy({});
 
     return <>
         <div className="flex flex-row items-center mb-4">
@@ -22,6 +22,6 @@ export default async function Page({searchParams}: {
                 <span>Créer</span>
             </ButtonLink>
         </div>
-        <NuisanceTypeCatalog page={page} cursor={cursor} count={count}/>
+        <NuisanceTileBook page={page} cursor={cursor} count={count}/>
     </>
 }

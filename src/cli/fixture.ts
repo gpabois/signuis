@@ -1,49 +1,37 @@
-import { destroyDatabaseConnection, getDatabaseConnection } from "@/lib/database";
-import { PgNuisanceTypeRepository } from "@/lib/repositories/nuisance-type/pg";
-import { PgReportRepository } from "@/lib/repositories/report/pg";
-import { PgUserRepository } from "@/lib/repositories/user/pg";
-import { AccountService } from "@/lib/services/account";
-import { ReportingService } from "@/lib/services/reporting";
-import { createSignals } from "@/lib/signals";
+import { destroyDatabaseConnection } from "@/lib/database";
+import { NuisanceTypeFixtures, ReportFixtures, UserFixtures, getRandomElement } from "@/lib/fixtures";
+import { NuisanceType } from "@/lib/model";
+import { createShared } from "@/lib/shared";
 
 async function execute() {
-    console.log("Generating fixture...")
-    const db = getDatabaseConnection();
-    const signals = createSignals();
-    const reports = new PgReportRepository(db);
-    const nuisanceTypes = new PgNuisanceTypeRepository(db);
-    const users = new PgUserRepository(db);
-
-    const reporting = new ReportingService({reports, nuisanceTypes, signals});
-    const account = new AccountService({users, signals});
+    console.log("Generating fixtures...")
+    const shared = await createShared();
     
-   const nuisanceType = await reporting.addNuisanceType({
-        label: "Bitume",
-        family: "odeur",
-        description: "Odeur de bitume"
-    })
+    // Generate random nuisance types
+    let nuisanceTypes: Array<NuisanceType> = [];
 
-    const report = await reporting.addReport({
-        nuisanceTypeId: nuisanceType.id,
-        intensity: 5,
-        location: {
-            type: "Point",
-            coordinates: [2.4546600018719182, 48.79016425031012]
-        }
-    })
+    for(let i = 0; i < 20; i++) {
+        nuisanceTypes.push(await NuisanceTypeFixtures.ForServices.add({}, shared));
+    }
 
-    const admin = await account.registerUser({
-        name: "admin",
-        email: "admin@local.lan",
-        password: "admin"
-    })
-    await account.patchUser({role: "admin", id: admin.id});
+    const admin = await UserFixtures.ForServices.register({name: "admin", password: "admin"}, shared);
+    await shared.services.account.patchUser({role: "admin", id: admin.id});
     
-    const user = await account.registerUser({
-        name: "user",
-        email: "user@local.lan",
-        password: "user"
-    })
+    const user = await UserFixtures.ForServices.register({name: "user", password: "user"}, shared);
+
+    let users = [admin, user];
+
+    for(let i = 0; i < 100; i++) {
+        users.push(await UserFixtures.ForServices.register({}, shared));
+    }
+
+    for(let i = 0; i < 10000; i++) {
+        await ReportFixtures.ForServices.add({
+            userId: getRandomElement(users)!.id, 
+            nuisanceTypeId: getRandomElement(nuisanceTypes)!.id
+        }, shared)
+    }
+
 
    await destroyDatabaseConnection();
 }

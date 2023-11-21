@@ -19,17 +19,29 @@ export function UserContextMenu() {
                 relative 
                 inline-flex 
                 items-center 
-                justify-center 
-                w-10 h-10 
+                justify-center
+                border-none
+                bg-none
+                ring-none
+                hover:bg-none
+            ">
+            {session.user.image ?
+                 <img className="w-10 h-10 
+                 overflow-hidden 
+                 rounded-full 
+                 bg-gray-10 dark:bg-gray-600
+                 text-gray-100 dark:text-primary-100 
+                 bg-gray-100
+                 border-0
+                 border-primary-900 ring-2 ring-offset-2" src={session.user.image}/> : 
+                <span className="w-10 h-10 
                 overflow-hidden 
                 rounded-full 
                 bg-gray-10 dark:bg-gray-600
                 text-gray-100 dark:text-primary-100 
                 bg-gray-100
                 border-0
-                border-primary-900 ring-2 ring-offset-2
-                ">
-            {session.user.image ? <img src={session.user.image}/> : session.user.name.at(0)?.toUpperCase()}
+                border-primary-900 ring-2 ring-offset-2">ession.user.name.at(0)?.toUpperCase()</span>}
         </Button>
         <div id="userDropdown" className={`${display ? '' : 'hidden'} absolute right-3 origin-top-right z-10 mt-2 bg-white divide-y divide-gray-100 rounded-lg shadow-lg w-44 dark:bg-gray-700 dark:divide-gray-600`}>
             <div className="px-4 py-3 text-sm text-gray-900 dark:text-white">

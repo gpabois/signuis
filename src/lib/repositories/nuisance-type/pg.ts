@@ -16,9 +16,8 @@ export class PgNuisanceTypeRepository implements INuisanceTypeRepository {
         this.con = con;
     }
 
-
     async insert(insert: InsertNuisanceType): Promise<NuisanceType["id"]> {
-        const res = await this.con.insertInto(PG_NUISANCE_TYPE_TABLE_NAME)
+        const res = await this.con.insertInto("NuisanceType")
         .values(insert)
         .returning('id')
         .executeTakeFirstOrThrow();
@@ -28,11 +27,11 @@ export class PgNuisanceTypeRepository implements INuisanceTypeRepository {
     
     async update(update: Partial<NuisanceType> & Pick<NuisanceType, "id"> & { id: string; }): Promise<void> {
         const {id: id, ...values} = update;
-        await this.con.updateTable(PG_NUISANCE_TYPE_TABLE_NAME).set(values).where('id', '=', id).execute()
+        await this.con.updateTable("NuisanceType").set(values).where('id', '=', id).execute()
     }
 
     async deleteBy(filter: FilterNuisanceType): Promise<void> {
-        await this.con.deleteFrom(PG_NUISANCE_TYPE_TABLE_NAME)
+        await this.con.deleteFrom("NuisanceType")
         .where(eb => eb.and(filter))
         .execute();
     }
@@ -44,7 +43,7 @@ export class PgNuisanceTypeRepository implements INuisanceTypeRepository {
     }
 
     async findBy(filter: FilterNuisanceType, cursor: Cursor): Promise<Array<NuisanceType>> {
-        let query = this.con.selectFrom(PG_NUISANCE_TYPE_TABLE_NAME)
+        let query = this.con.selectFrom("NuisanceType")
         .selectAll()
         .where(eb => eb.and(filter))
         
@@ -56,7 +55,7 @@ export class PgNuisanceTypeRepository implements INuisanceTypeRepository {
     }
 
     async countBy(filter: Partial<NuisanceType>): Promise<number> {
-        const res = await this.con.selectFrom(PG_NUISANCE_TYPE_TABLE_NAME)
+        const res = await this.con.selectFrom("NuisanceType")
         .select(({fn}) => [fn.countAll<number>().as('count')])
         .where(eb => eb.and(filter))
         .executeTakeFirstOrThrow();

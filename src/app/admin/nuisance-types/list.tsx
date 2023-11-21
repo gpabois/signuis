@@ -7,7 +7,7 @@ import { deleteNuisanceType, findNuisanceTypesBy } from "@/actions/nuisance-type
 import { Button } from "@/components/common/Button";
 import { TrashIcon } from "@heroicons/react/20/solid";
 
-export function NuisanceTypePage(props: {page: Array<NuisanceType>, cursor: Cursor, count: number}) {
+export function NuisanceTypeCatalog(props: {page: Array<NuisanceType>, cursor: Cursor, count: number}) {
     const [cursor, setCursor] = useState<Cursor>(props.cursor);
     const [page, setPage] = useState(props.page);
     const [count, setCount] = useState(props.count);
@@ -22,6 +22,7 @@ export function NuisanceTypePage(props: {page: Array<NuisanceType>, cursor: Curs
     }
 
     return <div>
+        {count}
         <div className="flex flex-col divide-y-2">
         {page && page.map((item)=> 
             <div className="flex flex-col pt-2 mb-2" key={`nuisance-type-${item.id}`}>

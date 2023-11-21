@@ -15,9 +15,8 @@ import { getAuthenticationService } from "../getAuthenticationService";
  * @param formData 
  * @returns 
  */
-export async function signIn(formState: {redirectTo?: string}, formData: FormData): Promise<Result<void>> {
+export async function signIn({redirectTo}: {redirectTo?: string, result?: Result<void>}, formData: FormData): Promise<{redirectTo?: string, result?: Result<void>}> {
     const auth = await getAuthenticationService();
-    const cookieStore = cookies();
 
     const validation = await CredentialsSchema.safeParseAsync({
         nameOrEmail: formData.get("nameOrEmail"),
@@ -25,16 +24,16 @@ export async function signIn(formState: {redirectTo?: string}, formData: FormDat
     })
     
     if(validation.success == false) 
-        return failed(validation_error(validation.error.formErrors.fieldErrors))
+        return {result: failed(validation_error(validation.error.formErrors.fieldErrors)), redirectTo}
 
     const credentials = validation.data;
 
     const sessionResult = await auth.signInWithCredentials(credentials);
-    if(hasFailed(sessionResult)) return sessionResult;
+    if(hasFailed(sessionResult)) return {result: sessionResult, redirectTo};
 
     const session = sessionResult.data;
     
     cookies().set(SessionTokenCookieName, session.sessionToken, { secure: process.env.NODE_ENV === "production" });
 
-    redirect(formState.redirectTo || '/')
+    redirect(redirectTo || '/')
 }

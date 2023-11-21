@@ -23,6 +23,7 @@
     "@turf/turf": "^6.5.0",
     "@types/geojson": "^7946.0.12",
     "@types/pg": "^8.10.7",
+    "canvas": "^2.11.2",
     "dotenv": "^16.3.1",
     "heroicons": "^2.0.18",
     "kysely": "^0.26.3",

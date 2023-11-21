@@ -3,16 +3,14 @@ import { SignInForm } from "./form";
 
 export default async function Page () {
     return <section className="
-        bg-gradient-to-b 
-        to-primary-500 
-        from-secondary-500
+        bg-gray-200
     ">
     <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
         <a href="#" className="flex items-center mb-6 text-4xl font-semibold text-gray-900">
             Signuis    
         </a>
         <div className="w-full 
-                bg-gray-10
+                bg-gray-50
                 dark:bg-slate-800
                 border-primary-100 
                 rounded-lg shadow-lg md:mt-0 sm:max-w-md xl:p-0">

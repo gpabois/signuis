@@ -1,5 +1,5 @@
 import { deleted_report, new_report } from "@/lib/signals";
-import { generateNewReport, generateReport } from "../fixtures"
+import { generateNewReport, generateReport } from "../../src/lib/fixtures"
 import { mockReceiver, newMockedNuisanceTypeRepository } from "../mock";
 import { ReportingService } from "@/lib/services/reporting";
 import { faker } from "@faker-js/faker";

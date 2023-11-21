@@ -5,7 +5,6 @@ import "server-only"
 import { NuisanceType, Report } from "@/lib/model";
 import { Cursor } from "@/lib/utils/cursor";
 import { getReportingService } from "@/actions/getReportingService";
-import { revalidatePath } from "next/cache";
 import { getAbility } from "../authz/getAbility";
 
 export const findNuisanceTypesBy = async function(filter: Partial<NuisanceType>, cursor?: Cursor): Promise<NuisanceType[]> {
