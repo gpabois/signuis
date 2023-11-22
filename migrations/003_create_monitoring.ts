@@ -20,6 +20,12 @@ export async function up(db: Kysely<any>): Promise<void> {
         )
         .addUniqueConstraint("nuisance_tile_unique_index", ["x", "y", "z", "t", "nuisanceTypeId"])
         .execute();
+    
+    await db.schema
+            .createIndex("nuisance_tile_coordinates")
+            .on("NuisanceTile")
+            .columns(["x", "y", "z", "t", "nuisanceTypeId"])
+            .execute()
 }
 
 export async function down(db: Kysely<any>): Promise<void>{

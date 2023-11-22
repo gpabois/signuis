@@ -17,9 +17,7 @@ function loadConfig(): Config {
     else if(process.env.NODE_ENV == "development") ENV_FILENAME = "dev.env";
     else if(process.env.NODE_ENV == "test") ENV_FILENAME = "test.env";
     
-    console.log(`Configuring for ${process.env.NODE_ENV} environment...`)
     dotenv.config({ path: path.resolve(process.cwd(), ENV_FILENAME) });
-
     
     return {
         database: {

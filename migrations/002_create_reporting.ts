@@ -28,6 +28,7 @@ export async function up(db: Kysely<any>): Promise<void> {
             (cons) => cons.onDelete("cascade")
         )
         .execute()
+    
 }
 
 export async function down(db: Kysely<any>): Promise<void>{

@@ -5,8 +5,8 @@ export async function GET(request: NextRequest, {params}: {params: {x: number, y
     const mimeType = "image/png";
     const monitoring = await getMonitoringService();
 
-    const buffer = await monitoring.getNuisanceTileImage(params, {mimeType})
-    const resp = new NextResponse(buffer, {
+    const canvas = await monitoring.getNuisanceTileImage(params, {mimeType, resolution: 4})
+    const resp = new NextResponse(canvas.toBuffer(), {
         headers: {
             "Content-type": mimeType
         }
