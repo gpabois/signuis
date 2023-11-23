@@ -55,21 +55,27 @@ export namespace tile {
         return {...tile, x, y, z}
     }
 
+    export function fromLatLon({lat, lon}: {lat: number, lon: number}, zoom: number): TileIndex {
+        const n = Math.pow(2, zoom);
+        
+        const x = Math.floor(n * ((lon + 180.0) / 360.0));
+        const y = Math.floor((1-Math.log(Math.tan(lat*Math.PI/180) + 1/Math.cos(lat*Math.PI/180))/Math.PI)/2 * n);
+        const z = zoom;
+
+        return {x, y, z}
+    }
+
     /**
      * Fill the tile coordinates from a given point at a given zoom
      * @param tile 
      * @param point 
      * @param zoom 
      */
-    export function fromPoint<T extends TileIndex>(tile: T, point: Point, zoom: number) {
+    export function fromPoint(point: Point, zoom: number): TileIndex {
         const lon = point.coordinates[0];
         const lat = point.coordinates[1];
 
-        const n = Math.pow(2, zoom);
-        
-        tile.x = Math.floor(n * ((lon + 180.0) / 360.0));
-        tile.y = Math.floor((1-Math.log(Math.tan(lat*Math.PI/180) + 1/Math.cos(lat*Math.PI/180))/Math.PI)/2 * n);
-        tile.z = zoom;
+        return fromLatLon({lat, lon}, zoom)
     }
 }
 

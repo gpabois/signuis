@@ -6,9 +6,11 @@ import { useFormState } from "react-dom";
 import { FormButton } from "@/components/common/forms/FormButton";
 import { signIn } from "@/actions/auth/signIn";
 import { Result, hasFailed } from "@/lib/result";
+import { useSearchParams } from "next/navigation";
 
 export function SignInForm() {
-    const [state, doSignIn] = useFormState<{result?: Result<void>, redirectTo?: string}>(signIn, {});
+    const redirectTo = useSearchParams().get("redirectTo");
+    const [state, doSignIn] = useFormState<{result?: Result<void>, redirectTo?: string}>(signIn, {redirectTo});
 
     return <form className="space-y-4 md:space-y-6" action={doSignIn}>
     {hasFailed(state.result) && <span className="text-red-800">{state.result.error.type}</span>}

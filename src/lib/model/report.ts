@@ -1,4 +1,4 @@
-import { Point } from "geojson"
+import { Point, Polygon } from "geojson"
 import { NuisanceType, User } from "."
 
 export type ReportId = string;
@@ -18,7 +18,10 @@ export interface PatchReport extends NewReport {
 
 export type UpdateReport = PatchReport;
 
-export type FilterReport = Partial<PatchReport>;
+export type FilterReport = Partial<PatchReport> & {
+    within?: Polygon,
+    between?: {start: Date, end: Date}
+};
 
 export interface Report {
     id: string,

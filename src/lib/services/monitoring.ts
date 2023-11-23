@@ -10,14 +10,14 @@ import chroma from "chroma-js";
 
 export interface NuisanceMapSettings {
     /**
-     * Time period in seconds for sampling.
-     * @default 60
+     * Time period in miliseconds for sampling.
+     * @default 60_000
      */
     timePeriod: number
 
     /**
      * Floor zoom of the nuisance slippy map.
-     * @default 1
+     * @default 18
      */
     floorZoom: number
 }
@@ -60,7 +60,7 @@ export class MonitoringService implements IMonitoringService {
 
     constructor({nuisanceMapSettings, nuisanceTiles, signals}: MonitoringArgs) {
         this.nuisanceMapSettings = nuisanceMapSettings || {
-            timePeriod: 60,
+            timePeriod: 60_000,
             floorZoom: 18,
         };
         this.nuisanceTiles = nuisanceTiles;
@@ -80,22 +80,14 @@ export class MonitoringService implements IMonitoringService {
     }
 
     /**
-     * Convert a report into a nuisance tile.
-     * @param report
+     * Recursively increment tiles from floor to the ceiling (z = 0)
+     * @param delta 
      * @returns 
      */
-    private convertReportToNuisanceTile(report: Report): DeltaNuisanceTile {
-        let nuisanceTile: DeltaNuisanceTile = {
-            x: 0, y: 0, z: 0, 
-            t: Math.round(report.createdAt.getTime() / 1000.0 / this.nuisanceMapSettings.timePeriod),
-            nuisanceTypeId: report.nuisanceType.id,
-            weight: report.intensity,
-            count: 1
-        };
-        
-        tile.fromPoint(nuisanceTile, report.location as Point, this.nuisanceMapSettings.floorZoom);
-        
-        return nuisanceTile;
+    async incrementNuisanceTile(delta: DeltaNuisanceTile) {
+        if(delta.z < 0) return;
+        await this.nuisanceTiles.incrementNuisanceTile(delta);
+        await this.incrementNuisanceTile({...tile.zoomOut(delta), isFloor: false})
     }
 
     /**
@@ -103,10 +95,10 @@ export class MonitoringService implements IMonitoringService {
      * @param delta 
      * @returns 
      */
-    async recursivelyIncrementNuisanceTile(delta: DeltaNuisanceTile) {
+    async decrementNuisanceTile(delta: DeltaNuisanceTile) {
         if(delta.z < 0) return;
-        await this.nuisanceTiles.incrementNuisanceTile(delta);
-        await this.recursivelyIncrementNuisanceTile(tile.zoomOut(delta))
+        await this.nuisanceTiles.decrementNuisanceTile(delta);
+        await this.decrementNuisanceTile({...tile.zoomOut(delta), isFloor: false})
     }
 
     /**
@@ -115,8 +107,14 @@ export class MonitoringService implements IMonitoringService {
      * @returns 
      */
     async onNewReport(report: Report): Promise<void> {
-        const delta = this.convertReportToNuisanceTile(report);
-        await this.recursivelyIncrementNuisanceTile(delta);
+        const delta = NuisanceTile.fromReport(
+            report, 
+            {
+                timeSamplingInMs: this.nuisanceMapSettings.timePeriod,
+                floorZoom: this.nuisanceMapSettings.floorZoom
+            }
+        );
+        await this.incrementNuisanceTile({...delta, isFloor: true});
     }
 
     /**
@@ -125,7 +123,11 @@ export class MonitoringService implements IMonitoringService {
      * @returns 
      */
     async onDeletedReport(report: Report): Promise<void> {
-        let deltaNuisanceTile = this.convertReportToNuisanceTile(report);
+        let deltaNuisanceTile = NuisanceTile.fromReport(
+            report, {
+                timeSamplingInMs: this.nuisanceMapSettings.timePeriod,
+                floorZoom: this.nuisanceMapSettings.floorZoom
+        });
         await this.nuisanceTiles.decrementNuisanceTile(deltaNuisanceTile);   
     }
 

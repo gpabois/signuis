@@ -7,10 +7,14 @@ export async function up(db: Kysely<any>): Promise<void> {
         .addColumn("x", "integer")
         .addColumn("y", "integer")
         .addColumn("z", "integer")
-        .addColumn("t", "integer")
+        .addColumn("t", "timestamptz")
         .addColumn("nuisanceTypeId", "uuid")
         .addColumn("count", "integer")
-        .addColumn("weight", "integer")
+        .addColumn("w1", "integer")
+        .addColumn("w2", "integer")
+        .addColumn("w3", "integer")
+        .addColumn("w4", "integer")
+        .addColumn("w5", "integer")
         .addForeignKeyConstraint(
             "nuisance_tile_nuisance_type_fk", 
             ["nuisanceTypeId"], 

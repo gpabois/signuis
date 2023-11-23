@@ -2,7 +2,7 @@ import { Kysely, KyselyPlugin, PluginTransformQueryArgs, PluginTransformResultAr
 import { CFG } from "../config"
 import { Account as AccountTable } from "./account"
 import { NuisanceTypeTable } from "./nuisance_type"
-import { NuisanceTile as NuisanceTileTable } from "./nuisance_tile"
+import { NuisanceTile as NuisanceTileTable } from "./nuisance-tile"
 import { Report as ReportTable } from "./report"
 import { Session as SessionTable } from "./session"
 import { User as UserTable } from "./user"

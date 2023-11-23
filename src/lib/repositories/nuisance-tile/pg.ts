@@ -3,6 +3,7 @@ import { DatabaseConnection } from "@/lib/database";
 import { INuisanceTileRepository } from ".";
 import { Cursor } from "@/lib/utils/cursor";
 import { sql } from "kysely";
+import { tile } from "@/lib/utils/slippyMap";
 
 const PG_NUISANCE_TILE_TABLE_NAME = "NuisanceTile"
 
@@ -13,10 +14,13 @@ export class PgNuisanceTileRepository implements INuisanceTileRepository {
         this.con = con;
     }
 
-    async countBy(filter: Partial<NuisanceTile>): Promise<number> {
+    async countBy(filter: FilterNuisanceTile): Promise<number> {
         const res = await this.con.selectFrom("NuisanceTile")
         .select(({fn}) => [fn.countAll<number>().as('count')])
-        .where(eb => eb.and(filter))
+        .where(eb => {
+            let w = eb.and(filter);
+            return w            
+        })
         .executeTakeFirstOrThrow();
         
         return res.count;
@@ -32,7 +36,11 @@ export class PgNuisanceTileRepository implements INuisanceTileRepository {
                 "NuisanceTile.z as nuisance_tile__z",
                 "NuisanceTile.t as nuisance_tile__t",
                 "NuisanceTile.count as nuisance_tile__count",
-                "NuisanceTile.weight as nuisance_tile__weight",
+                "NuisanceTile.w1 as nuisance_tile__w1",
+                "NuisanceTile.w2 as nuisance_tile__w2",
+                "NuisanceTile.w3 as nuisance_tile__w3",
+                "NuisanceTile.w4 as nuisance_tile__w4",
+                "NuisanceTile.w5 as nuisance_tile__w5",
                 "NuisanceType.id as nuisance_type__id",
                 "NuisanceType.label as nuisance_type__label",
                 "NuisanceType.family as nuisance_type__family",
@@ -50,7 +58,13 @@ export class PgNuisanceTileRepository implements INuisanceTileRepository {
             z: row.nuisance_tile__z,
             t: row.nuisance_tile__t,
             count: row.nuisance_tile__count,
-            weight: row.nuisance_tile__weight,
+            weights: [
+                row.nuisance_tile__w1,
+                row.nuisance_tile__w2,
+                row.nuisance_tile__w3,
+                row.nuisance_tile__w4,
+                row.nuisance_tile__w5
+            ],
             nuisanceType: {
                 id: row.nuisance_type__id,
                 label: row.nuisance_type__label,
@@ -63,11 +77,27 @@ export class PgNuisanceTileRepository implements INuisanceTileRepository {
     async incrementNuisanceTile(tile: DeltaNuisanceTile): Promise<void> {
         await this.con
             .insertInto(PG_NUISANCE_TILE_TABLE_NAME)
-            .values(tile)
+            .values({
+                x: tile.x,
+                y: tile.y,
+                z: tile.z,
+                t: tile.t,
+                nuisanceTypeId: tile.nuisanceTypeId,
+                count: tile.count, 
+                w1: tile.weights[0],
+                w2: tile.weights[1],
+                w3: tile.weights[2],
+                w4: tile.weights[3],
+                w5: tile.weights[4],
+            })
             .onConflict((oc) => oc
                 .constraint('nuisance_tile_unique_index')
                 .doUpdateSet(eb => ({
-                    weight: eb('NuisanceTile.weight', '+', tile.weight),
+                    w1: eb('w1', '+', tile.weights[0]),
+                    w2: eb('w2', '+', tile.weights[1]),
+                    w3: eb('w3', '+', tile.weights[2]),
+                    w4: eb('w4', '+', tile.weights[3]),
+                    w5: eb('w5', '+', tile.weights[4]),
                     count: eb('NuisanceTile.count', '+', 1)
                 }))
             )
@@ -78,7 +108,11 @@ export class PgNuisanceTileRepository implements INuisanceTileRepository {
         await this.con
             .updateTable(PG_NUISANCE_TILE_TABLE_NAME)
             .set((eb) => ({
-                weight: eb('weight', '-', tile.weight),
+                w1: eb('w1', '-', tile.weights[0]),
+                w2: eb('w2', '-', tile.weights[1]),
+                w3: eb('w3', '-', tile.weights[2]),
+                w4: eb('w4', '-', tile.weights[3]),
+                w5: eb('w5', '-', tile.weights[4]),
                 count: eb('count', '-', 1)
             }))
             .where((eb)=> eb.and({

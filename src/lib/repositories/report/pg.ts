@@ -1,6 +1,6 @@
 import { Database, DatabaseConnection } from "@/lib/database";
 import { FilterReport, InsertReport, PatchReport, Report } from "@/lib/model";
-import { SelectExpression, sql } from "kysely";
+import { SelectExpression, SelectQueryBuilder, sql } from "kysely";
 import { IReportRepository } from "..";
 import { Cursor } from "@/lib/utils/cursor";
 import { PG_NUISANCE_TYPE_TABLE_NAME } from "../nuisance-type/pg";
@@ -91,6 +91,45 @@ export class PgReportRepository implements IReportRepository {
             .execute();
     }
 
+    filterSelect<O, T extends SelectQueryBuilder<Database, "Report", O>>(filter: FilterReport, select: T): T {
+        return select.where(eb => {
+            let w: any = eb.and(filter)
+                        
+            if(filter.within)
+                w = w.and(sql`ST_Within(Report.location, ST_GeomFromGeoJSON(${JSON.stringify(filter.within)}))`)
+            
+            if(filter.between) {
+                w = w.and(
+                    eb('Report.createdAt', '>=', filter.between.start),
+                    eb('Report.createdAt', '<=', filter.between.end)
+                )
+            }
+
+            return w
+        })
+    }
+    
+
+    async aggregateBy(filter: FilterReport) {
+        let query = this.con
+                    .selectFrom(PG_REPORT_TABLE_NAME)
+                    .select([
+                        // Generate weighted ranks
+                        sql<number>`SUM(CASE WHEN Report.intensity = 1 THEN 1 END)`.as('w1'),
+                        sql<number>`SUM(CASE WHEN Report.intensity = 2 THEN 1 END)`.as('w2'),
+                        sql<number>`SUM(CASE WHEN Report.intensity = 3 THEN 1 END)`.as('w3'),
+                        sql<number>`SUM(CASE WHEN Report.intensity = 4 THEN 1 END)`.as('w4'),
+                        sql<number>`SUM(CASE WHEN Report.intensity = 5 THEN 1 END)`.as('w5'),
+                        //
+                        sql<number>`count(*)`.as('count')
+                    ]).groupBy('Report.nuisanceTypeId')
+        
+        query =  this.filterSelect(filter, query);
+
+        return query.execute()
+
+    }
+
     async findBy(filter: FilterReport, cursor: Cursor) {
         const map = {
             id: "Report.id",
@@ -118,10 +157,10 @@ export class PgReportRepository implements IReportRepository {
                 "NuisanceType.label as nuisanceType__label",
                 "NuisanceType.family as nuisanceType__family",
                 "NuisanceType.description as nuisanceType__description"
-            ])
-            .where(eb => eb.and(filter)) 
-            .orderBy("Report.createdAt desc")
+            ]).orderBy("Report.createdAt desc")
         
+        query = this.filterSelect(filter, query);
+
         if(cursor.size > 0) {
             query = query.limit(cursor.size).offset(cursor.size * cursor.page)
         }

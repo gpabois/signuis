@@ -55,6 +55,11 @@ export function UserContextMenu() {
             <li>
                 <Link href="/my/settings" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Paramètres</Link>
             </li>
+            <Can I="access" a="monitoring">
+            <li>
+                <Link href="/monitoring" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Surveillance</Link>
+            </li>
+            </Can>
             <Can I="access" a="administration">
             <li>
                 <Link href="/admin" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Administration</Link>

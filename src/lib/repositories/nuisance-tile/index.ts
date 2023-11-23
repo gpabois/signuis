@@ -17,10 +17,14 @@ export interface INuisanceTileRepository {
     decrementNuisanceTile(tile: DeltaNuisanceTile): Promise<void>;
 
     /**
-     * Find nuisance tiles by
+     * Find nuisance tiles
      * @param tileIndex
      */
     findBy(filter: FilterNuisanceTile, cursor: Cursor): Promise<Array<NuisanceTile>>
 
+    /**
+     * Count nuisance tiles
+     * @param filter 
+     */
     countBy(filter: FilterNuisanceTile): Promise<number>
 }

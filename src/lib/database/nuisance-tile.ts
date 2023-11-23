@@ -3,8 +3,12 @@ export interface NuisanceTile {
     x: number,
     y: number,
     z: number,
-    t: number,
+    t: Date,
     nuisanceTypeId: string,
     count: number,
-    weight: number
+    w1: number,
+    w2: number,
+    w3: number,
+    w4: number,
+    w5: number,
 }
