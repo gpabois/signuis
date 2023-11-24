@@ -10,20 +10,23 @@ export function mockReceiver<D>(s: Signal<D>): jest.Mock {
 export type MockReportRepository = jest.Mocked<IReportRepository>;
 export function newMockedReportRepository(): MockReportRepository {
     return {
-        insertReport: jest.fn(),
-        getReport: jest.fn(),
-        getReportsBy: jest.fn(),
-        deleteReport: jest.fn()
+        insert: jest.fn(),
+        update: jest.fn(),
+        findOneBy: jest.fn(),
+        findBy: jest.fn(),
+        countBy: jest.fn(),
+        deleteBy: jest.fn()
     }
 }
 
 export type MockNuisanceTypeRepository = jest.Mocked<INuisanceTypeRepository>;
 export function newMockedNuisanceTypeRepository(): MockNuisanceTypeRepository {
     return {
-        insertNuisanceType: jest.fn(),
-        deleteNuisanceType: jest.fn(),
-        getNuisanceType: jest.fn(),
-        getNuisanceTypesBy: jest.fn(),
-
+        insert: jest.fn(),
+        update: jest.fn(),
+        deleteBy: jest.fn(),
+        findOneBy: jest.fn(),
+        countBy: jest.fn(),
+        findBy: jest.fn(),
     }
 }

@@ -1,4 +1,4 @@
-import { NewReport, NuisanceType, NuisanceTypeFamilies, Report } from "@/lib/model";
+import { CreateReport, NuisanceType, NuisanceTypeFamilies, Report } from "@/lib/model";
 import { useEffect, useMemo, useState } from "react";
 import { Step, Stepper } from "../components/common/Stepper";
 import { Select, SelectOption } from "@/components/common/forms/Select";
@@ -18,7 +18,7 @@ export async function getNearest(point: Point): Promise<string> {
 }
 
 export type CreateReportFormProps = {
-    report: Partial<NewReport>,
+    report: Partial<CreateReport>,
     nuisanceTypes?: Array<NuisanceType>,
     onReportCreated?: (report: Report) => void
 }

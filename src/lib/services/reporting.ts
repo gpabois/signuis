@@ -1,5 +1,5 @@
 import { Cursor } from "../utils/cursor";
-import { Report, NewReport, NewNuisanceType, NuisanceType, FilterReport, FilterNuisanceType, PatchReport } from "../model";
+import { Report, CreateReport, CreateNuisanceType, NuisanceType, FilterReport, FilterNuisanceType, PatchReport } from "../model";
 import { INuisanceTypeRepository, IReportRepository } from "../repositories";
 import { Signals } from "../signals";
 import { Optional } from "../option";
@@ -10,13 +10,13 @@ export interface IReportingService {
      * @param report 
      * @return Created report
      */
-    addReport(newReport: NewReport): Promise<Report>;
+    createReport(newReport: CreateReport): Promise<Report>;
 
     /**
      * Remove an entry by its id
      * @return Deleted report
      */
-    removeReport(reportId: Report["id"]): Promise<Report|undefined>;
+    deleteReportBy(filter: FilterReport): Promise<void>;
 
     /**
      * Find one report by a filter
@@ -40,7 +40,7 @@ export interface IReportingService {
      * Add a new nuisance type
      * @param newNuisanceType 
      */
-    addNuisanceType(newNuisanceType: NewNuisanceType): Promise<NuisanceType>;
+    createNuisanceType(newNuisanceType: CreateNuisanceType): Promise<NuisanceType>;
 
     /**
      * Add a new nuisance type
@@ -80,7 +80,7 @@ export class ReportingService implements IReportingService {
     }
 
 
-    async addReport(newReport: NewReport): Promise<Report> {
+    async createReport(newReport: CreateReport): Promise<Report> {
         // Insert a new report
         const id = await this.reports.insert(newReport);
         
@@ -94,15 +94,10 @@ export class ReportingService implements IReportingService {
     }
 
 
-    async removeReport(id: Report["id"]): Promise<Report|undefined> {
-        const report = await this.reports.findOneBy({id});
-
-        if(report === null) return;
-        
-        await this.reports.deleteBy({id: report.id});
-        await this.signals.report_deleted.send(this, report);
-        
-        return report;
+    async deleteReportBy(filter: FilterReport): Promise<void> {
+        const reports = await this.reports.findBy(filter, {page: 0, size: -1});
+        await this.reports.deleteBy(filter);
+        await Promise.all(reports.map((report) => this.signals.report_deleted.send(this, report)));
     }
     
     findReportBy(filter: Partial<PatchReport>): Promise<Optional<Report>> {
@@ -118,7 +113,7 @@ export class ReportingService implements IReportingService {
         return this.reports.countBy(filter);
     }
 
-    async addNuisanceType(newNuisanceType: NewNuisanceType): Promise<NuisanceType> {
+    async createNuisanceType(newNuisanceType: CreateNuisanceType): Promise<NuisanceType> {
         const id = await this.nuisanceTypes.insert(newNuisanceType);
         return (await this.nuisanceTypes.findOneBy({id}))!;
     }

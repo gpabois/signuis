@@ -63,7 +63,7 @@ export interface NuisanceTile {
     weights: NuisanceTileRankWeights
 }
 
-export type FilterNuisanceTile = Partial<NuisanceTileAttributes> & {
+export type FilterNuisanceTile = Partial<NuisanceTileAttributes> & Omit<NuisanceTileAttributes, "weights"> & {
     nearest_bounds?: {
         nw: {lat: number, lon: number},
         se: {lat: number, lon: number}

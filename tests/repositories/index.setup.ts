@@ -4,7 +4,6 @@ import { sql } from "kysely";
 
 export async function setupDatabase(): Promise<void> {
     const db = await getDatabaseConnection();
-    await sql`DROP SCHEMA public CASCADE; CREATE SCHEMA public;`.execute(db);
     const result = await migrateToLatest(db);
 
     if(result.error) throw result.error;

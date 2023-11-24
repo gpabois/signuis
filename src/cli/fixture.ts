@@ -11,7 +11,7 @@ async function execute() {
     let nuisanceTypes: Array<NuisanceType> = [];
 
     for(let i = 0; i < 20; i++) {
-        nuisanceTypes.push(await NuisanceTypeFixtures.ForServices.add({}, shared));
+        nuisanceTypes.push(await NuisanceTypeFixtures.ForServices.create({}, shared));
     }
 
     const admin = await UserFixtures.ForServices.register({name: "admin", password: "admin"}, shared);

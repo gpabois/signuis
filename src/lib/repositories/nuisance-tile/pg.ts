@@ -1,9 +1,10 @@
 import { DeltaNuisanceTile, FilterNuisanceTile, NuisanceTile, NuisanceTileIndex } from "@/lib/model";
-import { DatabaseConnection } from "@/lib/database";
+import { Database, DatabaseConnection } from "@/lib/database";
 import { INuisanceTileRepository } from ".";
 import { Cursor } from "@/lib/utils/cursor";
-import { sql } from "kysely";
+import { ExpressionOrFactory, sql } from "kysely";
 import { tile } from "@/lib/utils/slippyMap";
+import { Optional } from "@/lib/option";
 
 const PG_NUISANCE_TILE_TABLE_NAME = "NuisanceTile"
 
@@ -26,6 +27,28 @@ export class PgNuisanceTileRepository implements INuisanceTileRepository {
         return res.count;
     }
 
+    async findOneBy(filter: FilterNuisanceTile): Promise<Optional<NuisanceTile>> {
+        const [item] = await this.findBy(filter, {page: 0, size: 1})
+        if(item === undefined) return null;
+        return item
+    }
+
+    private filter(filter: FilterNuisanceTile): ExpressionOrFactory<Database, "NuisanceTile", false> {
+        const map = {
+            x: "NuisanceTile.x",
+            y: "NuisanceTile.y",
+            z: "NuisanceTile.z",
+            t: "NuisanceTile.t"
+        }
+
+        return eb => {
+            //@ts-ignore
+            const direct = Object.fromEntries(Object.keys(filter).filter((k) => Object.keys(map).includes(k)).map(k => [map[k], filter[k]]))
+            let w: any = eb.and(direct)
+            return w
+        }
+    }
+
     async findBy(filter: FilterNuisanceTile, cursor: Cursor): Promise<Array<NuisanceTile>> {
         let query = this.con
             .selectFrom("NuisanceTile")
@@ -46,7 +69,7 @@ export class PgNuisanceTileRepository implements INuisanceTileRepository {
                 "NuisanceType.family as nuisance_type__family",
                 "NuisanceType.description as nuisance_type__description",
             ])
-            .where(eb => eb.and(filter));
+            .where(this.filter(filter));
 
         if(cursor.size > 0) {
             query = query.limit(cursor.size).offset(cursor.size * cursor.page)
@@ -74,7 +97,7 @@ export class PgNuisanceTileRepository implements INuisanceTileRepository {
         }))
     }
 
-    async incrementNuisanceTile(tile: DeltaNuisanceTile): Promise<void> {
+    async increment(tile: DeltaNuisanceTile): Promise<void> {
         await this.con
             .insertInto(PG_NUISANCE_TILE_TABLE_NAME)
             .values({
@@ -93,34 +116,34 @@ export class PgNuisanceTileRepository implements INuisanceTileRepository {
             .onConflict((oc) => oc
                 .constraint('nuisance_tile_unique_index')
                 .doUpdateSet(eb => ({
-                    w1: eb('w1', '+', tile.weights[0]),
-                    w2: eb('w2', '+', tile.weights[1]),
-                    w3: eb('w3', '+', tile.weights[2]),
-                    w4: eb('w4', '+', tile.weights[3]),
-                    w5: eb('w5', '+', tile.weights[4]),
-                    count: eb('NuisanceTile.count', '+', 1)
+                    w1: eb('NuisanceTile.w1', '+', tile.weights[0]),
+                    w2: eb('NuisanceTile.w2', '+', tile.weights[1]),
+                    w3: eb('NuisanceTile.w3', '+', tile.weights[2]),
+                    w4: eb('NuisanceTile.w4', '+', tile.weights[3]),
+                    w5: eb('NuisanceTile.w5', '+', tile.weights[4]),
+                    count: eb('NuisanceTile.count', '+', tile.count)
                 }))
             )
             .execute();
     }
 
-    async decrementNuisanceTile(tile: DeltaNuisanceTile): Promise<void> {
+    async decrement(dt: DeltaNuisanceTile): Promise<void> {
         await this.con
             .updateTable(PG_NUISANCE_TILE_TABLE_NAME)
             .set((eb) => ({
-                w1: eb('w1', '-', tile.weights[0]),
-                w2: eb('w2', '-', tile.weights[1]),
-                w3: eb('w3', '-', tile.weights[2]),
-                w4: eb('w4', '-', tile.weights[3]),
-                w5: eb('w5', '-', tile.weights[4]),
-                count: eb('count', '-', 1)
+                w1: eb('NuisanceTile.w1', '-', dt.weights[0]),
+                w2: eb('NuisanceTile.w2', '-', dt.weights[1]),
+                w3: eb('NuisanceTile.w3', '-', dt.weights[2]),
+                w4: eb('NuisanceTile.w4', '-', dt.weights[3]),
+                w5: eb('NuisanceTile.w5', '-', dt.weights[4]),
+                count: eb('NuisanceTile.count', '-', dt.count)
             }))
             .where((eb)=> eb.and({
-                x: tile.x, 
-                y: tile.y, 
-                z: tile.z, 
-                t: tile.t, 
-                nuisanceTypeId: tile.nuisanceTypeId
+                x: dt.x, 
+                y: dt.y, 
+                z: dt.z, 
+                t: dt.t, 
+                nuisanceTypeId: dt.nuisanceTypeId
             }))
             .execute();
     }

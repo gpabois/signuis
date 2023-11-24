@@ -1,36 +1,56 @@
+import { PgReportRepository } from "@/lib/repositories/report/pg";
 import { setupDatabase, teardownDatabase } from "./index.setup";
-import { PgReportRepository } from '@/lib/repositories';
 import { getDatabaseConnection } from '@/lib/database';
-import { addNewReportInRepository, generateNewReport } from "../../src/lib/fixtures";
-
+import { INuisanceTypeRepository, IReportRepository } from "@/lib/repositories";
+import { PgNuisanceTypeRepository } from "@/lib/repositories/nuisance-type/pg";
+import { ReportFixtures } from "@/lib/fixtures";
 
 describe("report repository", () => {
     beforeAll(() => setupDatabase());
     afterAll(() => teardownDatabase());
 
-    test("insertReport", async() => {
-        const repo = new PgReportRepository(await getDatabaseConnection());
-        const newReport = await generateNewReport();
-        const reportId = await repo.insertReport(newReport);
-        expect(reportId).not.toBeUndefined();
-    });
+    async function createRepository(): Promise<IReportRepository> {
+        return new PgReportRepository(await getDatabaseConnection());
+    }
 
-    test("getReport", async() => {
-        const repo = new PgReportRepository(await getDatabaseConnection());
-        const newReport = await generateNewReport();
-        const reportId = await repo.insertReport(newReport);
+    async function createNuisanceTypeRepository(): Promise<INuisanceTypeRepository> {
+        return new PgNuisanceTypeRepository(await getDatabaseConnection());
+    }
+
+    test("insert", async() => {
+        // Setup
+        const repo = await createRepository()
+        const insertReport = await ReportFixtures.ForRepositories.generateInsertReportData({}, {repositories: {nuisanceTypes: await createNuisanceTypeRepository()}});
         
-        const report = (await repo.getReport(reportId))!;
-        expect(report.id).toBe(reportId);
-        expect(report.location.coordinates[0]).toBeCloseTo(newReport.location.coordinates[0]);
-        expect(report.location.coordinates[1]).toBeCloseTo(newReport.location.coordinates[1]);
+        // Test
+        const id = await repo.insert(insertReport);
+        expect(id).not.toBeNull();
     });
 
-    test("deleteReport", async() => {
+    test("findOneBy({id})", async() => {
+        // Setup
+        const repo = await createRepository()
+        const {id, ...insert} = await ReportFixtures.ForRepositories.insert({}, {repositories: {nuisanceTypes: await createNuisanceTypeRepository(), reports: repo}});
+
+        // Test
+        const report = await repo.findOneBy({id})
+        // Assertions
+        expect(report).not.toBeNull();
+        expect(report!.id).toBe(id);
+        expect(report!.location.coordinates[0]).toBeCloseTo(insert.location.coordinates[0]);
+        expect(report!.location.coordinates[1]).toBeCloseTo(insert.location.coordinates[1]);
+        expect(report!.nuisanceType.id).toBe(insert.nuisanceTypeId);
+        expect(report!.intensity).toBe(insert.intensity);
+    });
+
+    test("deleteBy", async() => {
         const repo = new PgReportRepository(await getDatabaseConnection());
-        const reportId = await addNewReportInRepository();
-        await repo.deleteReport(reportId);
-        expect(await repo.getReport(reportId)).toBeUndefined();
+        const {id} = await ReportFixtures.ForRepositories.insert({}, {repositories: {nuisanceTypes: await createNuisanceTypeRepository(), reports: repo}});
+
+        // Test
+        await repo.deleteBy({id});
+        // Assertions
+        expect(await repo.findOneBy({id})).toBeNull();
     })
     
 })

@@ -17,7 +17,7 @@ export async function up(db: Kysely<any>): Promise<void> {
         .addColumn("id", "uuid", (col) => col.primaryKey().defaultTo(sql`gen_random_uuid()`))
         .addColumn("location", PointColumn())
         .addColumn("intensity", "int8")
-        .addColumn("nuisanceTypeId", "uuid")
+        .addColumn("nuisanceTypeId", "uuid", col => col.notNull())
         .addColumn("userId", "uuid")
         .addColumn('createdAt', 'timestamptz', (col) => col.defaultTo(sql`now()`).notNull())
         .addForeignKeyConstraint(
@@ -26,6 +26,13 @@ export async function up(db: Kysely<any>): Promise<void> {
             "NuisanceType", 
             ["id"],
             (cons) => cons.onDelete("cascade")
+        )
+        .addForeignKeyConstraint(
+            "report_user_fk",
+            ["userId"],
+            "User",
+            ["id"],
+            cons => cons.onDelete("set null")
         )
         .execute()
     

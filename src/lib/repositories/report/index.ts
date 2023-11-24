@@ -1,5 +1,5 @@
 
-import { FilterReport, InsertReport, NewReport, Report, ReportId, UpdateReport } from '@/lib/model/report';
+import { FilterReport, InsertReport, CreateReport, Report, ReportId, UpdateReport } from '@/lib/model/report';
 import { Cursor } from '@/lib/utils/cursor';
 import { Deletable, Insertable, Searchable, Updatable } from '../trait';
 

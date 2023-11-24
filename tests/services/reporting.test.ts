@@ -1,83 +1,67 @@
-import { deleted_report, new_report } from "@/lib/signals";
-import { generateNewReport, generateReport } from "../../src/lib/fixtures"
-import { mockReceiver, newMockedNuisanceTypeRepository } from "../mock";
-import { ReportingService } from "@/lib/services/reporting";
+import { Signals, createSignals} from "@/lib/signals";
+import { NuisanceTypeFixtures, ReportFixtures } from "../../src/lib/fixtures"
+import { MockNuisanceTypeRepository, MockReportRepository, mockReceiver, newMockedNuisanceTypeRepository } from "../mock";
+import { IReportingService, ReportingService } from "@/lib/services/reporting";
 import { faker } from "@faker-js/faker";
 import { Report } from "@/lib/model";
 import { newMockedReportRepository } from "../mock";
+import { report } from "process";
 
 describe("Reporting service", () => {
     
-    afterEach(() => {
-        new_report.clearAll();
-        deleted_report.clearAll();
+    function setup(): {signals: Signals, services: {reporting: IReportingService}, repositories: {reports: MockReportRepository, nuisanceTypes: MockNuisanceTypeRepository}} {
+        const signals = createSignals();
+        const reports = newMockedReportRepository();
+        const nuisanceTypes = newMockedNuisanceTypeRepository();
+        return {
+            signals,
+            services: {
+                reporting: new ReportingService({reports, signals, nuisanceTypes})
+            },
+            repositories: {
+                reports, 
+                nuisanceTypes
+            }
+        }   
+    }
+
+    test("createReport", async () => {
+        // Setup
+        const {signals, services: {reporting}, repositories: {reports, nuisanceTypes}} = setup();
+
+        const nuisanceType = NuisanceTypeFixtures.ForServices.generateNuisanceTypeData();
+        const createReport = await ReportFixtures.ForServices.generateCreateReportData({nuisanceTypeId: nuisanceType.id});
+        const findByReport = await ReportFixtures.ForRepositories.generateFindByReportData({
+            location: createReport.location, 
+            intensity: createReport.intensity,
+            nuisanceType
+        })
+
+        reports.insert.mockReturnValueOnce(Promise.resolve(findByReport.id))
+        reports.findOneBy.mockReturnValue(Promise.resolve(findByReport))
+
+        const report = await reporting.createReport(createReport);
+        expect(report.id).toBe(findByReport.id);
+        expect(report.nuisanceType).toMatchObject(findByReport.nuisanceType)
+        expect(report.location).toMatchObject(findByReport.location)
+        expect(report.intensity).toBe(findByReport.intensity)
     })
 
-    test("add report", async () => {
-        // Mock dependencies
-        const mockNewReportRecv = mockReceiver(new_report);
-        const mockReportRepo = newMockedReportRepository();
+    test("deleteReportBy({id})", async () => {
+        // Setup
+        const {signals, services: {reporting}, repositories: {reports, nuisanceTypes}} = setup();
 
-        // Generate inputs and expected outputs
-        const newReport = await generateNewReport({mockNuisanceTypeId: true});
-        const expectedReport: Report = {id: faker.string.uuid(), createdAt: new Date(), ...newReport}
+        const report = ReportFixtures.ForServices.generateReportData({})
 
-        // Mock dependencies calls
-        mockReportRepo.insertReport.mockReturnValueOnce(Promise.resolve(expectedReport.id));
-        mockReportRepo.getReport.mockReturnValueOnce(Promise.resolve(expectedReport));
-        
-        // Create the service
-        const svc = new ReportingService({
-            reports: mockReportRepo,
-            nuisanceTypes: newMockedNuisanceTypeRepository()
-        });
-        
-        // Call addReport
-        const createdReport = await svc.addReport(newReport);
+        reports.findBy.mockImplementationOnce(async ({id}) => {
+            return id == report.id ? [report] : []
+        })
+        reports.deleteBy.mockImplementationOnce(async (filter) => {
+            expect(filter.id).toBe(report.id)
+            return;
+        })
 
-        // routine must send a new_report signal
-        expect(mockNewReportRecv).toHaveBeenCalled();
-        // routine must insert the report to the repository
-        expect(mockReportRepo.insertReport).toHaveBeenCalled();
-        // routine must retrieve the report from the repository
-        expect(mockReportRepo.getReport).toHaveBeenCalled();
-        // retrieved report must match the expected report
-        expect(createdReport).toMatchObject(expectedReport);
-    });
 
-    test("remove report", async () => {
-        // Generate inputs and expected outputs
-        const existingReport = await generateReport({mockNuisanceTypeId: true});
-        
-        // Mock dependencies
-        const mockDeletedReportRecv = mockReceiver(deleted_report);
-        let mockReportRepo = newMockedReportRepository();
-        // Mock dependencies calls
-        mockReportRepo = {
-            ...mockReportRepo,
-            getReport: mockReportRepo.getReport.mockImplementation((id) => Promise.resolve(
-                id === existingReport.id ? {...existingReport} : undefined
-            )),
-            deleteReport: mockReportRepo.deleteReport.mockImplementation((id) => Promise.resolve())
-        };  
-
-        // Create the service
-        const svc = new ReportingService({
-            reports: mockReportRepo,
-            nuisanceTypes: newMockedNuisanceTypeRepository()
-        });
-
-        // Call removeReport
-        const deletedReport = svc.removeReport(existingReport.id);
-
-        // Should have retrieved the report stored in the repository.
-        expect(mockReportRepo.getReport).toHaveBeenCalled();
-        // Should have removed the report from the repository
-        expect(mockReportRepo.deleteReport).toHaveBeenCalled();
-        // Should have sent deleted_report signal
-        expect(mockDeletedReportRecv).toHaveBeenCalled();
-        // deleted report must match the expected report
-        expect(deletedReport).toMatchObject(existingReport);
-
+        await reporting.deleteReportBy({id: report.id});
     })
 })

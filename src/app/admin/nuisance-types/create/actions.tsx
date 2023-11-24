@@ -25,7 +25,7 @@ export async function createNuisanceType(prevState: Maybe<Result<NuisanceType, V
         });
     }
 
-    let result = success(await reporting.addNuisanceType(validation.data));
+    let result = success(await reporting.createNuisanceType(validation.data));
     redirect("/admin/nuisance-types");
 }
 

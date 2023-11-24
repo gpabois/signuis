@@ -1,7 +1,9 @@
-import { InsertNuisanceType, NewNuisanceType, NuisanceType, NuisanceTypeFamilies } from "@/lib/model";
+import { InsertNuisanceType, CreateNuisanceType, NuisanceType, NuisanceTypeFamilies } from "@/lib/model";
 import { Shared } from "@/lib/shared";
 import { faker } from "@faker-js/faker";
 import { getRandomElement } from ".";
+import { INuisanceTypeRepository } from "../repositories";
+import { IReportingService } from "../services/reporting";
 
 export namespace NuisanceTypeFixtures {
     export namespace ForRepositories {
@@ -12,15 +14,32 @@ export namespace NuisanceTypeFixtures {
                 description: args?.description || faker.lorem.paragraph(3)
             }
         }
-        // 
-        export async function insert(args: Partial<InsertNuisanceType>, shared: Shared): Promise<string> {
+        
+        /**
+         * Execute insertion into the nuisance type repository
+         * @param args 
+         * @param shared 
+         * @returns 
+         */
+        export async function insert(args: Partial<InsertNuisanceType>, shared: {repositories: {nuisanceTypes: INuisanceTypeRepository}}): Promise<{id: string} & InsertNuisanceType> {
             const insertNuisanceType = await generateInsertData(args);
-            return await shared?.repositories.nuisanceTypes.insert(insertNuisanceType);
+            const id = await shared?.repositories.nuisanceTypes.insert(insertNuisanceType);
+            return {id, ...insertNuisanceType}
         }
     }
 
-    export namespace ForServices {
-        export function generateNewData(args?: Partial<NewNuisanceType>): NewNuisanceType {
+    export namespace ForServices 
+    {
+        export function generateNuisanceTypeData(args?: Partial<NuisanceType>): NuisanceType {
+            return {
+                id: args?.id || faker.string.uuid(),
+                label: args?.label || faker.lorem.word(40),
+                family: args?.family || getRandomElement(NuisanceTypeFamilies)!.value,
+                description: args?.description || faker.lorem.paragraph(3)
+            }
+        }    
+        
+        export function generateCreateNuisanceTypeData(args?: Partial<CreateNuisanceType>): CreateNuisanceType {
             return {
                 label: args?.label || faker.lorem.word(40),
                 family: args?.family || getRandomElement(NuisanceTypeFamilies)!.value,
@@ -29,13 +48,13 @@ export namespace NuisanceTypeFixtures {
         }    
         
         /**
-         * Add a nuisance type through the reporting service
+         * Create a nuisance type through the reporting service
          * @param args 
          * @param shared 
          */
-        export function add(args: Partial<NewNuisanceType>, shared: Shared): Promise<NuisanceType> {
-            const data = generateNewData(args);
-            return shared.services.reporting.addNuisanceType(data)
+        export function create(args: Partial<CreateNuisanceType>, shared: {services: {reporting: IReportingService}}): Promise<NuisanceType> {
+            const data = generateCreateNuisanceTypeData(args);
+            return shared.services.reporting.createNuisanceType(data)
         }
     }
 }

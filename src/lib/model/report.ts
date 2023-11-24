@@ -3,22 +3,23 @@ import { NuisanceType, User } from "."
 
 export type ReportId = string;
 
-export interface NewReport {
+export interface CreateReport {
     location: Point,
     nuisanceTypeId: NuisanceType['id'],
     userId?: User['id'] | null,
     intensity: number
 }
 
-export type InsertReport = NewReport;
+export type InsertReport = CreateReport;
 
-export interface PatchReport extends NewReport {
+export interface PatchReport extends CreateReport {
     id: string,
 }
 
 export type UpdateReport = PatchReport;
 
 export type FilterReport = Partial<PatchReport> & {
+    nuisanceTypeId__in?: Array<string>,
     within?: Polygon,
     between?: {start: Date, end: Date}
 };

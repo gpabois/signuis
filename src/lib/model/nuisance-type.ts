@@ -6,12 +6,12 @@ export const NuisanceTypeFamilies = [
     {value: "accident", label: "Accident"}
 ];
 
-export interface NewNuisanceType {
+export interface CreateNuisanceType {
     label: string,
     description: string,
     family: string
 }
-export type InsertNuisanceType = NewNuisanceType;
+export type InsertNuisanceType = CreateNuisanceType;
 export interface NuisanceType {
     id: string,
     label: string,
