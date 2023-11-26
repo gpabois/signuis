@@ -3,8 +3,10 @@ import { PgNuisanceTileRepository } from '@/lib/repositories/nuisance-tile/pg';
 import { PgNuisanceTypeRepository } from "@/lib/repositories/nuisance-type/pg";
 
 import { getDatabaseConnection } from '@/lib/database';
-import { NuisanceTileFixtures } from "../../src/lib/fixtures";
+import { NuisanceTileFixtures, NuisanceTypeFixtures, randomTileCoordinates } from "../../src/lib/fixtures";
 import { INuisanceTileRepository, INuisanceTypeRepository } from "@/lib/repositories";
+import { faker } from "@faker-js/faker";
+import { NuisanceTile } from "@/lib/model";
 
 describe("nuisance tile repository", () => {
     beforeAll(() => setupDatabase());
@@ -17,6 +19,49 @@ describe("nuisance tile repository", () => {
     async function createNuisanceTypeRepository(): Promise<INuisanceTypeRepository> {
         return new PgNuisanceTypeRepository(await getDatabaseConnection());
     }
+
+    async function setup(): Promise<{repositories: {nuisanceTypes: INuisanceTypeRepository, nuisanceTiles: INuisanceTileRepository}}> {
+        return {
+            repositories: {
+                nuisanceTypes: await createNuisanceTypeRepository(), 
+                nuisanceTiles: await createRepository()
+            }
+        }
+    }
+
+    test("aggregateBy", async () => {
+        // Setup
+        const shared = await setup();
+
+        
+        const from = faker.date.recent({days: 60})
+        const to = faker.date.recent({days: 45})
+        const ts = faker.date.betweens({from, to, count: 3});
+
+        const idx = randomTileCoordinates();
+
+        // First tile 
+        const {nuisanceTypeId} =  await NuisanceTileFixtures.ForRepositories.increment(
+            {...idx, t: ts.pop(), weights: NuisanceTile.intoWeights(5)}, 
+            shared
+        );
+        // Second tile
+        await NuisanceTileFixtures.ForRepositories.increment(
+            {...idx, t: ts.pop(), nuisanceTypeId, weights: NuisanceTile.intoWeights(5)}, 
+            shared
+        );
+        // Third tile, but different nuisance type
+        await NuisanceTileFixtures.ForRepositories.increment(
+            {...idx, t: ts.pop(), nuisanceTypeId, weights: NuisanceTile.intoWeights(5)}, 
+            shared
+        );
+
+        const aggTile = shared.repositories.nuisanceTiles.aggregateBy({
+            x: idx.x, y: idx.y, z: idx.z, 
+            nuisanceTypeId,
+            between: {from, to}
+        }, ["Time"])
+    })
 
     test("increment(delta)", async() => {
         // Setup

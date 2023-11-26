@@ -5,7 +5,7 @@ import { INuisanceTileRepository, INuisanceTypeRepository } from "../repositorie
 import { NuisanceTypeFixtures } from ".";
 import { faker } from "@faker-js/faker";
 
-export function randomTileCoordinates(): {x: number, y: number, z: number} {
+export function randomTileCoordinates(args?: {x?: number, y?: number, z?: number}): {x: number, y: number, z: number} {
     const z = randomInt(20)
     const x = randomInt(Math.pow(2, z))
     const y = randomInt(Math.pow(2, z))

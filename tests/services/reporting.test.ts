@@ -1,11 +1,8 @@
 import { Signals, createSignals} from "@/lib/signals";
 import { NuisanceTypeFixtures, ReportFixtures } from "../../src/lib/fixtures"
-import { MockNuisanceTypeRepository, MockReportRepository, mockReceiver, newMockedNuisanceTypeRepository } from "../mock";
+import { MockNuisanceTypeRepository, MockReportRepository, newMockedNuisanceTypeRepository } from "../mock";
 import { IReportingService, ReportingService } from "@/lib/services/reporting";
-import { faker } from "@faker-js/faker";
-import { Report } from "@/lib/model";
 import { newMockedReportRepository } from "../mock";
-import { report } from "process";
 
 describe("Reporting service", () => {
     

@@ -1,4 +1,4 @@
-import { DeltaNuisanceTile, FilterNuisanceTile, NuisanceTile, NuisanceTileIndex } from "@/lib/model/nuisance-tile";
+import { AggregatedNuisanceTile, DeltaNuisanceTile, FilterNuisanceTile, NuisanceTile, NuisanceTileIndex } from "@/lib/model/nuisance-tile";
 import { Optional } from "@/lib/option";
 import { Cursor } from "@/lib/utils/cursor";
 
@@ -16,6 +16,13 @@ export interface INuisanceTileRepository {
      * @param tile
      */
     decrement(tile: DeltaNuisanceTile): Promise<void>;
+
+    /**
+     * Aggregates nuisance tiles
+     * @param filter 
+     * @param aggregateBy 
+     */
+    aggregateBy(filter: FilterNuisanceTile, aggregateBy: Array<"Time"|"NuisanceType">): Promise<Array<AggregatedNuisanceTile>>
 
     /**
      * Find nuisance tiles

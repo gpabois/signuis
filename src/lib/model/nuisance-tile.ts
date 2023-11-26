@@ -33,6 +33,7 @@ export namespace NuisanceTile {
     }
 }
 
+
 export interface NuisanceTileIndex{x: number, y: number, z: number, t: Date, nuisanceTypeId: string}
 
 export type NuisanceTileRankWeights = Tuple<number, 5>;
@@ -63,11 +64,23 @@ export interface NuisanceTile {
     weights: NuisanceTileRankWeights
 }
 
-export type FilterNuisanceTile = Partial<NuisanceTileAttributes> & Omit<NuisanceTileAttributes, "weights"> & {
-    nearest_bounds?: {
+export type NuisanceTileAggregationField = "Time"
+
+export interface AggregatedNuisanceTile {
+    x: number,
+    y: number,
+    z: number,
+    t: {start: Date, end: Date},
+    nuisanceTypes: Array<NuisanceType>,
+    count: number,
+    weights: NuisanceTileRankWeights
+}
+
+export type FilterNuisanceTile = Partial<NuisanceTileAttributes> & {
+    within?: {
         nw: {lat: number, lon: number},
         se: {lat: number, lon: number}
     }
-    interval?: {start: Date, end: Date}
+    between?: {from: Date, to: Date}
 }
 
