@@ -34,9 +34,10 @@ describe("nuisance tile repository", () => {
         const shared = await setup();
 
         
-        const from = faker.date.recent({days: 60})
-        const to = faker.date.recent({days: 45})
-        const ts = faker.date.betweens({from, to, count: 3});
+        const from = new Date("2020-01-01T00:00:00.000Z")
+        const to = new Date("2023-01-01T00:00:00.000Z")
+        
+        const ts = [faker.date.between({from, to}), faker.date.between({from, to}), faker.date.between({from, to})]
 
         const idx = randomTileCoordinates();
 
@@ -56,11 +57,14 @@ describe("nuisance tile repository", () => {
             shared
         );
 
-        const aggTile = shared.repositories.nuisanceTiles.aggregateBy({
+        const aggTile = await shared.repositories.nuisanceTiles.aggregateBy({
             x: idx.x, y: idx.y, z: idx.z, 
             nuisanceTypeId,
             between: {from, to}
-        }, ["Time"])
+        }, ["Time", "NuisanceType"])
+
+        console.log(aggTile)
+        expect(true).toBe(false)
     })
 
     test("increment(delta)", async() => {

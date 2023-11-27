@@ -70,7 +70,7 @@ export interface AggregatedNuisanceTile {
     x: number,
     y: number,
     z: number,
-    t: {start: Date, end: Date},
+    t: {from: Date, to: Date},
     nuisanceTypes: Array<NuisanceType>,
     count: number,
     weights: NuisanceTileRankWeights

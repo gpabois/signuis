@@ -2,12 +2,34 @@ import { AggregatedNuisanceTile, DeltaNuisanceTile, FilterNuisanceTile, Nuisance
 import { Database, DatabaseConnection } from "@/lib/database";
 import { INuisanceTileRepository } from ".";
 import { Cursor } from "@/lib/utils/cursor";
-import { ExpressionOrFactory, sql } from "kysely";
+import { ExpressionOrFactory, sql, ReferenceExpression } from "kysely";
 import { tile } from "@/lib/utils/slippyMap";
 import { Optional } from "@/lib/option";
 import { zip } from "@/lib/utils/iterable";
 
 const PG_NUISANCE_TILE_TABLE_NAME = "NuisanceTile"
+
+type AggregatedRow = {
+    nuisance_tile__x: number,
+    nuisance_tile__y: number,
+    nuisance_tile__z: number,
+
+    nuisance_tile__t_from: Date,
+    nuisance_tile__t_to: Date,
+
+    nuisance_tile__w1: number,
+    nuisance_tile__w2: number,
+    nuisance_tile__w3: number,
+    nuisance_tile__w4: number,
+    nuisance_tile__w5: number,
+
+    nuisance_tile__count: number,
+    
+    nuisance_types__id: Array<string>,
+    nuisance_types__label: Array<string>,
+    nuisance_types__family: Array<string>
+    nuisance_types__description: Array<string>
+}
 
 export class PgNuisanceTileRepository implements INuisanceTileRepository {
     con: DatabaseConnection
@@ -34,55 +56,57 @@ export class PgNuisanceTileRepository implements INuisanceTileRepository {
         return item
     }
 
-    async aggregateBy(filter: FilterNuisanceTile, aggregateBy: Array<"Time"|"NuisanceType">): Promise<Array<AggregatedNuisanceTile>> {        
-        let query = this.con.selectFrom("NuisanceTile")
-        .innerJoin("NuisanceType", "NuisanceType.id", "NuisanceTile.nuisanceTypeId")
-        .select([
-            sql<number>`NuisanceTile.x`.as("nuisance_tile__x"),
-            sql<number>`NuisanceTile.y`.as("nuisance_tile__y"),
-            sql<number>`NuisanceTile.z`.as("nuisance_tile__z"),
-            
-            sql<Date>`MIN(NuisanceTile.t)`.as("nuisance_tile__t_start"),
-            sql<Date>`MAX(NuisanceTile.t)`.as("nuisance_tile__t_end"),
-            
-            sql<number>`SUM(NuisanceTile.count)`.as("nuisance_tile__count"),
-            sql<number>`SUM(NuisanceTile.w1)`.as("nuisance_tile__w1"),
-            sql<number>`SUM(NuisanceTile.w2)`.as("nuisance_tile__w2"),
-            sql<number>`SUM(NuisanceTile.w3)`.as("nuisance_tile__w3"),
-            sql<number>`SUM(NuisanceTile.w4)`.as("nuisance_tile__w4"),
-            sql<number>`SUM(NuisanceTile.w5)`.as("nuisance_tile__w5"),
-
-            sql<Array<string>>`array_agg(NuisanceType.id)`.as("nuisance_types__id"),
-            sql<Array<string>>`array_agg(NuisanceType.label)`.as("nuisance_types__label"),
-            sql<Array<string>>`array_agg(NuisanceType.family)`.as("nuisance_types__family"),
-            sql<Array<string>>`array_agg(NuisanceType.description)`.as("nuisance_types__description"),
-        ])
-        .groupBy((() => {
-            const groupBy = ["NuisanceTile.x", "NuisanceTile.y", "NuisanceTile.z"];
-            if(!aggregateBy.includes("NuisanceType")) {
-                groupBy.push("NuisanceTile.nuisanceTypeId")
-            }
-
-            if(!aggregateBy.includes("Time")) {
-                groupBy.push(["NuisanceTile.t"])
-            }
-
-            return groupBy;
-        })())
-        .where(this.filter(filter));
-
+    private groupBy(aggregateBy: Array<"Time"|"NuisanceType">): Array<ReferenceExpression<Database, "NuisanceType" | "NuisanceTile">> {
+        const groupBy: Array<ReferenceExpression<Database, "NuisanceType" | "NuisanceTile">> = [
+            "NuisanceTile.x", 
+            "NuisanceTile.y", 
+            "NuisanceTile.y"
+        ];
         
-        console.log(query.compile().sql)
+        if(!aggregateBy.includes("NuisanceType")) {
+            groupBy.push("NuisanceTile.nuisanceTypeId")
+        }
 
-        const rows = await query.execute()
+        return groupBy;
+    }
+
+    async aggregateBy(filter: FilterNuisanceTile, aggregateBy: Array<"Time"|"NuisanceType">): Promise<Array<AggregatedNuisanceTile>> {       
+
+        let query = this.con
+        .selectFrom("NuisanceTile as t0")
+        .innerJoin("NuisanceType as t1", "t1.id", "t0.nuisanceTypeId")
+        .select([
+            sql<number>`t0.x`.as("nuisance_tile__x"),
+            sql<number>`t0.y`.as("nuisance_tile__y"),
+            sql<number>`t0.z`.as("nuisance_tile__z"),
+
+            sql<Date>`MIN(t0.t)`.as("nuisance_tile__t_from"),
+            sql<Date>`MAX(t0.t)`.as("nuisance_tile__t_to"),
+            
+            sql<number>`COALESCE(SUM(t0.count), 0)`.as("nuisance_tile__count"),
+            sql<number>`COALESCE(SUM(t0.w1), 0)`.as("nuisance_tile__w1"),
+            sql<number>`COALESCE(SUM(t0.w2), 0)`.as("nuisance_tile__w2"),
+            sql<number>`COALESCE(SUM(t0.w3), 0)`.as("nuisance_tile__w3"),
+            sql<number>`COALESCE(SUM(t0.w4), 0)`.as("nuisance_tile__w4"),
+            sql<number>`COALESCE(SUM(t0.w5), 0)`.as("nuisance_tile__w5"),
+
+            sql<Array<string>>`ARRAY_AGG(t1.id)`.as("nuisance_types__id"),
+            sql<Array<string>>`ARRAY_AGG(t1.label)`.as("nuisance_types__label"),
+            sql<Array<string>>`ARRAY_AGG(t1.family)`.as("nuisance_types__family"),
+            sql<Array<string>>`ARRAY_AGG(t1.description)`.as("nuisance_types__description"),
+        ])
+        .groupBy(["t0.x", "t0.y", "t0.z", ...(aggregateBy.includes("NuisanceType") ? ["t1.id"] : [])])
+        //.where(this.filter(filter));
+
+        const rows: Array<AggregatedRow> = await query.execute()
         
         return rows.map((row) => ({
             x: row.nuisance_tile__x,
             y: row.nuisance_tile__y,
             z: row.nuisance_tile__z,
             t: {
-                start: row.nuisance_tile__t_start, 
-                end: row.nuisance_tile__t_end
+                from: row.nuisance_tile__t_from, 
+                to: row.nuisance_tile__t_to
             },
             count: row.nuisance_tile__count,
             weights: [
