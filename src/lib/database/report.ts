@@ -5,7 +5,7 @@ import { NuisanceType } from "../model/nuisance-type";
 
 
 
-export interface Report {
+export interface ReportTable {
     id:             Generated<string>,
     location:       Point,
     nuisanceTypeId: NuisanceType['id'],

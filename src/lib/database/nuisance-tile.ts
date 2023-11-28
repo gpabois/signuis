@@ -1,5 +1,5 @@
 
-export interface NuisanceTile {
+export interface NuisanceTileTable {
     x: number,
     y: number,
     z: number,

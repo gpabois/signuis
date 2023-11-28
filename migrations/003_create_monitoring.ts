@@ -4,17 +4,17 @@ import { Expression, Kysely, RawBuilder, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
     await db.schema
         .createTable("NuisanceTile")
-        .addColumn("x", "integer")
-        .addColumn("y", "integer")
-        .addColumn("z", "integer")
-        .addColumn("t", "timestamptz")
-        .addColumn("nuisanceTypeId", "uuid")
-        .addColumn("count", "integer")
-        .addColumn("w1", "integer")
-        .addColumn("w2", "integer")
-        .addColumn("w3", "integer")
-        .addColumn("w4", "integer")
-        .addColumn("w5", "integer")
+        .addColumn("x", "integer", col => col.notNull())
+        .addColumn("y", "integer", col => col.notNull())
+        .addColumn("z", "integer", col => col.notNull())
+        .addColumn("t", "timestamptz", col => col.notNull())
+        .addColumn("nuisanceTypeId", "uuid", col => col.notNull())
+        .addColumn("count", "integer", col => col.defaultTo(0))
+        .addColumn("w1", "integer", col => col.defaultTo(0))
+        .addColumn("w2", "integer", col => col.defaultTo(0))
+        .addColumn("w3", "integer", col => col.defaultTo(0))
+        .addColumn("w4", "integer", col => col.defaultTo(0))
+        .addColumn("w5", "integer", col => col.defaultTo(0))
         .addForeignKeyConstraint(
             "nuisance_tile_nuisance_type_fk", 
             ["nuisanceTypeId"], 

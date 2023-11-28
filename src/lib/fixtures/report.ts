@@ -6,6 +6,7 @@ import { faker } from '@faker-js/faker';
 import { Point } from 'geojson';
 import { INuisanceTypeRepository, IReportRepository } from "../repositories";
 import { IReportingService } from "../services/reporting";
+import { zip } from "../utils/iterable";
 
 export function randomPoint(): Point {
     const center: [number, number] = [48.8029439, 2.485429]
@@ -21,7 +22,7 @@ export namespace ReportFixtures {
     export namespace ForRepositories {
         export async function generateInsertReportData(args: Partial<InsertReport>, shared: {repositories: {nuisanceTypes: INuisanceTypeRepository}}): Promise<InsertReport> {
             return {
-                location:       randomPoint(),
+                location:       args?.location || randomPoint(),
                 nuisanceTypeId: args?.nuisanceTypeId || (await NuisanceTypeFixtures.ForRepositories.insert({}, shared)).id,
                 intensity:      randomInt(1, 5),
             }
@@ -29,18 +30,23 @@ export namespace ReportFixtures {
 
         export function generateFindByReportData(args: Partial<Report>): Report {
             return {
-                id:           args.id || faker.string.uuid(),
-                location:     args.location || randomPoint(),
-                intensity:    args.intensity || randomInt(1, 5),
-                nuisanceType: args.nuisanceType!,
-                createdAt:    args.createdAt || faker.date.anytime()
+                id:           args?.id || faker.string.uuid(),
+                location:     args?.location || randomPoint(),
+                intensity:    args?.intensity || randomInt(1, 5),
+                nuisanceType: args?.nuisanceType!,
+                createdAt:    args?.createdAt || faker.date.anytime()
             }
         }
         
-        export async function insert(args: Partial<Report>, shared: {repositories: {nuisanceTypes: INuisanceTypeRepository, reports: IReportRepository}}): Promise<{id: string} & InsertReport> {
-            const insertData = await generateInsertReportData(args, shared)
-            const id = await shared.repositories.reports.insert(insertData)
-            return {id, ...insertData}
+        export async function insertMultiple(args: {data: Partial<InsertReport>, count: number}, shared: {repositories: {nuisanceTypes: INuisanceTypeRepository, reports: IReportRepository}}) {
+            const inserts = await Promise.all(Array(args.count).map(async (_) => await generateInsertReportData(args.data, shared)));
+            const results = await shared.repositories.reports.insertMultiple(...inserts)
+            return Array.from(zip(inserts, results)).map(([insert, id]) => ({id, ...insert}))
+        }
+        export async function insert(args: Partial<InsertReport>, shared: {repositories: {nuisanceTypes: INuisanceTypeRepository, reports: IReportRepository}}): Promise<{id: string} & InsertReport> {
+            const insert = await generateInsertReportData(args, shared)
+            const id = await shared.repositories.reports.insert(insert)
+            return {id, ...insert}
         }
     }
 

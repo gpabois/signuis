@@ -74,6 +74,9 @@ describe("nuisance tile repository", () => {
         
         // Test
         await repo.increment(delta);
+        const tile = await repo.findOneBy(delta);
+        expect(tile?.count).toBe(delta.count);
+        expect(tile?.weights).toEqual(delta.weights);
     });
 
     test("decrement(delta)", async() => {
@@ -102,5 +105,6 @@ describe("nuisance tile repository", () => {
         expect(tile!.z).toEqual(delta.z);
         expect(tile!.t).toEqual(delta.t);
         expect(tile!.nuisanceType.id).toEqual(delta.nuisanceTypeId);
+        expect(tile!.weights).toEqual(delta.weights);
     })
 })

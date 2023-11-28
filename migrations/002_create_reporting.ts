@@ -19,7 +19,7 @@ export async function up(db: Kysely<any>): Promise<void> {
         .addColumn("intensity", "int8")
         .addColumn("nuisanceTypeId", "uuid", col => col.notNull())
         .addColumn("userId", "uuid")
-        .addColumn('createdAt', 'timestamptz', (col) => col.defaultTo(sql`now()`).notNull())
+        .addColumn("createdAt", 'timestamptz', (col) => col.defaultTo(sql`now()`).notNull())
         .addForeignKeyConstraint(
             "report_nuisance_type_fk", 
             ["nuisanceTypeId"], 
@@ -34,6 +34,11 @@ export async function up(db: Kysely<any>): Promise<void> {
             ["id"],
             cons => cons.onDelete("set null")
         )
+        .execute()
+    
+    await db.schema.createIndex("report_location_idx")
+        .on("Report")
+        .using("gist(location)")
         .execute()
     
 }

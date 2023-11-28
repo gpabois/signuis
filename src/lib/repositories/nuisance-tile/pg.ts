@@ -6,6 +6,8 @@ import { ExpressionOrFactory, sql, ReferenceExpression } from "kysely";
 import { tile } from "@/lib/utils/slippyMap";
 import { Optional } from "@/lib/option";
 import { zip } from "@/lib/utils/iterable";
+import { NuisanceTypeTable } from "@/lib/database/nuisance_type";
+import { NuisanceTileTable } from "@/lib/database/nuisance-tile";
 
 const PG_NUISANCE_TILE_TABLE_NAME = "NuisanceTile"
 
@@ -56,20 +58,6 @@ export class PgNuisanceTileRepository implements INuisanceTileRepository {
         return item
     }
 
-    private groupBy(aggregateBy: Array<"Time"|"NuisanceType">): Array<ReferenceExpression<Database, "NuisanceType" | "NuisanceTile">> {
-        const groupBy: Array<ReferenceExpression<Database, "NuisanceType" | "NuisanceTile">> = [
-            "NuisanceTile.x", 
-            "NuisanceTile.y", 
-            "NuisanceTile.y"
-        ];
-        
-        if(!aggregateBy.includes("NuisanceType")) {
-            groupBy.push("NuisanceTile.nuisanceTypeId")
-        }
-
-        return groupBy;
-    }
-
     async aggregateBy(filter: FilterNuisanceTile, aggregateBy: Array<"Time"|"NuisanceType">): Promise<Array<AggregatedNuisanceTile>> {       
 
         let query = this.con
@@ -83,19 +71,22 @@ export class PgNuisanceTileRepository implements INuisanceTileRepository {
             sql<Date>`MIN(t0.t)`.as("nuisance_tile__t_from"),
             sql<Date>`MAX(t0.t)`.as("nuisance_tile__t_to"),
             
-            sql<number>`COALESCE(SUM(t0.count), 0)`.as("nuisance_tile__count"),
-            sql<number>`COALESCE(SUM(t0.w1), 0)`.as("nuisance_tile__w1"),
-            sql<number>`COALESCE(SUM(t0.w2), 0)`.as("nuisance_tile__w2"),
-            sql<number>`COALESCE(SUM(t0.w3), 0)`.as("nuisance_tile__w3"),
-            sql<number>`COALESCE(SUM(t0.w4), 0)`.as("nuisance_tile__w4"),
-            sql<number>`COALESCE(SUM(t0.w5), 0)`.as("nuisance_tile__w5"),
+            sql<number>`CAST(COALESCE(SUM(t0.count), 0) AS INTEGER)`.as("nuisance_tile__count"),
+            sql<number>`CAST(COALESCE(SUM(t0.w1), 0) AS INTEGER)`.as("nuisance_tile__w1"),
+            sql<number>`CAST(COALESCE(SUM(t0.w2), 0) AS INTEGER)`.as("nuisance_tile__w2"),
+            sql<number>`CAST(COALESCE(SUM(t0.w3), 0) AS INTEGER)`.as("nuisance_tile__w3"),
+            sql<number>`CAST(COALESCE(SUM(t0.w4), 0) AS INTEGER)`.as("nuisance_tile__w4"),
+            sql<number>`CAST(COALESCE(SUM(t0.w5), 0) AS INTEGER)`.as("nuisance_tile__w5"),
 
             sql<Array<string>>`ARRAY_AGG(t1.id)`.as("nuisance_types__id"),
             sql<Array<string>>`ARRAY_AGG(t1.label)`.as("nuisance_types__label"),
             sql<Array<string>>`ARRAY_AGG(t1.family)`.as("nuisance_types__family"),
             sql<Array<string>>`ARRAY_AGG(t1.description)`.as("nuisance_types__description"),
         ])
-        .groupBy(["t0.x", "t0.y", "t0.z", ...(aggregateBy.includes("NuisanceType") ? ["t1.id"] : [])])
+        .where(this.filter(filter))
+        .groupBy(
+            ["t0.x", "t0.y", "t0.z", ...(aggregateBy.includes("NuisanceType") ? ["t1.id"] : [])]
+        )
         //.where(this.filter(filter));
 
         const rows: Array<AggregatedRow> = await query.execute()
@@ -129,23 +120,23 @@ export class PgNuisanceTileRepository implements INuisanceTileRepository {
 
     async findBy(filter: FilterNuisanceTile, cursor: Cursor): Promise<Array<NuisanceTile>> {
         let query = this.con
-            .selectFrom("NuisanceTile")
-            .innerJoin("NuisanceType", "NuisanceType.id", "NuisanceTile.nuisanceTypeId")
+            .selectFrom("NuisanceTile as t0")
+            .innerJoin("NuisanceType as t1", "t1.id", "t0.nuisanceTypeId")
             .select([
-                "NuisanceTile.x as nuisance_tile__x",
-                "NuisanceTile.y as nuisance_tile__y",
-                "NuisanceTile.z as nuisance_tile__z",
-                "NuisanceTile.t as nuisance_tile__t",
-                "NuisanceTile.count as nuisance_tile__count",
-                "NuisanceTile.w1 as nuisance_tile__w1",
-                "NuisanceTile.w2 as nuisance_tile__w2",
-                "NuisanceTile.w3 as nuisance_tile__w3",
-                "NuisanceTile.w4 as nuisance_tile__w4",
-                "NuisanceTile.w5 as nuisance_tile__w5",
-                "NuisanceType.id as nuisance_type__id",
-                "NuisanceType.label as nuisance_type__label",
-                "NuisanceType.family as nuisance_type__family",
-                "NuisanceType.description as nuisance_type__description",
+                "t0.x as nuisance_tile__x",
+                "t0.y as nuisance_tile__y",
+                "t0.z as nuisance_tile__z",
+                "t0.t as nuisance_tile__t",
+                "t0.count as nuisance_tile__count",
+                "t0.w1 as nuisance_tile__w1",
+                "t0.w2 as nuisance_tile__w2",
+                "t0.w3 as nuisance_tile__w3",
+                "t0.w4 as nuisance_tile__w4",
+                "t0.w5 as nuisance_tile__w5",
+                "t1.id as nuisance_type__id",
+                "t1.label as nuisance_type__label",
+                "t1.family as nuisance_type__family",
+                "t1.description as nuisance_type__description",
             ])
             .where(this.filter(filter));
 
@@ -227,13 +218,13 @@ export class PgNuisanceTileRepository implements INuisanceTileRepository {
     }
 
 
-    private filter(filter: FilterNuisanceTile): ExpressionOrFactory<Database, "NuisanceTile", false> {
+    private filter<SqlBool>(filter: FilterNuisanceTile): ExpressionOrFactory<Database & {t0: NuisanceTileTable, t1: NuisanceTypeTable}, "t0" | "t1", SqlBool> {
         const map = {
-            x: "NuisanceTile.x",
-            y: "NuisanceTile.y",
-            z: "NuisanceTile.z",
-            t: "NuisanceTile.t",
-            nuisanceTypeId: "NuisanceTile.nuisanceTypeId"
+            x: "t0.x",
+            y: "t0.y",
+            z: "t0.z",
+            t: "t0.t",
+            nuisanceTypeId: "t0.nuisanceTypeId"
         }
 
         return eb => {
@@ -244,8 +235,8 @@ export class PgNuisanceTileRepository implements INuisanceTileRepository {
             if(filter.between) {
                 w = eb.and([
                     w,
-                    eb('NuisanceTile.t', '>=', filter.between.from),
-                    eb('NuisanceTile.t', '<=', filter.between.to)
+                    eb('t0.t', '>=', filter.between.from),
+                    eb('t0.t', '<=', filter.between.to)
                 ])
             }
             return w

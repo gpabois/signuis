@@ -1,24 +1,13 @@
 import { Database, DatabaseConnection } from "@/lib/database";
-import { FilterReport, InsertReport, PatchReport, Report } from "@/lib/model";
+import { FilterReport, InsertReport, PatchReport, Report, ReportSum } from "@/lib/model";
 import { ExpressionOrFactory, SelectExpression, SelectQueryBuilder, sql } from "kysely";
 import { IReportRepository } from "..";
 import { Cursor } from "@/lib/utils/cursor";
-import { PG_NUISANCE_TYPE_TABLE_NAME } from "../nuisance-type/pg";
 import { Optional } from "@/lib/option";
+import { ReportTable } from "@/lib/database/report";
+import { ST_AsGeoJSON, ST_GeomFromGeoJSON, ST_Within } from "@/lib/utils/postgis";
 
 export const PG_REPORT_TABLE_NAME = "Report";
-
-const FetchReportColumns: SelectExpression<Database, "Report" | "NuisanceType">[] = [
-    "Report.id as report__id", 
-    "Report.userId as report__userId", 
-    "Report.intensity as report__intensity", 
-    "Report.createdAt as report__createdAt",
-    sql<string>`ST_AsGeoJSON(location)`.as('report__str_location'),
-    "NuisanceType.id as nuisanceType__id",
-    "NuisanceType.label as nuisanceType__label",
-    "NuisanceType.family as nuisanceType__family",
-    "NuisanceType.description as nuisanceType__description"
-]
 
 type FetchReportRow = { 
     id: string; 
@@ -34,25 +23,6 @@ type FetchReportRow = {
     nuisanceType__description: string;
 };
 
-
-function mapRow(row: FetchReportRow): Report {
-    return {
-        id: row.id,
-        createdAt: row.createdAt,
-        intensity: row.intensity,
-        location: JSON.parse(row.str_location),
-        user: (row.user__id && row.user__name && {
-            id: row.user__id,
-            name: row.user__name
-        }) || undefined, 
-        nuisanceType: {
-            id: row.nuisanceType__id,
-            label: row.nuisanceType__label,
-            family: row.nuisanceType__family,
-            description: row.nuisanceType__description
-        }
-    }
-}
 /**
  * Postgres-implemented repository for reports.
  */
@@ -63,20 +33,34 @@ export class PgReportRepository implements IReportRepository {
         this.con = con;
     }
 
-
     async insert(report: InsertReport): Promise<string> {
         const result = await this.con
-            .insertInto(PG_REPORT_TABLE_NAME)
+            .insertInto("Report")
             .values({
                 nuisanceTypeId: report.nuisanceTypeId,
                 userId:         report.userId,
-                location:       sql`ST_GeomFromGeoJSON(${JSON.stringify(report.location)})`,
+                location:       ST_GeomFromGeoJSON(report.location),
                 intensity:      report.intensity,
             })
             .returning("id")
             .executeTakeFirstOrThrow();
 
         return result.id;
+    }
+
+    async insertMultiple(...inserts: Array<InsertReport>): Promise<Array<string>> {
+        const result = await this.con
+            .insertInto("Report")
+            .values(inserts.map(insert =>({
+                nuisanceTypeId: insert.nuisanceTypeId,
+                userId:         insert.userId,
+                location:       ST_GeomFromGeoJSON(insert.location),
+                intensity:      insert.intensity,
+            })))
+            .returning("id")
+            .execute();
+
+        return result.map(({id}) => id);
     }
 
     async update(update: PatchReport & { id: string; }): Promise<void> {
@@ -91,82 +75,127 @@ export class PgReportRepository implements IReportRepository {
             .execute();
     }
 
-    filter<O>(filter: FilterReport): ExpressionOrFactory<Database, "Report", false>{
+    filter<SqlBool>(filter: FilterReport): ExpressionOrFactory<Database & {t0: ReportTable}, "t0", SqlBool>{
+        const map = {
+            id: "t0.id",
+            userId: "t0.userId",
+            intensity: "t0.intensity",
+            createdAt: "t0.createdAt"
+        }
+
+        //@ts-ignore
+        const direct = Object.fromEntries(Object.keys(filter).filter((k) => Object.keys(map).includes(k)).map(k => [map[k], filter[k]]))
+
         return eb => {
-            let w: any = eb.and(filter)
+            let w: any = eb.and(direct)
                         
-            if(filter.within)
-                w = w.and(sql`ST_Within(Report.location, ST_GeomFromGeoJSON(${JSON.stringify(filter.within)}))`)
+            if(filter.within) {
+                w = eb.and([
+                    w, 
+                    sql<boolean>`ST_Contains(${ST_GeomFromGeoJSON(filter.within)}, t0.location)`
+                ])
+            }
             
             if(filter.between) {
-                w = w.and(
-                    eb('Report.createdAt', '>=', filter.between.from),
-                    eb('Report.createdAt', '<=', filter.between.to)
-                )
+                w = eb.and([w,
+                    eb('t0.createdAt', '>=', filter.between.from),
+                    eb('t0.createdAt', '<=', filter.between.to)
+                ])
             }
 
             return w
         }
     }
     
-    
-    async aggregateBy(filter: FilterReport) {
+    async sumBy(filter: FilterReport): Promise<Array<ReportSum>> {
         let query = this.con
-                    .selectFrom(PG_REPORT_TABLE_NAME)
-                    .select([
-                        // Generate weighted ranks
-                        sql<number>`SUM(CASE WHEN Report.intensity = 1 THEN 1 END)`.as('w1'),
-                        sql<number>`SUM(CASE WHEN Report.intensity = 2 THEN 1 END)`.as('w2'),
-                        sql<number>`SUM(CASE WHEN Report.intensity = 3 THEN 1 END)`.as('w3'),
-                        sql<number>`SUM(CASE WHEN Report.intensity = 4 THEN 1 END)`.as('w4'),
-                        sql<number>`SUM(CASE WHEN Report.intensity = 5 THEN 1 END)`.as('w5'),
-                        //
-                        sql<number>`count(*)`.as('count')
-                    ])
-                    .where(this.filter(filter))
-                    .groupBy('Report.nuisanceTypeId')
+            .selectFrom("Report as t0")
+            .innerJoin("NuisanceType as t1", "t1.id", "t0.nuisanceTypeId")
+            .select([
+                // Generate weighted ranks
+                sql<number>`COALESCE(CAST(SUM(CASE WHEN t0.intensity = 1 THEN 1 ELSE 0 END) AS INTEGER), 0)`.as('w1'),
+                sql<number>`COALESCE(CAST(SUM(CASE WHEN t0.intensity = 2 THEN 1 ELSE 0 END) AS INTEGER), 0)`.as('w2'),
+                sql<number>`COALESCE(CAST(SUM(CASE WHEN t0.intensity = 3 THEN 1 ELSE 0 END) AS INTEGER), 0)`.as('w3'),
+                sql<number>`COALESCE(CAST(SUM(CASE WHEN t0.intensity = 4 THEN 1 ELSE 0 END) AS INTEGER), 0)`.as('w4'),
+                sql<number>`COALESCE(CAST(SUM(CASE WHEN t0.intensity = 5 THEN 1 ELSE 0 END) AS INTEGER), 0)`.as('w5'),
+                sql<number>`CAST(COUNT(*) as INTEGER)`.as('count'),
 
-        return query.execute()
+                "t1.id as nuisanceType__id",
+                "t1.label as nuisanceType__label",
+                "t1.family as nuisanceType__family",
+                "t1.description as nuisanceType__description"
+            ])
+            .where(this.filter(filter))
+            .groupBy(["t1.id"])
+        
+        const rows = await query.execute()
 
+        return rows.map(row => ({
+            weights: [
+                row.w1,
+                row.w2,
+                row.w3,
+                row.w4,
+                row.w5
+            ],
+            count: row.count,
+            nuisanceType: {
+                id: row.nuisanceType__id,
+                label: row.nuisanceType__label,
+                family: row.nuisanceType__family,
+                description: row.nuisanceType__description
+            }
+        }))
     }
 
     async findBy(filter: FilterReport, cursor: Cursor) {
-        const map = {
-            id: "Report.id",
-            userId: "Report.userId",
-            intensity: "Report.intensity",
-            createdAt: "Report.createdAt"
-        }
-
-        //@ts-ignore
-        filter = Object.fromEntries(Object.keys(filter).map(k => [map[k], filter[k]]))
-        
         let query = this.con
-            .selectFrom(PG_REPORT_TABLE_NAME)
-            .innerJoin(PG_NUISANCE_TYPE_TABLE_NAME, "NuisanceType.id", "Report.nuisanceTypeId")
-            .innerJoin("User", "User.id", "Report.userId")
+            .selectFrom("Report as t0")
+            .innerJoin("NuisanceType as t1", "t1.id", "t0.nuisanceTypeId")
+            .leftJoin("User as t2", "t2.id", "t0.userId")
             .select([
-                "Report.id as id", 
-                "Report.userId as userId", 
-                "Report.intensity as intensity", 
-                "Report.createdAt as createdAt",
-                sql<string>`ST_AsGeoJSON(location)`.as('str_location'),
-                "User.id as user__id",
-                "User.name as user__name",
-                "NuisanceType.id as nuisanceType__id",
-                "NuisanceType.label as nuisanceType__label",
-                "NuisanceType.family as nuisanceType__family",
-                "NuisanceType.description as nuisanceType__description"
+                "t0.id as report__id", 
+                "t0.userId as report__userId", 
+                sql<number>`CAST(t0.intensity as INTEGER)`.as("report__intensity"), 
+                "t0.createdAt as report__createdAt",
+                sql<string>`ST_AsGeoJSON(t0.location)`.as('report__str_location'),
+                
+                "t1.id as nuisanceType__id",
+                "t1.label as nuisanceType__label",
+                "t1.family as nuisanceType__family",
+                "t1.description as nuisanceType__description",
+                
+                "t2.id as user__id",
+                "t2.name as user__name"
             ])
+            //@ts-ignore
             .where(this.filter(filter))
-            .orderBy("Report.createdAt desc")
+            .orderBy("t0.createdAt desc")
         
         if(cursor.size > 0) {
-            query = query.limit(cursor.size).offset(cursor.size * cursor.page)
+            query = query
+            .limit(cursor.size)
+            .offset(cursor.size * cursor.page)
         }
 
         const items = await query.execute();
-        return items.map(mapRow)
+        
+        return items.map((row) => ({
+            id: row.report__id,
+            createdAt: row.report__createdAt,
+            intensity: row.report__intensity,
+            location: JSON.parse(row.report__str_location),
+            user: (row.user__id && row.user__name && {
+                id: row.user__id,
+                name: row.user__name
+            }) || undefined, 
+            nuisanceType: {
+                id: row.nuisanceType__id,
+                label: row.nuisanceType__label,
+                family: row.nuisanceType__family,
+                description: row.nuisanceType__description
+            }
+        }))
     }
 
     async findOneBy(filter: FilterReport): Promise<Optional<Report>> {
@@ -176,9 +205,9 @@ export class PgReportRepository implements IReportRepository {
     }
 
     async countBy(filter: FilterReport): Promise<number> {
-        const res = await this.con.selectFrom(PG_REPORT_TABLE_NAME)
+        const res = await this.con.selectFrom("Report as t0")
         .select(({fn}) => [fn.countAll<number>().as('count')])
-        .where(eb => eb.and(filter))
+        .where(this.filter(filter))
         .executeTakeFirstOrThrow();
         
         return res.count;

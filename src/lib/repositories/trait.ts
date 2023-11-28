@@ -3,6 +3,7 @@ import { Cursor } from "../utils/cursor"
 
 export interface Insertable<ID, InsertEntity> {
     insert(entity: InsertEntity): Promise<ID>
+    insertMultiple(...entities: Array<InsertEntity>): Promise<Array<ID>>
 };
 
 export interface Deletable<FilterEntity> {

@@ -1,6 +1,6 @@
 import { DatabaseConnection } from "@/lib/database";
 import { INuisanceTypeRepository } from ".";
-import { FilterNuisanceType, InsertNuisanceType, NuisanceType } from "@/lib/model";
+import { CreateNuisanceType, FilterNuisanceType, InsertNuisanceType, NuisanceType } from "@/lib/model";
 import { Cursor } from "@/lib/utils/cursor";
 import { Optional } from "@/lib/option";
 
@@ -23,6 +23,15 @@ export class PgNuisanceTypeRepository implements INuisanceTypeRepository {
         .executeTakeFirstOrThrow();
 
         return res.id;
+    }
+
+    async insertMultiple(...inserts: InsertNuisanceType[]): Promise<string[]> {
+        const res = await this.con.insertInto("NuisanceType")
+        .values(inserts)
+        .returning('id')
+        .execute();
+
+        return res.map(({id}) => id);
     }
     
     async update(update: Partial<NuisanceType> & Pick<NuisanceType, "id"> & { id: string; }): Promise<void> {
