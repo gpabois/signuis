@@ -1,6 +1,6 @@
 import { Point } from "geojson";
 import { tile } from "../utils/slippyMap";
-import { DeltaNuisanceTile, FilterNuisanceTile, NuisanceTile, Report } from "../model";
+import { DeltaNuisanceTile, FilterNuisanceTile, Intensity, NuisanceTile, Report } from "../model";
 import { INuisanceTileRepository } from "../repositories";
 import { Signals } from "../signals";
 import { Cursor } from "../utils/cursor";
@@ -41,7 +41,7 @@ export interface IMonitoringService {
      * @param index 
      * @param args 
      */
-    getNuisanceTileImage(index: {x: number, y: number, z: number, t: number}, options: {resolution?: number, floorZoom?: number, mimeType?: string}): Promise<Canvas>;
+    getNuisanceTileImage(args: {x: number, y: number, z: number, between: {from: Date, to: Date}, nuisanceTypeIds: Array<string>}, options: {resolution?: number, floorZoom?: number, mimeType?: string}): Promise<Canvas>;
 }
 
 export interface MonitoringArgs {
@@ -86,7 +86,7 @@ export class MonitoringService implements IMonitoringService {
      */
     async incrementNuisanceTile(delta: DeltaNuisanceTile) {
         if(delta.z < 0) return;
-        await this.nuisanceTiles.incrementNuisanceTile(delta);
+        await this.nuisanceTiles.increment(delta);
         await this.incrementNuisanceTile({...tile.zoomOut(delta), isFloor: false})
     }
 
@@ -97,7 +97,7 @@ export class MonitoringService implements IMonitoringService {
      */
     async decrementNuisanceTile(delta: DeltaNuisanceTile) {
         if(delta.z < 0) return;
-        await this.nuisanceTiles.decrementNuisanceTile(delta);
+        await this.nuisanceTiles.decrement(delta);
         await this.decrementNuisanceTile({...tile.zoomOut(delta), isFloor: false})
     }
 
@@ -128,7 +128,7 @@ export class MonitoringService implements IMonitoringService {
                 timeSamplingInMs: this.nuisanceMapSettings.timePeriod,
                 floorZoom: this.nuisanceMapSettings.floorZoom
         });
-        await this.nuisanceTiles.decrementNuisanceTile(deltaNuisanceTile);   
+        await this.nuisanceTiles.decrement(deltaNuisanceTile);   
     }
 
     async findNuisanceTilesBy(filter: FilterNuisanceTile, cursor?: Cursor): Promise<Array<NuisanceTile>> {
@@ -140,7 +140,7 @@ export class MonitoringService implements IMonitoringService {
     }
 
     async getNuisanceTileImage(
-        {x, y, z, t, nuisanceTypeId}: {x: number, y: number, z: number, t: number, nuisanceTypeId: string}, 
+        {x, y, z, between, nuisanceTypeIds}: {x: number, y: number, z: number, between: {from: Date, to: Date}, nuisanceTypeIds: Array<string>}, 
         options?: {
             canvas?: Canvas, 
             box?: {x: number, y: number, h: number, w: number}
@@ -166,10 +166,10 @@ export class MonitoringService implements IMonitoringService {
 
         floorZoom = Math.min(floorZoom, this.nuisanceMapSettings.floorZoom);
 
-        const [nuisanceTile] = await this.findNuisanceTilesBy({x, y, z, t, nuisanceTypeId});
+        const [nuisanceTile] = await this.findNuisanceTilesBy({x, y, z, between, nuisanceTypeIds});
 
         // Premature stop
-        if(nuisanceTile === undefined || nuisanceTile.weight == 0)
+        if(nuisanceTile === undefined || nuisanceTile.count == 0)
             return canvas;
 
         // Generate leaf tile
@@ -182,10 +182,11 @@ export class MonitoringService implements IMonitoringService {
             if(nuisanceTile === undefined) {
                 return canvas
             } else {
-                const value = nuisanceTile.count > 0 ? nuisanceTile.weight / nuisanceTile.count : 0;
+                const value = Intensity.wilsonScoreLowerBound(nuisanceTile.weights);
                 
                 if(value === 0) return canvas
 
+                //@ts-ignore
                 ctx.fillStyle = heatMapColor(value).alpha(0.8).hex();
                 ctx.fillRect(box.x, box.y, box.w, box.h);
                 
@@ -199,7 +200,7 @@ export class MonitoringService implements IMonitoringService {
         const xs = [0, 1, 0, 1];
         const ys = [0, 0, 1, 1];
 
-        const children = await Promise.all(tile.children({x, y, z, t, nuisanceTypeId}).map(async (coords) => {
+        await Promise.all(tile.children({x, y, z, between, nuisanceTypeIds}).map(async (coords) => {
             const dw = box.w / 2;
             const dh = box.h / 2;
             const dx = box.x + xs[i] * dw;

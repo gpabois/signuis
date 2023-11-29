@@ -2,6 +2,7 @@ import { destroyDatabaseConnection } from "@/lib/database";
 import { NuisanceTypeFixtures, ReportFixtures, UserFixtures, getRandomElement } from "@/lib/fixtures";
 import { NuisanceType } from "@/lib/model";
 import { createShared } from "@/lib/shared";
+import { faker } from "@faker-js/faker";
 
 async function execute() {
     console.log("Generating fixtures...")
@@ -25,10 +26,11 @@ async function execute() {
         users.push(await UserFixtures.ForServices.register({}, shared));
     }
 
-    for(let i = 0; i < 10000; i++) {
-        await ReportFixtures.ForServices.add({
+    for(let i = 0; i < 100_000; i++) {
+        await ReportFixtures.ForServices.create({
             userId: getRandomElement(users)!.id, 
-            nuisanceTypeId: getRandomElement(nuisanceTypes)!.id
+            nuisanceTypeId: getRandomElement(nuisanceTypes)!.id,
+            createdAt: faker.date.recent({days: 360})
         }, shared)
     }
 

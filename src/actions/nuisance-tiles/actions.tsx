@@ -1,6 +1,6 @@
 "use server";
 
-import { FilterNuisanceTile, NuisanceTile } from "@/lib/model";
+import { FilterNuisanceTile, Intensity } from "@/lib/model";
 import { Cursor } from "@/lib/utils/cursor";
 import { getMonitoringService } from "@/actions/getMonitoringService";
 

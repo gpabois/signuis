@@ -1,5 +1,5 @@
 import { Point, Polygon } from "geojson"
-import { NuisanceTileRankWeights, NuisanceType, User } from "."
+import { IntensityWeights, NuisanceType, User } from "."
 
 export type ReportId = string;
 
@@ -7,6 +7,7 @@ export interface CreateReport {
     location: Point,
     nuisanceTypeId: NuisanceType['id'],
     userId?: User['id'] | null,
+    createdAt?: Date,
     intensity: number
 }
 
@@ -25,7 +26,7 @@ export type FilterReport = Partial<PatchReport> & {
 };
 
 export interface ReportSum {
-    weights: NuisanceTileRankWeights
+    weights: IntensityWeights
     count: number,
     nuisanceType: NuisanceType
 }

@@ -6,7 +6,7 @@ import { getDatabaseConnection } from '@/lib/database';
 import { NuisanceTileFixtures, NuisanceTypeFixtures, randomTileCoordinates } from "../../src/lib/fixtures";
 import { INuisanceTileRepository, INuisanceTypeRepository } from "@/lib/repositories";
 import { faker } from "@faker-js/faker";
-import { NuisanceTile } from "@/lib/model";
+import { Intensity } from "@/lib/model";
 
 describe("nuisance tile repository", () => {
     beforeAll(() => setupDatabase());
@@ -43,17 +43,17 @@ describe("nuisance tile repository", () => {
 
         // First tile 
         const {nuisanceTypeId} =  await NuisanceTileFixtures.ForRepositories.increment(
-            {...idx, t: ts.pop(), weights: NuisanceTile.intoWeights(5)}, 
+            {...idx, t: ts.pop(), weights: Intensity.intoWeights(5)}, 
             shared
         );
         // Second tile
         await NuisanceTileFixtures.ForRepositories.increment(
-            {...idx, t: ts.pop(), nuisanceTypeId, weights: NuisanceTile.intoWeights(5)}, 
+            {...idx, t: ts.pop(), nuisanceTypeId, weights: Intensity.intoWeights(5)}, 
             shared
         );
         // Third tile, but different nuisance type
         await NuisanceTileFixtures.ForRepositories.increment(
-            {...idx, t: ts.pop(), nuisanceTypeId, weights: NuisanceTile.intoWeights(5)}, 
+            {...idx, t: ts.pop(), nuisanceTypeId, weights: Intensity.intoWeights(5)}, 
             shared
         );
 

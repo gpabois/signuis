@@ -1,4 +1,4 @@
-import { AggregatedNuisanceTile, DeltaNuisanceTile, FilterNuisanceTile, NuisanceTile } from "@/lib/model";
+import { AggregatedNuisanceTile, DeltaNuisanceTile, FilterNuisanceTile, Intensity } from "@/lib/model";
 import { Database, DatabaseConnection } from "@/lib/database";
 import { INuisanceTileRepository } from ".";
 import { Cursor } from "@/lib/utils/cursor";
@@ -58,7 +58,7 @@ export class PgNuisanceTileRepository implements INuisanceTileRepository {
         return item
     }
 
-    async aggregateBy(filter: FilterNuisanceTile, aggregateBy: Array<"Time"|"NuisanceType">): Promise<Array<AggregatedNuisanceTile>> {       
+    async sumBy(filter: FilterNuisanceTile, by: Array<"Time"|"NuisanceType">): Promise<Array<AggregatedNuisanceTile>> {       
 
         let query = this.con
         .selectFrom("NuisanceTile as t0")
@@ -84,10 +84,8 @@ export class PgNuisanceTileRepository implements INuisanceTileRepository {
             sql<Array<string>>`ARRAY_AGG(t1.description)`.as("nuisance_types__description"),
         ])
         .where(this.filter(filter))
-        .groupBy(
-            ["t0.x", "t0.y", "t0.z", ...(aggregateBy.includes("NuisanceType") ? ["t1.id"] : [])]
-        )
-        //.where(this.filter(filter));
+        .groupBy(["t0.x", "t0.y", "t0.z"])
+        .$if(by.includes("NuisanceType"), qb => qb.groupBy(["t1.id"]))
 
         const rows: Array<AggregatedRow> = await query.execute()
         
@@ -237,6 +235,12 @@ export class PgNuisanceTileRepository implements INuisanceTileRepository {
                     w,
                     eb('t0.t', '>=', filter.between.from),
                     eb('t0.t', '<=', filter.between.to)
+                ])
+            }
+            if(filter.nuisanceTypeIds && filter.nuisanceTypeIds.length > 0) {
+                w = eb.and([
+                    w,
+                    eb.or(filter.nuisanceTypeIds.map((id) => eb("t0.nuisanceTypeId", "=", id)))
                 ])
             }
             return w

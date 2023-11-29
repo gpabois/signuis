@@ -1,6 +1,6 @@
 "use client";
 
-import { NuisanceTile } from "@/lib/model";
+import { Intensity } from "@/lib/model";
 import { Cursor } from "@/lib/utils/cursor";
 import { FireIcon, StarIcon, UserIcon } from "@heroicons/react/20/solid";
 import Link from "next/link";

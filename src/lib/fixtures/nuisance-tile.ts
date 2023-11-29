@@ -1,5 +1,5 @@
 //@ts-ignore
-import { DeltaNuisanceTile, NuisanceTile, NuisanceTileRankWeights } from "@/lib/model";
+import { DeltaNuisanceTile, Intensity, IntensityWeights } from "@/lib/model";
 import { randomInt } from "crypto";
 import { INuisanceTileRepository, INuisanceTypeRepository } from "../repositories";
 import { NuisanceTypeFixtures } from ".";
@@ -12,7 +12,7 @@ export function randomTileCoordinates(args?: {x?: number, y?: number, z?: number
     return {x, y, z}
 }
 
-export function randomRankWeights(): NuisanceTileRankWeights {
+export function randomRankWeights(): IntensityWeights {
     return [
         randomInt(1, 10000),
         randomInt(1, 10000),
