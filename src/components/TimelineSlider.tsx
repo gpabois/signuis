@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import { Button } from "./common/Button";
+import { ArrowLeftIcon, ArrowRightIcon, MagnifyingGlassMinusIcon, MagnifyingGlassPlusIcon } from "@heroicons/react/20/solid";
 
 enum SliderMode {
     Default = "default",
@@ -64,7 +65,7 @@ function Slider(props: {size: number, count: number, from: number, to: number, o
 }
 
 function Tick(props: {value: Date, scale: number, position: number, size: number, full: boolean}) {
-    const label = useRef<HTMLElement>(null);
+    const label = useRef<HTMLDivElement>(null);
 
     const [marginLeft, setMarginLeft] = useState(0);
     const [top, setTop] = useState(0);
@@ -131,6 +132,62 @@ function Ticks(props: {full: number, scale: number, from: Date, count: number, o
     </>
 }
 
+function recomposeTimestamp({days, hours, minutes}: {days: number, hours: number, minutes: number}): number {
+    const s_unit = 1000;
+    const mn_unit = s_unit * 60;
+    const h_unit = mn_unit * 60;
+    const d_unit = h_unit * 24; 
+
+    return days * d_unit + hours * h_unit + minutes * mn_unit;
+}
+function decomposeTimestamp(value: number): {days: number, hours: number, minutes: number} {
+    const s_unit = 1000;
+    const mn_unit = s_unit * 60;
+    const h_unit = mn_unit * 60;
+    const d_unit = h_unit * 24; 
+
+    let days = Math.trunc(value / d_unit);
+    value = value % d_unit;
+
+    let hours = Math.trunc(value / h_unit);
+    value = value % h_unit;
+
+    let minutes = Math.trunc(value / mn_unit);
+    value = value % mn_unit;
+
+    return {days, hours, minutes}
+}
+
+function ScaleInput(props: {value: number, onChanged?: (ms: number) => void}) {
+    const s_unit = 1000;
+    const mn_unit = s_unit * 60;
+    const h_unit = mn_unit * 60;
+    const d_unit = h_unit * 24;
+    
+    const {days: initDays, hours: initHours, minutes: initMinutes} = decomposeTimestamp(props.value);
+
+    const [days, setDays] = useState(initDays);
+    const [hours, setHours] = useState(initHours);
+    const [minutes, setMinutes] = useState(initMinutes);
+
+    useEffect(() => {
+        const {days, hours, minutes} = decomposeTimestamp(props.value);
+        setDays(days); setHours(hours); setMinutes(minutes);
+    }, [props.value]);
+    
+    useEffect(() => {
+        props.onChanged?.(
+            recomposeTimestamp({days, hours, minutes})
+        )
+    }, [days, hours, minutes])
+
+    return <div className="flex flex-row">
+        <input  type="number" value={days} onChange={(e) => setDays(e.target.valueAsNumber)}/>
+        <input  type="number" value={hours} onChange={(e) => setHours(e.target.valueAsNumber)}/>
+        <input  type="number" value={minutes} onChange={(e) => setMinutes(e.target.valueAsNumber)}/>
+    </div>
+}
+
 export interface TimelineSliderProps {
     from?: Date,
     to?: Date,
@@ -143,7 +200,7 @@ export interface TimelineSliderProps {
 };
 
 export function TimelineSlider(props: TimelineSliderProps) {
-    const container = useRef<HTMLElement>(null);
+    const container = useRef<HTMLDivElement>(null);
     
     const [width, setWidth] = useState(0);
     const [origin, setOrigin] = useState(0);
@@ -202,6 +259,11 @@ export function TimelineSlider(props: TimelineSliderProps) {
         setScale(newScale);
     }
 
+    function shift(ms: number) {
+        setTo((to) => new Date(to.getTime() + ms))
+        setFrom((from) => new Date(from.getTime() + ms))
+    }
+
     useEffect(() => {
         const observer = new ResizeObserver(_ => {
             if(!container.current) return;
@@ -232,10 +294,8 @@ export function TimelineSlider(props: TimelineSliderProps) {
             e.preventDefault();
 
             // Shift resolution in minutes
-            const shiftMns = e.movementX * scale / 10;
-
-            setTo((to) => new Date(to.getTime() + shiftMns))
-            setFrom((from) => new Date(from.getTime() + shiftMns))
+            const shiftMs = e.movementX * scale / 10;
+            shift(shiftMs);
         }
 
         window.addEventListener("mousemove", onMouseMove);
@@ -249,7 +309,16 @@ export function TimelineSlider(props: TimelineSliderProps) {
 
     return <div className="p-2 w-full h-full">
         <div ref={container} className="w-full h-full border-2 border-gray-300 bg-gray-100 relative">
-            <Ticks width={width} full={full} size={tickSize} scale={scale} count={tickCount} from={from} origin={origin} offset={tickOffset}/>
+            <Ticks 
+                width={width} 
+                full={full} 
+                size={tickSize} 
+                scale={scale} 
+                count={tickCount} 
+                from={from} 
+                origin={origin} 
+                offset={tickOffset}
+            />
             <Slider 
                 size={tickSize}
                 origin={origin} 
@@ -261,24 +330,33 @@ export function TimelineSlider(props: TimelineSliderProps) {
             <div onMouseDown={(e) => {e.preventDefault(); setMode(TimelineMode.Shift)}} className="absolute w-full h-full inset-0 z-0">
             </div>
         </div>
-        <div className="flex flex-row w-full">
-            <div className="rounded">
+        <div className="mt-2 p-1 flex flex-row w-full  border-gray-300 bg-gray-100 ">
+            <div className="rounded bg-gray-100">
                 <input 
                     type="datetime-local" 
-                    value={from.toISOString().slice(0, 16)} 
-                    onChange={e => e.target.valueAsDate && setFrom((_) => e.target.valueAsDate!)}
+                    value={from.toISOString().slice(0,-8)} 
+                    onChange={e => {
+                        setFrom((_) => new Date(e.target.value))
+                    }}
                 />
             </div>
             <div className="flex-1"></div>
-            <div>
-                <button onClick={zoomOut}>Zoom out</button>
+            <div className="flex flex-row align-middle">
+                <button className="p-1 bg-gray-100" onClick={(_) => shift(-scale)}><ArrowLeftIcon className="h-4 w-4"/></button>
+                <button className="p-1 bg-gray-100" onClick={zoomOut}><MagnifyingGlassMinusIcon className="h-4 w-4"/></button>
+                <button className="p-1 bg-gray-100" onClick={zoomIn}><MagnifyingGlassPlusIcon className="h-4 w-4"/></button>
+                <button className="p-1 bg-gray-100" onClick={(_) => shift(scale)}><ArrowRightIcon className="h-4 w-4"/></button>
+                <ScaleInput value={scale} onChanged={setScale}/>
             </div>
             <div className="flex-1"></div>
-            <div>
+            <div className="bg-gray-100 rounded">
                 <input 
                     type="datetime-local" 
                     value={to.toISOString().slice(0, 16)} 
-                    onChange={e => e.target.valueAsDate && setTo((_) => e.target.valueAsDate!)}/>
+                    onChange={e => {
+                        setTo((_) => new Date(e.target.value))
+                    }}
+                />
             </div>
         </div>
     </div>
