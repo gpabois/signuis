@@ -20,7 +20,7 @@ export default function Page() {
             <TileLayer url={`/monitoring/tiles/${nuisanceType}/${time}/{z}/{x}/{y}`}></TileLayer>
             <DynamicZoomControl position="bottomleft" />
         </DynamicMap>
-        <div className="absolute left-0 bottom-0 z-20 py-2 px-2 w-full h-20 flex items-center place-content-end space-x-2">
+        <div className="absolute left-0 bottom-20 z-20 py-2 px-2 w-full h-20 flex items-center place-content-end space-x-2">
           <TimelineSlider></TimelineSlider>
         </div>
     </div>
