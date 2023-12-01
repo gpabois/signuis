@@ -1,6 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import React, { ReactElement, ReactNode, useEffect, useMemo, useRef, useState } from "react"
 import { Button } from "./common/Button";
-import { ArrowLeftIcon, ArrowRightIcon, MagnifyingGlassMinusIcon, MagnifyingGlassPlusIcon } from "@heroicons/react/20/solid";
+import { ArrowLeftIcon, ArrowRightIcon, MagnifyingGlassMinusIcon, MagnifyingGlassPlusIcon, Square3Stack3DIcon } from "@heroicons/react/20/solid";
+
+// Minimal tick size : 10 px;
+const TICK_SIZE_MINIMAL_SIZE = 10;
 
 enum SliderMode {
     Default = "default",
@@ -13,10 +16,15 @@ enum TimelineMode {
     Shift = "shift",
 }
 
-function Slider(props: {size: number, count: number, from: number, to: number, origin: number, offset: number}) {
+/**
+ * Slider to select time-range
+ * @param props 
+ * @returns 
+ */
+function Slider(props: {size: number, count: number, from: number, to: number, origin: number, offset: number, onChange?: (value: {from: number, to: number}) => void}) {
     const [mode, setMode] = useState<SliderMode>(SliderMode.Default);
-    const [to, setTo] = useState(props.to);
-    const [from, setFrom] = useState(props.from);
+    const [to, _setTo] = useState(props.to);
+    const [from, _setFrom] = useState(props.from);
     
     const left = useMemo(() => {
         return Math.round(from * props.size + props.origin + props.offset)
@@ -26,6 +34,22 @@ function Slider(props: {size: number, count: number, from: number, to: number, o
         return (to - from) * props.size 
     }, [props.size, to, from]);
 
+    const setTo = (to: number) => {
+        if(to < from) to = from + 1;
+        if(to >=  props.count) to = props.count - 1;
+        _setTo(to);
+    }
+
+    const setFrom = (from: number) => {
+        if(from > to) from = to - 1;
+        if(from < 0) from = 0;
+        _setFrom(from);
+    }
+
+    // Notify range change
+    useEffect(() => props.onChange?.({from, to}), [from, to])
+
+    // Bind controls to slide the range
     useEffect(() => {
         function onMouseUp(e: MouseEvent) {
             setMode(SliderMode.Default);
@@ -64,6 +88,11 @@ function Slider(props: {size: number, count: number, from: number, to: number, o
         </div>
 }
 
+/**
+ * A tick on the timeline
+ * @param props 
+ * @returns 
+ */
 function Tick(props: {value: Date, scale: number, position: number, size: number, full: boolean}) {
     const label = useRef<HTMLDivElement>(null);
 
@@ -97,7 +126,7 @@ function Tick(props: {value: Date, scale: number, position: number, size: number
     }, [props.value, props.scale]) 
 
     return <>
-        <div style={{width: '1px', left: props.position}} className={`${props.full ? "h-2/6": "h-1/6"} bg-gray-500 absolute`}>
+        <div style={{width: '1px', left: props.position}} className={`${props.full ? "h-2/6": "h-1/6"} z-20 bg-gray-500 absolute`}>
         </div>
         {props.full && 
             <div ref={label} 
@@ -109,16 +138,18 @@ function Tick(props: {value: Date, scale: number, position: number, size: number
     </>
 }
 
-function Ticks(props: {full: number, scale: number, from: Date, count: number, origin: number, offset: number, size: number, width: number}) {
-    const fitFrom = Math.round(props.from.getTime() / props.scale) * props.scale;
-    
-    const [count, setCount] = useState(props.count);
-    const forEach = useMemo(() => Array.from(Array(count).keys()), [count])
+/**
+ * Display ticks
+ * @param props 
+ * @returns 
+ */
+function Ticks(props: {full: number, scale: number, first: Date, count: number, origin: number, offset: number, size: number, width: number}) {
+    const forEach    = useMemo(() => Array.from(Array(props.count).keys()), [props.count])
 
     return <>
         {forEach.map(i => {
             const position = props.origin + props.offset + props.size * i;
-            const value = new Date(fitFrom + props.scale * i);
+            const value = new Date(props.first.getTime() + props.scale * i);
             if(position > props.width) return <></>
             return <Tick key={`tick-${value.getTime()}`} 
                         scale={props.scale}
@@ -130,6 +161,11 @@ function Ticks(props: {full: number, scale: number, from: Date, count: number, o
         }
 )}
     </>
+}
+
+function nearestTickByTime({scale, first, count, value}: {scale: number, first: Date, count: number, value: Date}): number {
+    const tick = Math.floor((value.getTime() - first.getTime()) / scale)
+    return Math.min(Math.max(tick, 0), count);
 }
 
 function recomposeTimestamp({days, hours, minutes}: {days: number, hours: number, minutes: number}): number {
@@ -181,10 +217,20 @@ function ScaleInput(props: {value: number, onChanged?: (ms: number) => void}) {
         )
     }, [days, hours, minutes])
 
-    return <div className="flex flex-row">
-        <input  type="number" value={days} onChange={(e) => setDays(e.target.valueAsNumber)}/>
-        <input  type="number" value={hours} onChange={(e) => setHours(e.target.valueAsNumber)}/>
-        <input  type="number" value={minutes} onChange={(e) => setMinutes(e.target.valueAsNumber)}/>
+    return <div className="flex flex-row align-center space-x-2">
+        <div>
+            <label className="mr-2">Jour: </label>
+            <input className="w-12" name="days" type="number" value={days} onChange={(e) => setDays(e.target.valueAsNumber)}/>
+        </div>
+        <div>
+            <label className="mr-2">Heures: </label>
+            <input className="w-12" name="hours" type="number" value={hours} onChange={(e) => setHours(e.target.valueAsNumber)}/>
+        </div>
+        <div>   
+            <label className="mr-2">Minutes: </label>
+            <input className="w-12" name="minutes" type="number" value={minutes} onChange={(e) => setMinutes(e.target.valueAsNumber)}/>
+        </div>
+
     </div>
 }
 
@@ -196,42 +242,116 @@ export interface TimelineSliderProps {
      */
     scale?: number,
     resolution?: number,
-    onValueChanged?: (value: {from: Date, to: Date}) => void
+    onChanged?: (value: {from: Date, to: Date}) => void,
+    children?: ReactNode
 };
+
+function Period(props: {size: number, count: number, from: number, to: number, origin: number, offset: number, children?: ReactNode}) {
+    const left = useMemo(() => {
+        return Math.round(props.from * props.size + props.origin + props.offset)
+    }, [props.size, props.origin, props.offset, props.from])
+
+    const width = useMemo(() => {
+        return (props.to - props.from) * props.size 
+    }, [props.size, props.to, props.from]);
+
+    return <div style={{width, left}} className="h-full absolute z-0 inset-0">
+        {props.children}
+    </div>
+}
+
+export type TimelinePeriodProps = {from: Date, to: Date, children?: ReactNode};
+
+export function TimelinePeriod(props: TimelinePeriodProps): ReactElement<TimelinePeriodProps> {
+    return {
+        type: "TimelinePeriod",
+        props,
+        key: null
+    }
+}
 
 export function TimelineSlider(props: TimelineSliderProps) {
     const container = useRef<HTMLDivElement>(null);
     
+    // Geometry-related attributes
     const [width, setWidth] = useState(0);
     const [origin, setOrigin] = useState(0);
     
-    // Every 15 minutes
-    const [scale, setScale] = useState(props.scale || 15 * 60 * 1000);
-    const [resolution, setResolution] = useState(props.resolution || 4)
-    const full = useMemo(() => scale * resolution, [scale, resolution])
-    
+    // From, and to
     const [from, setFrom] = useState(props.from || new Date(Date.now() - 24 * 60 * 60 * 1000));
     const [to, setTo] = useState(props.to || new Date(Date.now()));
-    
+
+    // Scale-related elements
+    const [scale, _setScale] = useState(controlScale(props.scale || 15 * 60 * 1000));
+    const [resolution, setResolution] = useState(props.resolution || 4)
+    const full = useMemo(() => scale * resolution, [scale, resolution])
+
     // Interval
-    const interval = useMemo(() => (to.getTime() - from.getTime()), [to, from]);
-    const tickCount = useMemo(() => Math.round(interval / scale), [interval, scale]);
+    const interval = useMemo(()  => computeInterval({to, from}), [to, from]);
+    const tickCount = useMemo(() => computeTickCount({interval, scale}), [interval, scale, width]);
 
     // Compute the time ticks
     const [mode, setMode] = useState<TimelineMode>(TimelineMode.Default);
 
     // Size of a tick in pixels.
-    const tickSize = useMemo(() => {
-        if(tickCount == 0) return 0;
-        return Math.round(width / tickCount);
-    }, [width, tickCount])
+    const tickSize = useMemo(() => computeTickSize({width, tickCount}), [width, tickCount])
+
+    // Value of the first tick.
+    const firstTick = useMemo(() =>  new Date(Math.round(from.getTime() / scale) * scale), [scale, from]);
 
     // Offset
     const tickOffset = useMemo(() => {
-        return Math.round(tickSize * Math.round((to.getTime() % scale) / scale))
+        const scaleOffset = Math.round((to.getTime() % scale) / scale)
+        return Math.round(tickSize * scaleOffset)
     }, [to, scale, tickSize]);
 
-    function zoomOut() {
+    function computeInterval({from, to}: {from: Date, to: Date}): number {
+        return to.getTime() - from.getTime();
+    }
+
+    function computeTickCount({interval, scale}: {interval: number, scale: number}) {
+        return Math.round(interval / scale);
+    }
+
+    function computeTickSize({width, tickCount}: {width: number, tickCount: number}): number {
+        return tickCount == 0 ? 0 : Math.round(width / tickCount);
+    }
+
+    /**
+     * Compute scale based on the interval, and the expected number of ticks.
+     * @param param0 
+     * @returns 
+     */
+    function reverseComputeScale({interval, tickCount}: {interval: number, tickCount: number}): number {
+        return Math.round(interval / tickCount);
+    }
+
+    /**
+     * Compute tick count, so the tick size is the expected one.
+     * @param param0 
+     */
+    function reverseComputeTickCount({width, tickSize}: {width: number, tickSize: number}): number {
+        return Math.round(width / tickSize);
+    }
+
+    function controlScale(scale: number): number {
+        if(width == 0) return scale;
+
+        const interval  = computeInterval({from, to});
+        const tickCount = computeTickCount({interval, scale});
+        const tickSize  = computeTickSize({width, tickCount});
+
+        // If tick size is below threshold, reverse compute scale so it can fit.
+        if(tickSize < TICK_SIZE_MINIMAL_SIZE) {
+            const idealTickCount = reverseComputeTickCount({width, tickSize: TICK_SIZE_MINIMAL_SIZE});
+            scale = reverseComputeScale({interval, tickCount: idealTickCount});
+        }
+        
+        return scale
+    }
+
+    const setScale = (scale: number) =>  _setScale(controlScale(scale));
+    const zoomOut = () => {
         const pivot = new Date(from.getTime() + interval / 2);
         
         const newInterval = interval * 2;
@@ -245,7 +365,7 @@ export function TimelineSlider(props: TimelineSliderProps) {
         setScale(newScale);
     }
 
-    function zoomIn() {
+    const zoomIn = () => {
         const pivot = new Date(from.getTime() + interval / 2);
         
         const newInterval = interval / 2;
@@ -264,6 +384,19 @@ export function TimelineSlider(props: TimelineSliderProps) {
         setFrom((from) => new Date(from.getTime() + ms))
     }
 
+    const onRangeChange = ({from, to}: {from: number, to: number}) => {
+        const value = {
+            from: new Date(firstTick.getTime() * from * scale),
+            to: new Date(firstTick.getTime() * to * scale)
+        };
+
+        props.onChanged?.(value);
+    }
+
+    // Recompute scaling to ensure there is not inadequate scaling while changing intervals
+    useEffect(() => setScale(scale), [from, to, scale])
+
+    // Bind width and origin, so it can be updated if the container's geometry has changed.
     useEffect(() => {
         const observer = new ResizeObserver(_ => {
             if(!container.current) return;
@@ -282,6 +415,7 @@ export function TimelineSlider(props: TimelineSliderProps) {
         return () => {container.current && observer.unobserve(container.current)}
     });
 
+    // Bind control events to slide the timeline.
     useEffect(() => {
         function onMouseUp(e: MouseEvent) {
             setMode(TimelineMode.Default);
@@ -307,6 +441,22 @@ export function TimelineSlider(props: TimelineSliderProps) {
         }
     })
 
+    // Transform direct period props
+    const periodProps = useMemo(() => {
+        const children = props.children ? (Array.isArray(props.children) ? props.children : [props.children]) : [];
+        return children
+            .filter(({props}) => props.to?.getTime() >= from.getTime() && props.from.getTime() <= to.getTime()) 
+            .map(({props}) => ({
+                from: nearestTickByTime({scale, first: firstTick, value: props.from, count: tickCount}),
+                to: nearestTickByTime({scale, first: firstTick, value: props.to, count: tickCount}),
+                size: tickSize,
+                count: tickCount,
+                origin,
+                offset: tickOffset,
+                children: props.children
+            }))
+    }, [props.children, from, to, tickSize, scale, tickOffset, tickCount, origin])
+
     return <div className="p-2 w-full h-full">
         <div ref={container} className="w-full h-full border-2 border-gray-300 bg-gray-100 relative">
             <Ticks 
@@ -315,7 +465,7 @@ export function TimelineSlider(props: TimelineSliderProps) {
                 size={tickSize} 
                 scale={scale} 
                 count={tickCount} 
-                from={from} 
+                first={firstTick} 
                 origin={origin} 
                 offset={tickOffset}
             />
@@ -327,10 +477,11 @@ export function TimelineSlider(props: TimelineSliderProps) {
                 from={10} 
                 to={20}
             />
-            <div onMouseDown={(e) => {e.preventDefault(); setMode(TimelineMode.Shift)}} className="absolute w-full h-full inset-0 z-0">
+            {periodProps.map(props => <Period {...props}/>)}
+            <div onMouseDown={(e) => {e.preventDefault(); setMode(TimelineMode.Shift)}} className="absolute w-full h-full inset-0 z-10">
             </div>
         </div>
-        <div className="mt-2 p-1 flex flex-row w-full  border-gray-300 bg-gray-100 ">
+        <div className="mt-2 p-1 flex flex-row w-full border-gray-300 bg-gray-100 ">
             <div className="rounded bg-gray-100">
                 <input 
                     type="datetime-local" 
@@ -341,12 +492,16 @@ export function TimelineSlider(props: TimelineSliderProps) {
                 />
             </div>
             <div className="flex-1"></div>
-            <div className="flex flex-row align-middle">
+            <div className="flex flex-row items-center">
                 <button className="p-1 bg-gray-100" onClick={(_) => shift(-scale)}><ArrowLeftIcon className="h-4 w-4"/></button>
                 <button className="p-1 bg-gray-100" onClick={zoomOut}><MagnifyingGlassMinusIcon className="h-4 w-4"/></button>
                 <button className="p-1 bg-gray-100" onClick={zoomIn}><MagnifyingGlassPlusIcon className="h-4 w-4"/></button>
                 <button className="p-1 bg-gray-100" onClick={(_) => shift(scale)}><ArrowRightIcon className="h-4 w-4"/></button>
-                <ScaleInput value={scale} onChanged={setScale}/>
+                <div className="flex flex-row items-center">
+                    <button><Square3Stack3DIcon className="w-4 h-4"></Square3Stack3DIcon></button>
+                    <ScaleInput value={scale} onChanged={setScale}/>
+                </div>
+                
             </div>
             <div className="flex-1"></div>
             <div className="bg-gray-100 rounded">
