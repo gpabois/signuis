@@ -26,9 +26,9 @@ function Slider(props: {size: number, count: number, from: number, to: number, o
     const [to, _setTo] = useState(props.to);
     const [from, _setFrom] = useState(props.from);
     
-    const left = useMemo(() => {
-        return Math.round(from * props.size + props.origin + props.offset)
-    }, [props.size, props.origin, props.offset, from])
+    const left = useMemo(() =>  
+        nearestTickPosition({tick: from, size: props.size, offset: props.offset})
+    , [props.size, props.origin, props.offset, from])
 
     const width = useMemo(() => {
         return (to - from) * props.size 
@@ -145,7 +145,7 @@ function Ticks(props: {full: number, scale: number, first: Date, count: number, 
 
     return <>
         {forEach.map(i => {
-            const position = props.origin + props.offset + props.size * i;
+            const position = props.offset + props.size * i;
             const value = new Date(props.first.getTime() + props.scale * i);
             if(position > props.width) return <></>
             return <Tick key={`tick-${value.getTime()}`} 
@@ -158,6 +158,10 @@ function Ticks(props: {full: number, scale: number, first: Date, count: number, 
         }
 )}
     </>
+}
+
+function nearestTickPosition({tick, size, offset}: {tick: number, size: number, offset: number}): number {
+    return Math.round(tick * size + offset)
 }
 
 function nearestTickByTime({scale, first, count, value}: {scale: number, first: Date, count: number, value: Date}): number {
@@ -390,8 +394,8 @@ export function TimelineSlider(props: TimelineSliderProps) {
 
     useEffect(() => {
         const value = {
-            from: new Date(firstTick.getTime() * selectedFrom * scale),
-            to: new Date(firstTick.getTime() * selectedTo * scale)
+            from: new Date(firstTick.getTime() + selectedFrom * scale),
+            to: new Date(firstTick.getTime() + selectedTo * scale)
         };
         props.onChange?.(value);
     }, [to, from, selectedFrom, selectedTo, scale])
@@ -496,7 +500,7 @@ export function TimelineSlider(props: TimelineSliderProps) {
                     }}
                 />
             </div>
-            <div className="flex-1">{origin}, {width}</div>
+            <div className="flex-1">{tickOffset}, {origin}, {width}</div>
             <div className="flex flex-row items-center">
                 <button className="p-1 bg-gray-100" onClick={(_) => shift(-scale)}><ArrowLeftIcon className="h-4 w-4"/></button>
                 <button className="p-1 bg-gray-100" onClick={zoomOut}><MagnifyingGlassMinusIcon className="h-4 w-4"/></button>
