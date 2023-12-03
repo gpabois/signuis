@@ -36,7 +36,7 @@ function Slider(props: {size: number, count: number, from: number, to: number, o
 
     const setTo = (to: number) => {
         if(to < from) to = from + 1;
-        if(to >=  props.count) to = props.count - 1;
+        if(to >=  props.count) to = props.count - 2;
         _setTo(to);
     }
 
@@ -244,13 +244,15 @@ export interface TimelineSliderProps {
     scale?: number,
     resolution?: number,
     onChange?: (value: {from: Date, to: Date}) => void,
+    onBoundsChange?: (value: {from: Date, to: Date}) => void,
+    onScaleChange?: (value: number) => void,
     children?: ReactNode
 };
 
 function Period(props: {size: number, count: number, from: number, to: number, origin: number, offset: number, children?: ReactNode}) {
     const left = useMemo(
-        () =>  Math.round(props.from * props.size + props.origin + props.offset), 
-        [props.size, props.origin, props.offset, props.from]
+        () =>  Math.ceil(props.from * props.size + props.offset), 
+        [props.size, props.offset, props.from]
     )
 
     const width = useMemo(() => (props.to - props.from) * props.size, [props.size, props.to, props.from]);
@@ -261,11 +263,11 @@ function Period(props: {size: number, count: number, from: number, to: number, o
 }
 
 export type TimelinePeriodProps = {from: Date, to: Date, children?: ReactNode};
-export function TimelinePeriod(props: TimelinePeriodProps): ReactElement<TimelinePeriodProps> {
+export function TimelinePeriod(props: TimelinePeriodProps & {key?: string | null}): ReactElement<TimelinePeriodProps> {
     return {
         type: "TimelinePeriod",
         props,
-        key: null
+        key: props.key ? props.key : null
     }
 }
 
@@ -402,6 +404,8 @@ export function TimelineSlider(props: TimelineSliderProps) {
 
     // Recompute scaling to ensure there is not inadequate scaling while changing intervals
     useEffect(() => setScale(scale), [from, to, scale])
+    useEffect(() => props.onScaleChange?.(scale), [scale])
+    useEffect(() => props.onBoundsChange?.({from, to}), [from, to])
 
     // Bind width and origin, so it can be updated if the container's geometry has changed.
     useEffect(() => {
@@ -454,15 +458,15 @@ export function TimelineSlider(props: TimelineSliderProps) {
         const children = props.children ? (Array.isArray(props.children) ? props.children : [props.children]) : [];
         return children
             .filter(({props}) => props.to?.getTime() >= from.getTime() && props.from.getTime() <= to.getTime()) 
-            .map(({props}) => ({
+            .map(({props, key}) => ({key, props: {
                 from: nearestTickByTime({scale, first: firstTick, value: props.from, count: tickCount}),
                 to: nearestTickByTime({scale, first: firstTick, value: props.to, count: tickCount}),
                 size: tickSize,
                 count: tickCount,
                 origin,
                 offset: tickOffset,
-                children: props.children
-            }))
+                children: props.children,
+            }}))
     }, [props.children, from, to, tickSize, scale, tickOffset, tickCount, origin])
 
     return <div className="w-full h-full">
@@ -486,7 +490,7 @@ export function TimelineSlider(props: TimelineSliderProps) {
                 to={1}
                 onChange={onRangeChange}
             />
-            {periods.map(props => <Period {...props}/>)}
+            {periods.map(({props, key}) => <Period key={key} {...props} />)}
             <div onMouseDown={(e) => {e.preventDefault(); setMode(TimelineMode.Shift)}} className="absolute w-full h-full inset-0 z-10">
             </div>
         </div>
@@ -500,14 +504,14 @@ export function TimelineSlider(props: TimelineSliderProps) {
                     }}
                 />
             </div>
-            <div className="flex-1">{tickOffset}, {origin}, {width}</div>
+            <div className="flex-1"></div>
             <div className="flex flex-row items-center">
                 <button className="p-1 bg-gray-100" onClick={(_) => shift(-scale)}><ArrowLeftIcon className="h-4 w-4"/></button>
                 <button className="p-1 bg-gray-100" onClick={zoomOut}><MagnifyingGlassMinusIcon className="h-4 w-4"/></button>
                 <button className="p-1 bg-gray-100" onClick={zoomIn}><MagnifyingGlassPlusIcon className="h-4 w-4"/></button>
                 <button className="p-1 bg-gray-100" onClick={(_) => shift(scale)}><ArrowRightIcon className="h-4 w-4"/></button>
                 <div className="flex flex-row items-center">
-                    <button><Square3Stack3DIcon className="w-4 h-4"></Square3Stack3DIcon></button>
+                    <button><Square3Stack3DIcon onClick={(_) => setScale(scale)} className="w-4 h-4"></Square3Stack3DIcon></button>
                     <ScaleInput value={scale} onChanged={setScale}/>
                 </div>
                 

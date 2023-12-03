@@ -58,7 +58,7 @@ export async function createShared(): Promise<Shared> {
             sessions: repositories.sessions,
             signals
         }),
-        monitoring: new MonitoringService({nuisanceTiles: repositories.nuisanceTiles, signals})
+        monitoring: new MonitoringService({reports: repositories.reports, nuisanceTiles: repositories.nuisanceTiles, signals})
     }
 
     return {db, signals, repositories, services}

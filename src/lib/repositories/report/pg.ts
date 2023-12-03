@@ -1,7 +1,7 @@
 import { Database, DatabaseConnection } from "@/lib/database";
 import { FilterReport, InsertReport, PatchReport, Report, ReportSum } from "@/lib/model";
 import { ExpressionOrFactory, SelectExpression, SelectQueryBuilder, sql } from "kysely";
-import { IReportRepository } from "..";
+import { IReportRepository, ReportSumByArgs } from "..";
 import { Cursor } from "@/lib/utils/cursor";
 import { Optional } from "@/lib/option";
 import { ReportTable } from "@/lib/database/report";
@@ -33,14 +33,15 @@ export class PgReportRepository implements IReportRepository {
         this.con = con;
     }
 
-    async insert(report: InsertReport): Promise<string> {
+    async insert(insert: InsertReport): Promise<string> {
         const result = await this.con
             .insertInto("Report")
             .values({
-                nuisanceTypeId: report.nuisanceTypeId,
-                userId:         report.userId,
-                location:       ST_GeomFromGeoJSON(report.location),
-                intensity:      report.intensity,
+                nuisanceTypeId: insert.nuisanceTypeId,
+                userId:         insert.userId,
+                location:       ST_GeomFromGeoJSON(insert.location),
+                intensity:      insert.intensity,
+                createdAt:      insert.createdAt
             })
             .returning("id")
             .executeTakeFirstOrThrow();
@@ -56,6 +57,7 @@ export class PgReportRepository implements IReportRepository {
                 userId:         insert.userId,
                 location:       ST_GeomFromGeoJSON(insert.location),
                 intensity:      insert.intensity,
+                createdAt:      insert.createdAt
             })))
             .returning("id")
             .execute();
@@ -89,12 +91,19 @@ export class PgReportRepository implements IReportRepository {
         return eb => {
             let w: any = eb.and(direct)
                         
-            if(filter.within) {
+            if(filter.within && !Array.isArray(filter.within)) {
                 w = eb.and([
                     w, 
                     sql<boolean>`ST_Contains(${ST_GeomFromGeoJSON(filter.within)}, t0.location)`
                 ])
-            }
+            } 
+
+            if(filter.within && Array.isArray(filter.within)) {
+                w = eb.and([
+                    w, 
+                    ...filter.within.map((within) => sql<boolean>`ST_Contains(${ST_GeomFromGeoJSON(within)}, t0.location)`)
+                ])
+            } 
             
             if(filter.between) {
                 w = eb.and([w,
@@ -106,31 +115,42 @@ export class PgReportRepository implements IReportRepository {
             return w
         }
     }
-    
-    async sumBy(filter: FilterReport): Promise<Array<ReportSum>> {
+
+    async sumBy(args: ReportSumByArgs): Promise<Array<ReportSum>> {
         let query = this.con
             .selectFrom("Report as t0")
-            .innerJoin("NuisanceType as t1", "t1.id", "t0.nuisanceTypeId")
             .select([
-                // Generate weighted ranks
                 sql<number>`COALESCE(CAST(SUM(CASE WHEN t0.intensity = 1 THEN 1 ELSE 0 END) AS INTEGER), 0)`.as('w1'),
                 sql<number>`COALESCE(CAST(SUM(CASE WHEN t0.intensity = 2 THEN 1 ELSE 0 END) AS INTEGER), 0)`.as('w2'),
                 sql<number>`COALESCE(CAST(SUM(CASE WHEN t0.intensity = 3 THEN 1 ELSE 0 END) AS INTEGER), 0)`.as('w3'),
                 sql<number>`COALESCE(CAST(SUM(CASE WHEN t0.intensity = 4 THEN 1 ELSE 0 END) AS INTEGER), 0)`.as('w4'),
                 sql<number>`COALESCE(CAST(SUM(CASE WHEN t0.intensity = 5 THEN 1 ELSE 0 END) AS INTEGER), 0)`.as('w5'),
-                sql<number>`CAST(COUNT(*) as INTEGER)`.as('count'),
-
-                "t1.id as nuisanceType__id",
-                "t1.label as nuisanceType__label",
-                "t1.family as nuisanceType__family",
-                "t1.description as nuisanceType__description"
+                sql<number>`CAST(COUNT(*) as INTEGER)`.as('count')
             ])
-            .where(this.filter(filter))
-            .groupBy(["t1.id"])
-        
+            .$if(args.groupBy?.period !== undefined, (qb) => 
+                qb
+                .select(sql<Date>`DATE_BIN(
+                    CONCAT(${args.groupBy?.period}::integer, ' milliseconds')::interval, 
+                    t0."createdAt", 
+                    ${args.filter.between?.from}::timestamp
+                )`.as('period'))
+                .groupBy(["period"])
+            )
+            .$if(args.groupBy?.nuisanceType !== undefined, (qb) =>
+                qb.innerJoin("NuisanceType as t1", "t1.id", "t0.nuisanceTypeId")
+                .select([
+                    "t1.id as nuisanceType__id",
+                    "t1.label as nuisanceType__label",
+                    "t1.family as nuisanceType__family",
+                    "t1.description as nuisanceType__description"
+                ]).groupBy(["t1.id"])
+            )
+            .where(this.filter(args.filter))
+            
         const rows = await query.execute()
 
         return rows.map(row => ({
+            period: row.period,
             weights: [
                 row.w1,
                 row.w2,
@@ -139,12 +159,14 @@ export class PgReportRepository implements IReportRepository {
                 row.w5
             ],
             count: row.count,
-            nuisanceType: {
-                id: row.nuisanceType__id,
-                label: row.nuisanceType__label,
-                family: row.nuisanceType__family,
-                description: row.nuisanceType__description
-            }
+            ...(row.nuisanceType__id && row.nuisanceType__label && row.nuisanceType__family && row.nuisanceType__description ? {
+                nuisanceType: {
+                    id: row.nuisanceType__id,
+                    label: row.nuisanceType__label,
+                    family: row.nuisanceType__family,
+                    description: row.nuisanceType__description
+                }
+            }: {})
         }))
     }
 

@@ -54,9 +54,10 @@ export namespace ReportFixtures {
         export async function generateCreateReportData(args: Partial<CreateReport>, shared?: {services: {reporting: IReportingService}}): Promise<CreateReport> {
             return {
                 userId:         args.userId,
-                location:       randomPoint(),
+                location:       args.location || randomPoint(),
                 nuisanceTypeId: args?.nuisanceTypeId || (await NuisanceTypeFixtures.ForServices.create({}, shared!)).id,
-                intensity:      randomInt(1, 5),
+                intensity:      args.intensity || randomInt(1, 5),
+                createdAt:      args.createdAt
             }
         }  
 

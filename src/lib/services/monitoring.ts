@@ -1,12 +1,20 @@
-import { Point } from "geojson";
+import { Geometry, Point, Polygon } from "geojson";
 import { tile } from "../utils/slippyMap";
 import { DeltaNuisanceTile, FilterNuisanceTile, Intensity, NuisanceTile, Report } from "../model";
-import { INuisanceTileRepository } from "../repositories";
+import { INuisanceTileRepository, IReportRepository } from "../repositories";
 import { Signals } from "../signals";
 import { Cursor } from "../utils/cursor";
 
 import {createCanvas, loadImage, Canvas} from 'canvas';
 import chroma from "chroma-js";
+import { Nuisance } from "../model/nuisance";
+
+export interface GetNuisanceArgs { 
+    nuisanceTypeIds?: Array<string>,
+    within: Polygon | Array<Polygon>; 
+    between: { from: Date; to: Date; }; 
+    groupBy?: {nuisanceType?: boolean, period?: number}
+}
 
 export interface NuisanceMapSettings {
     /**
@@ -42,28 +50,40 @@ export interface IMonitoringService {
      * @param args 
      */
     getNuisanceTileImage(args: {x: number, y: number, z: number, between: {from: Date, to: Date}, nuisanceTypeIds: Array<string>}, options: {resolution?: number, floorZoom?: number, mimeType?: string}): Promise<Canvas>;
+
+    /**
+     * Generate a summary of the nuisance
+     */
+    findNuisances(args: GetNuisanceArgs): Promise<Array<Nuisance>>
 }
 
 export interface MonitoringArgs {
     nuisanceMapSettings?: NuisanceMapSettings,
     nuisanceTiles: INuisanceTileRepository,
+    reports: IReportRepository,
     signals: Signals
 }   
+
+export function getNuisanceHeatmapColor() {
+    return chroma.scale(['yellow', 'navy']).mode('lch').domain([0, 1])
+}
 
 /**
  * Everything related to the monitoring of nuisances.
  */
 export class MonitoringService implements IMonitoringService {
     private nuisanceTiles: INuisanceTileRepository;
+    private reports: IReportRepository;
     private nuisanceMapSettings: NuisanceMapSettings;
     private signals: Signals
 
-    constructor({nuisanceMapSettings, nuisanceTiles, signals}: MonitoringArgs) {
+    constructor({nuisanceMapSettings, nuisanceTiles, signals, reports}: MonitoringArgs) {
         this.nuisanceMapSettings = nuisanceMapSettings || {
             timePeriod: 60_000,
             floorZoom: 18,
         };
         this.nuisanceTiles = nuisanceTiles;
+        this.reports = reports;
         this.signals = signals
 
         // Connect to some signals
@@ -71,14 +91,18 @@ export class MonitoringService implements IMonitoringService {
         this.signals.report_deleted.connect((_, report) => this.onDeletedReport(report));
     }
 
-    /**
-     * Generate the heatmap layer
-     * @returns 
-     */
-    private getHeatmapColor() {
-        return chroma.scale(['yellow', 'navy']).mode('lch').domain([1, 10])
-    }
+    async findNuisances({within, between, groupBy}: GetNuisanceArgs): Promise<Array<Nuisance>> {
+        const reportSums = await this.reports.sumBy({
+            filter: {within, between},
+            groupBy
+        })
 
+        return reportSums.map((r) => ({
+            ...r,
+            ...(groupBy?.period ? {period: {from: r.period!, to: new Date(r.period!.getTime() + groupBy.period)}} : {})
+        })) as Array<Nuisance>
+    }
+    
     /**
      * Recursively increment tiles from floor to the ceiling (z = 0)
      * @param delta 
@@ -149,7 +173,7 @@ export class MonitoringService implements IMonitoringService {
             mimeType?: string
         }
     ): Promise<Canvas> {
-        const heatMapColor = this.getHeatmapColor();
+        const heatMapColor = getNuisanceHeatmapColor();
         const canvas = options?.canvas || createCanvas(256, 256);
         const ctx = canvas.getContext('2d');
         const box = options?.box || {x: 0, y: 0, h: 256, w: 256}

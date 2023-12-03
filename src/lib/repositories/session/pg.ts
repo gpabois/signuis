@@ -10,6 +10,10 @@ export class PgSessionRepository implements ISessionRepository {
     constructor(con: DatabaseConnection) {
         this.con = con;
     }
+    
+    insertMultiple(...entities: InsertSession[]): Promise<string[]> {
+        throw new Error("Method not implemented.");
+    }
 
     async insert(entity: InsertSession): Promise<string> {
         return (await this.con.insertInto("Session")

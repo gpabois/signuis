@@ -10,6 +10,10 @@ export class PgUserRepository implements IUserRepository {
     constructor(con: DatabaseConnection) {
         this.con = con;
     }
+    
+    insertMultiple(...entities: NewUser[]): Promise<string[]> {
+        throw new Error("Method not implemented.");
+    }
 
     async insert(user: InsertUser): Promise<string> {
         const result = await this.con.insertInto("User")

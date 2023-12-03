@@ -21,14 +21,15 @@ export type UpdateReport = PatchReport;
 
 export type FilterReport = Partial<PatchReport> & {
     nuisanceTypeId__in?: Array<string>,
-    within?: Polygon,
+    within?: Polygon | Array<Polygon>,
     between?: {from: Date, to: Date}
 };
 
 export interface ReportSum {
+    period?: Date,
     weights: IntensityWeights
     count: number,
-    nuisanceType: NuisanceType
+    nuisanceType?: NuisanceType
 }
 
 export interface Report {

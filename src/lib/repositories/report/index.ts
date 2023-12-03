@@ -1,10 +1,13 @@
 
-import { FilterReport, InsertReport, CreateReport, Report, ReportId, UpdateReport, ReportSum } from '@/lib/model/report';
-import { Cursor } from '@/lib/utils/cursor';
+import { FilterReport, InsertReport, Report, UpdateReport, ReportSum } from '@/lib/model/report';
 import { Deletable, Insertable, Searchable, Updatable } from '../trait';
 
 
 
+export interface ReportSumByArgs {
+    filter: FilterReport,
+    groupBy?: {period?: number, nuisanceType?: boolean}
+}
 /**
  * Report repository
  */
@@ -15,6 +18,6 @@ export interface IReportRepository
             Searchable<FilterReport, Report>
 
 {
-    sumBy(filter: FilterReport): Promise<Array<ReportSum>>
+    sumBy(args: ReportSumByArgs): Promise<Array<ReportSum>>
 };
 
