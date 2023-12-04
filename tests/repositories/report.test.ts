@@ -3,8 +3,7 @@ import { setupDatabase, teardownDatabase } from "./index.setup";
 import { getDatabaseConnection } from '@/lib/database';
 import { INuisanceTypeRepository, IReportRepository } from "@/lib/repositories";
 import { PgNuisanceTypeRepository } from "@/lib/repositories/nuisance-type/pg";
-import { ReportFixtures, randomPoint } from "@/lib/fixtures";
-import { faker } from "@faker-js/faker";
+import { ReportFixtures } from "@/lib/fixtures";
 import { geojson } from "@/lib/utils/geojson";
 
 describe("report repository", () => {
@@ -34,7 +33,7 @@ describe("report repository", () => {
         const insert = await ReportFixtures.ForRepositories.generateInsertReportData({}, shared);
         
         // Test
-        const id = await shared.repositories.reports.insert(insert);
+        const [id] = await shared.repositories.reports.insert(insert);
         expect(id).not.toBeNull();
 
         const report = await shared.repositories.reports.findOneBy({id});
@@ -136,7 +135,7 @@ describe("report repository", () => {
         })
 
         // Test 
-        const sums = await shared.repositories.reports.sumBy({within})
+        const sums = await shared.repositories.reports.sumBy({filter: {within}})
         
         // Assertions
         expect(sums).toHaveLength(2);

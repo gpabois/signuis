@@ -57,7 +57,7 @@ describe("nuisance tile repository", () => {
             shared
         );
 
-        const aggTile = await shared.repositories.nuisanceTiles.aggregateBy({
+        const aggTile = await shared.repositories.nuisanceTiles.sumBy({
             x: idx.x, y: idx.y, z: idx.z, 
             nuisanceTypeId,
             between: {from, to}

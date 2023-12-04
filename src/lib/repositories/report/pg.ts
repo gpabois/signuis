@@ -33,7 +33,7 @@ export class PgReportRepository implements IReportRepository {
         this.con = con;
     }
 
-    async insert(insert: InsertReport): Promise<string> {
+    async insert(insert: InsertReport): Promise<Array<Report["id"]>> {
         const result = await this.con
             .insertInto("Report")
             .values({
@@ -44,9 +44,9 @@ export class PgReportRepository implements IReportRepository {
                 createdAt:      insert.createdAt
             })
             .returning("id")
-            .executeTakeFirstOrThrow();
+            .execute();
 
-        return result.id;
+        return result.map(({id}) => id);
     }
 
     async insertMultiple(...inserts: Array<InsertReport>): Promise<Array<string>> {

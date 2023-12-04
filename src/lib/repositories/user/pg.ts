@@ -11,17 +11,17 @@ export class PgUserRepository implements IUserRepository {
         this.con = con;
     }
     
-    insertMultiple(...entities: NewUser[]): Promise<string[]> {
-        throw new Error("Method not implemented.");
-    }
-
-    async insert(user: InsertUser): Promise<string> {
+    async insert(...inserts: Array<InsertUser>): Promise<Array<User["id"]>> {
         const result = await this.con.insertInto("User")
-            .values(user)
+            .values(inserts.map((insert) => ({
+                ...insert,
+                emailVerified: null,
+                role: "user"
+            })))
             .returning("id")
-            .executeTakeFirst();
+            .execute();
 
-        return result?.id!;
+        return result?.map(({id}) => id) || [];
     }
 
     async update(patch: UpdateUser): Promise<void> {
@@ -35,18 +35,6 @@ export class PgUserRepository implements IUserRepository {
         await this.con.deleteFrom("User").where(eb => eb.and(filter));
     }
     
-    async getUser(userId: UserId): Promise<SensitiveUser|undefined> {
-        const result = await this.con
-            .selectFrom("User")
-            .selectAll()
-            .where("id", "=", userId)
-            .executeTakeFirst();
-        
-        return result;
-    }
-
-
-
     async findBy(filter: UserFilter, cursor: Cursor): Promise<Array<SensitiveUser>> {
         let query = this.con
             .selectFrom("User")

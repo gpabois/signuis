@@ -7,7 +7,7 @@ export interface User {
     id: GeneratedAlways<string>,
     name: string,
     email: string,
-    emailVerified: Date | null
+    emailVerified: Date | null,
     password: string | null,
     role: string,
     image: string | null

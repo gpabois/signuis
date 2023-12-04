@@ -16,16 +16,7 @@ export class PgNuisanceTypeRepository implements INuisanceTypeRepository {
         this.con = con;
     }
 
-    async insert(insert: InsertNuisanceType): Promise<NuisanceType["id"]> {
-        const res = await this.con.insertInto("NuisanceType")
-        .values(insert)
-        .returning('id')
-        .executeTakeFirstOrThrow();
-
-        return res.id;
-    }
-
-    async insertMultiple(...inserts: InsertNuisanceType[]): Promise<string[]> {
+    async insert(...inserts: Array<InsertNuisanceType>): Promise<Array<NuisanceType["id"]>> {
         const res = await this.con.insertInto("NuisanceType")
         .values(inserts)
         .returning('id')

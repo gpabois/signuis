@@ -1,4 +1,4 @@
-import { AggregatedNuisanceTile, DeltaNuisanceTile, FilterNuisanceTile, Intensity } from "@/lib/model";
+import { AggregatedNuisanceTile, DeltaNuisanceTile, FilterNuisanceTile, Intensity, NuisanceTile } from "@/lib/model";
 import { Database, DatabaseConnection } from "@/lib/database";
 import { INuisanceTileRepository } from ".";
 import { Cursor } from "@/lib/utils/cursor";

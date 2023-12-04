@@ -1,0 +1,10 @@
+@keyframes shimmer {
+    100% {
+      left: 100%;
+      opacity: 0;
+    }
+}
+
+.loading {
+    animation: shimmer 2.5s ease-out infinite;
+}

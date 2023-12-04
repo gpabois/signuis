@@ -1,4 +1,4 @@
-import { Intensity, User, Report, Session} from '../model'
+import { Intensity, User, Report, Session, NuisanceTile} from '../model'
 import { Signal } from './signal'
 
 export interface Signals {
