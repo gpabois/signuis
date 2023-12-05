@@ -8,6 +8,7 @@ import { Slider } from "./Slider";
 import { Period } from "./TimelinePeriod";
 import { ScaleInput } from "./ScaleInput";
 import "./style.css"
+import { useTimelineContext } from "./hooks/useContext";
 
 enum TimelineMode {
     Default = "default",
@@ -17,12 +18,12 @@ enum TimelineMode {
 export {TimelinePeriod} from './TimelinePeriod';
 
 export interface TimelineProps {
-    from?: Date,
-    to?: Date,
+    bounds: {from: Date, to: Date};
+    value?: {from: Date, to: Date};
     /**
      * Scale in miliseconds
      */
-    scale?: number,
+    scale: number,
     resolution?: number,
     onChange?: (value: {from: Date, to: Date}) => void,
     onBoundsChange?: (value: {from: Date, to: Date}) => void,
@@ -38,82 +39,70 @@ export function Timeline(props: TimelineProps) {
     const [width, setWidth] = useState(0);
     const [origin, setOrigin] = useState(0);
     
-    // Compute the time ticks
     const [mode, setMode] = useState<TimelineMode>(TimelineMode.Default);
 
-    // From, and to
-    const [from, setFrom] = useState(props.from || new Date(Date.now() - 24 * 60 * 60 * 1000));
-    const [to, setTo] = useState(props.to || new Date(Date.now()));
-    const bounds = {to, from}
+    // Bounds
+    const now = new Date();
+    const [bounds, setBounds] = useState<{from: Date, to: Date}>({
+        from: props.bounds?.from || new Date(now.getTime() - 24 * 60 * 60 * 1000),
+        to: props.bounds?.to || now
+    })
 
-    // Selected tick range
-    const [selectedFrom, setSelectedFrom] = useState(10);
-    const [selectedTo, setSelectedTo] = useState(20);
-    const selectedTickRange = {
-        from: selectedFrom,
-        to: selectedTo
-    };
+    useEffect(() => setBounds(props.bounds), [props.bounds]);
+
+    const updateBounds = ({from, to}: {from?: Date, to?: Date}) => {
+        setBounds({
+            to: to || bounds.to,
+            from: from || bounds.from
+        })
+        props.onBoundsChange?.(bounds)
+    }
 
     // Scale-related elements
-    const [scale, setScale] = useScale({scale: props.scale || 15 * 60 * 1000, width, bounds});
-    const [resolution, setResolution] = useState(props.resolution || 4)
+    const [scale, setScale] = useScale({scale: props.scale, width, bounds});
+    const [resolution, _] = useState(props.resolution || 4)
 
+    const timelineContext = useTimelineContext({bounds, width, origin})
+    
     // Interval
     const interval = useInterval({bounds});
 
-    // Value of the first tick.
-    const tickContext = useTick({width, scale, origin, bounds, resolution})
-
     const zoomOut = () => {
-        const pivot = new Date(from.getTime() + interval / 2);
+        const pivot = new Date(bounds.from.getTime() + interval / 2);
         
         const newInterval = interval * 2;
         const newScale = scale * 2;
 
-        const newFrom = new Date(pivot.getTime() - newInterval / 2);
-        const newTo = new Date(pivot.getTime() + newInterval / 2);
+        const from = new Date(pivot.getTime() - newInterval / 2);
+        const to = new Date(pivot.getTime() + newInterval / 2);
 
-        setFrom(newFrom);
-        setTo(newTo);
+        setBounds({from, to})
         setScale(newScale);
     }
 
     const zoomIn = () => {
-        const pivot = new Date(from.getTime() + interval / 2);
+        const pivot = new Date(bounds.from.getTime() + interval / 2);
         
         const newInterval = interval / 2;
         const newScale = scale / 2;
 
-        const newFrom = new Date(pivot.getTime() - newInterval / 2);
-        const newTo = new Date(pivot.getTime() + newInterval / 2);
+        const from = new Date(pivot.getTime() - newInterval / 2);
+        const to = new Date(pivot.getTime() + newInterval / 2);
 
-        setFrom(newFrom);
-        setTo(newTo);
+        setBounds({from, to})
         setScale(newScale);
     }
 
     function shift(ms: number) {
-        setTo((to) => new Date(to.getTime() + ms))
-        setFrom((from) => new Date(from.getTime() + ms))
+        setBounds(({to, from}) => ({
+            to: new Date(to.getTime() + ms),
+            from: new Date(from.getTime() + ms)
+        }))
     }
-
-    const onRangeChange = ({from, to}: {from: number, to: number}) => {
-        setSelectedFrom(from);
-        setSelectedTo(to);
-    }
-
-    useEffect(() => {
-        const value = {
-            from: tickContext.get(selectedTickRange.from),
-            to: tickContext.get(selectedTickRange.to)
-        };
-        props.onChange?.(value);
-    }, [to, from, selectedTickRange.from, selectedTickRange.to, scale])
 
     // Recompute scaling to ensure there is not inadequate scaling while changing intervals
-    useEffect(() => setScale(scale), [from, to, scale])
     useEffect(() => props.onScaleChange?.(scale), [scale])
-    useEffect(() => props.onBoundsChange?.({from, to}), [from, to])
+    //useEffect(() => , [bounds])
 
     // Bind width and origin, so it can be updated if the container's geometry has changed.
     useEffect(() => {
@@ -167,20 +156,24 @@ export function Timeline(props: TimelineProps) {
 
         return children
             .filter((c) => c !== undefined)
-            .filter(({props}) => props.to?.getTime() >= from.getTime() && props.from.getTime() <= to.getTime()) 
-            .map(({props, key}) => ({key, props: {
-                from: props.from,
-                to: props.to,
-                context: tickContext,
-                children: props.children,
-            }}))
-    }, [props.children, from, to, tickContext])
+    }, [props.children, bounds])
 
     return <div className="w-full h-full">
         <div ref={container} className="w-full h-full border-2 border-gray-300 bg-gray-100 relative">
-            <Ticks context={tickContext} />
-            <Slider context={tickContext} from={0} to={10} onChange={onRangeChange} />
-            {periods.map(({props, key}) => <Period key={key} {...props} />)}
+            <Ticks 
+                usePosition={timelineContext.use.position} 
+                scale={scale}
+                resolution={resolution}
+                bounds={bounds}
+            />
+            <Slider 
+                bounds={bounds}
+                useGeometryBounds={timelineContext.use.geomtryBounds} 
+                reverse={timelineContext.reverse} 
+                value={props?.value} 
+                onChange={props?.onChange} 
+            />
+            {periods.map(({props, key}) => <Period key={key} {...props} useGeometryBounds={timelineContext.use.geomtryBounds} />)}
             <div onMouseDown={(e) => {e.preventDefault(); setMode(TimelineMode.Shift)}} className="absolute w-full h-full inset-0 z-10">
                 {props.loading && <div className="inset-0 loading w-10 bg-slate-600 h-full absolute"></div>}
             </div>
@@ -189,9 +182,9 @@ export function Timeline(props: TimelineProps) {
             <div className="rounded bg-gray-100">
                 <input 
                     type="datetime-local" 
-                    value={from.toISOString().slice(0,-8)} 
+                    value={bounds.from.toISOString().slice(0,-8)} 
                     onChange={e => {
-                        setFrom((_) => new Date(e.target.value))
+                        updateBounds({from: new Date(e.target.value)})
                     }}
                 />
             </div>
@@ -211,9 +204,9 @@ export function Timeline(props: TimelineProps) {
             <div className="bg-gray-100 rounded">
                 <input 
                     type="datetime-local" 
-                    value={to.toISOString().slice(0, 16)} 
+                    value={bounds.to.toISOString().slice(0, 16)} 
                     onChange={e => {
-                        setTo((_) => new Date(e.target.value))
+                       updateBounds({to: new Date(e.target.value)})
                     }}
                 />
             </div>

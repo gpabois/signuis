@@ -1,3 +1,8 @@
+export type DateBounds = {
+    from: Date,
+    to: Date
+}
+
 export type TickContext = {
     count: number,
     origin: number,
@@ -10,5 +15,8 @@ export type TickContext = {
     to: {value: Date, index: number},
     get: (index: number) => Date,
     nearest: (value: Date) => number,
-    position: (index: number) => number
+    position: (index: number) => number,
+    useGet: (index: number) => Date,
+    usePosition: (index: number) => number,
+    useNearest: (value: Date) => number
 }

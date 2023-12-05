@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { computeInterval, computeTickCount, computeTickSize, reverseComputeScale, reverseComputeTickCount } from "../utils";
 
 // Minimal tick size : 10 px;
@@ -24,10 +24,10 @@ export function useScale({scale: initialScale, width, bounds: {to, from}}: {widt
     }
 
     const setScale = (scale: number) => {
-        _setScale(controlScale(scale));
+        scale = controlScale(scale)
+        _setScale(scale);
+        return scale;
     }
-
-    useEffect(() => setScale(scale), [initialScale])
 
     return [scale, setScale];
 }

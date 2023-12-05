@@ -4,7 +4,7 @@ export type HeadingProps = {
     children: React.ReactNode
 }
 export function Heading(props: HeadingProps) {
-    const className = "dark:text-white text-gray-700 font-bold";
+    const className = " text-gray-700 font-bold";
 
     return <>
         {props.level === 1 && <h1 className={`${props.className} ${className} text-4xl`}>{props.children}</h1>}

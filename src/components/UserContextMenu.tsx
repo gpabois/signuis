@@ -15,9 +15,7 @@ export function UserContextMenu() {
 
     if(session) {
         return <div>
-            <Button onClick={toggle} className="
-                relative 
-                inline-flex 
+            <Button onClick={toggle} nature="bare" className="
                 items-center 
                 justify-center
                 border-none
@@ -43,7 +41,7 @@ export function UserContextMenu() {
                 border-0
                 border-primary-900 ring-2 ring-offset-2">ession.user.name.at(0)?.toUpperCase()</span>}
         </Button>
-        <div id="userDropdown" className={`${display ? '' : 'hidden'} absolute right-3 origin-top-right z-10 mt-2 bg-white divide-y divide-gray-100 rounded-lg shadow-lg w-44 dark:bg-gray-700 dark:divide-gray-600`}>
+        <div id="userDropdown" className={`${display ? '' : 'hidden'} absolute right-3 origin-top-right z-50 mt-2 bg-white divide-y divide-gray-100 rounded-lg shadow-lg w-44 dark:bg-gray-700 dark:divide-gray-600`}>
             <div className="px-4 py-3 text-sm text-gray-900 dark:text-white">
             <div>{session.user.name}</div>
             <div className="font-medium truncate">{session.user.email}</div>

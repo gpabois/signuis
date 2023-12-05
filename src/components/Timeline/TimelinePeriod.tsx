@@ -1,18 +1,21 @@
 import { ReactNode, useMemo, ReactElement } from "react";
-import { TickContext } from "./model";
+import { DateBounds, TickContext } from "./model";
+import { UseGeometryBoundsHook } from "./hooks/useContext";
 
-export function Period({from, to, context, children}: {from: Date, to: Date, context: TickContext, children?: ReactNode}) {
-    const fromIndex = context.nearest(from);
-    const toIndex = context.nearest(to);
-    const left = useMemo(() =>  context.position(fromIndex), [from, context.offset, context.size])
-    const width = useMemo(() => Math.abs((toIndex - fromIndex)) * context.size, [context.size, to, from]);
+export type PeriodProps = TimelinePeriodProps & {
+    useGeometryBounds: UseGeometryBoundsHook
+}
 
+export function Period({useGeometryBounds, value, children}: PeriodProps) {
+    const {bounds} = useGeometryBounds(value)
+    const left = useMemo(() =>  bounds!.from, [bounds])
+    const width = useMemo(() => bounds!.to - bounds!.from, [bounds]);
     return <div style={{width, left}} className="h-full absolute z-0 inset-0">
         {children}
     </div>
 }
 
-export type TimelinePeriodProps = {from: Date, to: Date, children?: ReactNode};
+export type TimelinePeriodProps = {value: DateBounds, children?: ReactNode};
 export function TimelinePeriod(props: TimelinePeriodProps & {key?: string | null}): ReactElement<TimelinePeriodProps> {
     return {
         type: "TimelinePeriod",

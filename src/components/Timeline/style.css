@@ -8,3 +8,14 @@
 .loading {
     animation: shimmer 2.5s ease-out infinite;
 }
+
+.slider {
+  background: repeating-linear-gradient(
+      -55deg,
+      #222,
+      #222 5px,
+      #333 5px,
+      #333 10px
+  );
+  opacity: 0.3;
+}

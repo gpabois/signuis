@@ -53,8 +53,8 @@ export function Home(props: HomeProps) {
         theme="light"
         />
       <div id="viewport" className="relative h-full w-full flex-1">
-        <div className='absolute inset-O z-20 py-2 px-2 w-full flex items-center place-content-end space-x-2'>
-          <Button onClick={() => setDisplayReportForm((e) => !e)}>
+        <div className='absolute inset-O z-20 py-2 px-2 w-full flex flex-row items-center place-content-end space-x-2'>
+          <Button onClick={() => setDisplayReportForm((e) => !e)} nature="primary">
             {displayReportForm ? <XMarkIcon className='h-5 w-5'/> :  <MegaphoneIcon className='h-5 w-5'/>}
           </Button>
           <UserContextMenu />
