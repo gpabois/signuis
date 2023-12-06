@@ -87,7 +87,7 @@ export class MonitoringService implements IMonitoringService {
         this.signals = signals
 
         // Connect to some signals
-        this.signals.report_created.connect((_, report) => this.onNewReport(report));
+        this.signals.reports_created.connect((_, reports) => this.onNewReports(reports));
         this.signals.report_deleted.connect((_, report) => this.onDeletedReport(report));
     }
 
@@ -109,9 +109,16 @@ export class MonitoringService implements IMonitoringService {
      * @returns 
      */
     async incrementNuisanceTile(delta: DeltaNuisanceTile) {
-        if(delta.z < 0) return;
-        await this.nuisanceTiles.increment(delta);
-        await this.incrementNuisanceTile({...tile.zoomOut(delta), isFloor: false})
+        const weights = delta.weights;
+        let coordinates = {x: delta.x, y: delta.y, z: delta.z, t: delta.t, nuisanceTypeId: delta.nuisanceTypeId};
+
+        let tiles = [];
+
+        for(;coordinates.z > 0; coordinates = tile.zoomOut(coordinates)) {
+            tiles.push(coordinates);
+        }
+
+        await this.nuisanceTiles.increment(weights, tiles);
     }
 
     /**
@@ -120,9 +127,16 @@ export class MonitoringService implements IMonitoringService {
      * @returns 
      */
     async decrementNuisanceTile(delta: DeltaNuisanceTile) {
-        if(delta.z < 0) return;
-        await this.nuisanceTiles.decrement(delta);
-        await this.decrementNuisanceTile({...tile.zoomOut(delta), isFloor: false})
+        const weights = delta.weights;
+        let coordinates = {x: delta.x, y: delta.y, z: delta.z, t: delta.t, nuisanceTypeId: delta.nuisanceTypeId};
+
+        let tiles = [];
+        
+        for(;coordinates.z > 0; coordinates = tile.zoomOut(coordinates)) {
+            tiles.push(coordinates);
+        }
+
+        await this.nuisanceTiles.decrement(weights, {coordinates: tiles});
     }
 
     /**
@@ -130,15 +144,16 @@ export class MonitoringService implements IMonitoringService {
      * @param report 
      * @returns 
      */
-    async onNewReport(report: Report): Promise<void> {
-        const delta = NuisanceTile.fromReport(
+    async onNewReports(reports: Array<Report>): Promise<void> {
+        const deltas = reports.map((report) => NuisanceTile.fromReport(
             report, 
             {
                 timeSamplingInMs: this.nuisanceMapSettings.timePeriod,
                 floorZoom: this.nuisanceMapSettings.floorZoom
             }
-        );
-        await this.incrementNuisanceTile({...delta, isFloor: true});
+        ));
+
+        await Promise.all(deltas.map((d) => this.incrementNuisanceTile(d)))
     }
 
     /**
@@ -152,7 +167,7 @@ export class MonitoringService implements IMonitoringService {
                 timeSamplingInMs: this.nuisanceMapSettings.timePeriod,
                 floorZoom: this.nuisanceMapSettings.floorZoom
         });
-        await this.nuisanceTiles.decrement(deltaNuisanceTile);   
+        await this.decrementNuisanceTile(deltaNuisanceTile);   
     }
 
     async findNuisanceTilesBy(filter: FilterNuisanceTile, cursor?: Cursor): Promise<Array<NuisanceTile>> {
@@ -190,7 +205,7 @@ export class MonitoringService implements IMonitoringService {
 
         floorZoom = Math.min(floorZoom, this.nuisanceMapSettings.floorZoom);
 
-        const [nuisanceTile] = await this.findNuisanceTilesBy({x, y, z, between, nuisanceTypeIds});
+        const [nuisanceTile] = await this.nuisanceTiles.sumBy({x, y, z, between, nuisanceTypeIds}, []);
 
         // Premature stop
         if(nuisanceTile === undefined || nuisanceTile.count == 0)
@@ -211,7 +226,7 @@ export class MonitoringService implements IMonitoringService {
                 if(value === 0) return canvas
 
                 //@ts-ignore
-                ctx.fillStyle = heatMapColor(value).alpha(0.8).hex();
+                ctx.fillStyle = heatMapColor(value).alpha(0.5).hex();
                 ctx.fillRect(box.x, box.y, box.w, box.h);
                 
                 return canvas

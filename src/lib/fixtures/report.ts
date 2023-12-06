@@ -10,7 +10,7 @@ import { zip } from "../utils/iterable";
 
 export function randomPoint(): Point {
     const center: [number, number] = [48.8029439, 2.485429]
-    const around = faker.location.nearbyGPSCoordinate({origin: center, radius: 1, isMetric: true})
+    const around = faker.location.nearbyGPSCoordinate({origin: center, radius: 100, isMetric: true})
     const coordinates = [around[1], around[0]]
     return {
         type: "Point",
@@ -40,12 +40,12 @@ export namespace ReportFixtures {
         
         export async function insertMultiple(args: {data: Partial<InsertReport>, count: number}, shared: {repositories: {nuisanceTypes: INuisanceTypeRepository, reports: IReportRepository}}) {
             const inserts = await Promise.all(Array(args.count).map(async (_) => await generateInsertReportData(args.data, shared)));
-            const results = await shared.repositories.reports.insertMultiple(...inserts)
+            const results = await shared.repositories.reports.insert(...inserts)
             return Array.from(zip(inserts, results)).map(([insert, id]) => ({id, ...insert}))
         }
         export async function insert(args: Partial<InsertReport>, shared: {repositories: {nuisanceTypes: INuisanceTypeRepository, reports: IReportRepository}}): Promise<{id: string} & InsertReport> {
             const insert = await generateInsertReportData(args, shared)
-            const id = await shared.repositories.reports.insert(insert)
+            const [id] = await shared.repositories.reports.insert(insert)
             return {id, ...insert}
         }
     }
@@ -74,5 +74,6 @@ export namespace ReportFixtures {
         export async function create(args: Partial<CreateReport>, shared: {services: {reporting: IReportingService}}): Promise<Report> {
             return await shared.services.reporting.createReport(await generateCreateReportData(args, shared))
         }
+
     }
 }

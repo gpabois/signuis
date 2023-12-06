@@ -2,12 +2,14 @@
 
 import { validation_error } from "@/lib/error";
 import { CredentialsSchema } from "@/lib/forms";
-import { failed, hasFailed } from "@/lib/result";
+import { failed, hasFailed, isSuccessful } from "@/lib/result";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Result } from "@/lib/result";
 import { SessionTokenCookieName } from ".";
-import { getAuthenticationService } from "../getAuthenticationService";
+import { getAuthenticationService } from "@/actions/getAuthenticationService";
+
+export type SignInState = {redirectTo?: string, result?: Result<void>}
 
 /**
  * Authenticate the user
@@ -15,25 +17,29 @@ import { getAuthenticationService } from "../getAuthenticationService";
  * @param formData 
  * @returns 
  */
-export async function signIn({redirectTo}: {redirectTo?: string, result?: Result<void>}, formData: FormData): Promise<{redirectTo?: string, result?: Result<void>}> {
+export async function signIn(prevState: SignInState, formData: FormData): Promise<SignInState> {
     const auth = await getAuthenticationService();
 
-    const validation = await CredentialsSchema.safeParseAsync({
+    // Pre-validation
+    let validation = await CredentialsSchema.safeParseAsync({
         nameOrEmail: formData.get("nameOrEmail"),
         password: formData.get("password")
     })
     
     if(validation.success == false) 
-        return {result: failed(validation_error(validation.error.formErrors.fieldErrors)), redirectTo}
+        return {...prevState, result: failed(validation_error(validation.error.issues))}
 
-    const credentials = validation.data;
 
-    const sessionResult = await auth.signInWithCredentials(credentials);
-    if(hasFailed(sessionResult)) return {result: sessionResult, redirectTo};
-
-    const session = sessionResult.data;
+    let result = await auth.signInWithCredentials(validation.data);
     
-    cookies().set(SessionTokenCookieName, session.sessionToken, { secure: process.env.NODE_ENV === "production" });
+    if(hasFailed(result)) 
+        return {...prevState, result}
 
-    redirect(redirectTo || '/')
+    if(isSuccessful(result)) {
+        const session = result.data;
+        cookies().set(SessionTokenCookieName, session.sessionToken, { secure: process.env.NODE_ENV === "production" });
+        redirect(prevState?.redirectTo || '/')
+    }
+
+    return {}
 }

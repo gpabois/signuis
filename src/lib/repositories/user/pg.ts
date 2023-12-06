@@ -1,4 +1,4 @@
-import { NewUser, User,UserId, UserFilter, UpdateUser, SensitiveUser, InsertUser, DeleteUserFilter } from "@/lib/model";
+import { CreateUser, User,UserId, UserFilter, UpdateUser, SensitiveUser, InsertUser, DeleteUserFilter } from "@/lib/model";
 import { IUserRepository } from "..";
 import { DatabaseConnection } from "@/lib/database";
 import { Optional } from "@/lib/option";

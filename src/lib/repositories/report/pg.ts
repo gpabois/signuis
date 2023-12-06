@@ -9,19 +9,6 @@ import { ST_AsGeoJSON, ST_GeomFromGeoJSON, ST_Within } from "@/lib/utils/postgis
 
 export const PG_REPORT_TABLE_NAME = "Report";
 
-type FetchReportRow = { 
-    id: string; 
-    userId: string | null; 
-    intensity: number; 
-    createdAt: Date; 
-    str_location: string; 
-    user__id: string | null,
-    user__name: string | null,
-    nuisanceType__id: string;
-    nuisanceType__label: string;
-    nuisanceType__family: string;
-    nuisanceType__description: string;
-};
 
 /**
  * Postgres-implemented repository for reports.
@@ -33,23 +20,7 @@ export class PgReportRepository implements IReportRepository {
         this.con = con;
     }
 
-    async insert(insert: InsertReport): Promise<Array<Report["id"]>> {
-        const result = await this.con
-            .insertInto("Report")
-            .values({
-                nuisanceTypeId: insert.nuisanceTypeId,
-                userId:         insert.userId,
-                location:       ST_GeomFromGeoJSON(insert.location),
-                intensity:      insert.intensity,
-                createdAt:      insert.createdAt
-            })
-            .returning("id")
-            .execute();
-
-        return result.map(({id}) => id);
-    }
-
-    async insertMultiple(...inserts: Array<InsertReport>): Promise<Array<string>> {
+    async insert(...inserts: Array<InsertReport>): Promise<Array<string>> {
         const result = await this.con
             .insertInto("Report")
             .values(inserts.map(insert =>({
@@ -105,6 +76,13 @@ export class PgReportRepository implements IReportRepository {
                 ])
             } 
             
+            if(filter.id__in && filter.id__in.length > 0) {
+                w = eb.and([
+                    w, 
+                    eb.or(filter.id__in.map((id) => eb('t0.id', '=', id)))
+                ])
+            }
+
             if(filter.between) {
                 w = eb.and([w,
                     eb('t0.createdAt', '>=', filter.between.from),

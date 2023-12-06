@@ -1,9 +1,15 @@
+import { ZodIssue } from "zod";
 import { SignuisError } from "./error"
 import { Maybe } from "./maybe";
 
 export type Result<D, E=SignuisError> =  SuccessResult<D> | FailedResult<E>
 
 export type FailedResult<E> = {result: "failed", error: E};
+
+export type InvalidFormError = {
+    type: "invalid_form",
+    issues: Array<ZodIssue>
+}
 
 export type SuccessResult<D> = D extends void ? SuccessResultNoData: SuccessResultWithData<D> ;
 export type SuccessResultWithData<D> = {result: "success", data: D};
@@ -28,6 +34,13 @@ export function failed<D, E>(error: E): Result<D,E> {
         result: "failed",
         error
     }
+}
+
+export function invalid_form<D>(issues: ZodIssue[]): Result<D, InvalidFormError> {
+    return failed({
+        type: "invalid_form",
+        issues
+    })
 }
 
 export function hasFailed<D,E>(result: Maybe<Result<D,E>>): result is FailedResult<E> {

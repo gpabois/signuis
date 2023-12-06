@@ -8,8 +8,8 @@ export type PeriodProps = TimelinePeriodProps & {
 
 export function Period({useGeometryBounds, value, children}: PeriodProps) {
     const {bounds} = useGeometryBounds(value)
-    const left = useMemo(() =>  bounds!.from, [bounds])
-    const width = useMemo(() => bounds!.to - bounds!.from, [bounds]);
+    const left = useMemo(() =>  (bounds && bounds!.from) || 0, [bounds])
+    const width = useMemo(() => (bounds && (bounds!.to - bounds!.from)) || 0, [bounds]);
     return <div style={{width, left}} className="h-full absolute z-0 inset-0">
         {children}
     </div>

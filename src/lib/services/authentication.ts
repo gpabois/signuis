@@ -3,11 +3,13 @@ import { ISessionRepository, IUserRepository } from "../repositories";
 import { Signals } from "../signals";
 import { InsertSession, Session, User } from '../model';
 import { Result } from '@/lib/result';
-import { invalid_credentials } from '../error';
+import { invalid_credentials, validation_error } from '../error';
 import { failed, success } from '../result';
 import { Optional } from '../option';
 import { removeUserSensitiveInfos } from './account';
 import { Maybe } from '../maybe';
+import { CredentialsSchema } from '../forms';
+import { NEVER, ZodIssueCode } from 'zod';
 
 async function verifySecret(secret: string, against: string): Promise<boolean> {
     return await verify(against, secret)
@@ -59,14 +61,22 @@ export class AuthenticationService implements IAuthenticationService {
         this.signals = signals;
     }
 
-    async signInWithCredentials({nameOrEmail, password}: Credantials): Promise<Result<Session>> {
-        const user = await this.checkCredentials(nameOrEmail, password);
+    async signInWithCredentials(credantials: Credantials): Promise<Result<Session>> {
+        const validation = await CredentialsSchema
+        .transform(async ({nameOrEmail, password}) => await this.checkCredentials(nameOrEmail, password))
+        .superRefine((user, ctx) => {
+            if(!user) {
+                ctx.addIssue({code: ZodIssueCode.custom, message: "Compte inexistant ou mot de passe invalide.", fatal: true})
+                return NEVER;
+            }
+        })
+        .safeParseAsync(credantials);
         
-        if(!user) return failed(invalid_credentials());
+        if(validation.success == false) 
+            return failed(validation_error(validation.error.issues));
 
-        const session = await this.createSession(user.id);
+        const session = await this.createSession(validation.data!.id);
         await this.signals.user_signed_in.send(this, session);
-        
         return success(session);
     }
 
@@ -99,7 +109,7 @@ export class AuthenticationService implements IAuthenticationService {
     private async checkCredentials(nameOrEmail: string, password: string): Promise<Optional<User>> {
         const sensitiveUser = await this.users.findOneBy({nameOrEmail})
         if(!sensitiveUser) return null;
-        const isOk = verifySecret(password, sensitiveUser.password!);
+        const isOk = await verifySecret(password, sensitiveUser.password!);
         if(!isOk) return null;
         const {password: _, ...user} = sensitiveUser;
         return removeUserSensitiveInfos(sensitiveUser);
@@ -115,7 +125,7 @@ export class AuthenticationService implements IAuthenticationService {
             // Expires in 24h
             expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
         }
-        const id = (await this.sessions.insert(insertSession))!;
+        const [id] = await this.sessions.insert(insertSession);
         return (await this.sessions.findOneBy({id}))!;
     }
     

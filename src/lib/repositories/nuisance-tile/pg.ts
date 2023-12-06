@@ -1,12 +1,9 @@
-import { AggregatedNuisanceTile, DeltaNuisanceTile, FilterNuisanceTile, Intensity, NuisanceTile } from "@/lib/model";
+import { NuisanceTileSum, FilterNuisanceTile, NuisanceTile, IntensityWeights } from "@/lib/model";
 import { Database, DatabaseConnection } from "@/lib/database";
 import { INuisanceTileRepository } from ".";
 import { Cursor } from "@/lib/utils/cursor";
-import { ExpressionOrFactory, sql, ReferenceExpression } from "kysely";
-import { tile } from "@/lib/utils/slippyMap";
+import { ExpressionOrFactory, sql } from "kysely";
 import { Optional } from "@/lib/option";
-import { zip } from "@/lib/utils/iterable";
-import { NuisanceTypeTable } from "@/lib/database/nuisance_type";
 import { NuisanceTileTable } from "@/lib/database/nuisance-tile";
 
 const PG_NUISANCE_TILE_TABLE_NAME = "NuisanceTile"
@@ -58,7 +55,7 @@ export class PgNuisanceTileRepository implements INuisanceTileRepository {
         return item
     }
 
-    async sumBy(filter: FilterNuisanceTile, by: Array<"Time"|"NuisanceType">): Promise<Array<AggregatedNuisanceTile>> {       
+    async sumBy(filter: FilterNuisanceTile): Promise<Array<NuisanceTileSum>> {       
 
         let query = this.con
         .selectFrom("NuisanceTile as t0")
@@ -67,9 +64,6 @@ export class PgNuisanceTileRepository implements INuisanceTileRepository {
             sql<number>`t0.x`.as("nuisance_tile__x"),
             sql<number>`t0.y`.as("nuisance_tile__y"),
             sql<number>`t0.z`.as("nuisance_tile__z"),
-
-            sql<Date>`MIN(t0.t)`.as("nuisance_tile__t_from"),
-            sql<Date>`MAX(t0.t)`.as("nuisance_tile__t_to"),
             
             sql<number>`CAST(COALESCE(SUM(t0.count), 0) AS INTEGER)`.as("nuisance_tile__count"),
             sql<number>`CAST(COALESCE(SUM(t0.w1), 0) AS INTEGER)`.as("nuisance_tile__w1"),
@@ -78,25 +72,16 @@ export class PgNuisanceTileRepository implements INuisanceTileRepository {
             sql<number>`CAST(COALESCE(SUM(t0.w4), 0) AS INTEGER)`.as("nuisance_tile__w4"),
             sql<number>`CAST(COALESCE(SUM(t0.w5), 0) AS INTEGER)`.as("nuisance_tile__w5"),
 
-            sql<Array<string>>`ARRAY_AGG(t1.id)`.as("nuisance_types__id"),
-            sql<Array<string>>`ARRAY_AGG(t1.label)`.as("nuisance_types__label"),
-            sql<Array<string>>`ARRAY_AGG(t1.family)`.as("nuisance_types__family"),
-            sql<Array<string>>`ARRAY_AGG(t1.description)`.as("nuisance_types__description"),
         ])
         .where(this.filter(filter))
         .groupBy(["t0.x", "t0.y", "t0.z"])
-        .$if(by.includes("NuisanceType"), qb => qb.groupBy(["t1.id"]))
 
-        const rows: Array<AggregatedRow> = await query.execute()
+        const rows = await query.execute()
         
         return rows.map((row) => ({
             x: row.nuisance_tile__x,
             y: row.nuisance_tile__y,
             z: row.nuisance_tile__z,
-            t: {
-                from: row.nuisance_tile__t_from, 
-                to: row.nuisance_tile__t_to
-            },
             count: row.nuisance_tile__count,
             weights: [
                 row.nuisance_tile__w1,
@@ -104,15 +89,7 @@ export class PgNuisanceTileRepository implements INuisanceTileRepository {
                 row.nuisance_tile__w3,
                 row.nuisance_tile__w4,
                 row.nuisance_tile__w5
-            ],
-            nuisanceTypes: Array.from(zip(
-                row.nuisance_types__id, 
-                row.nuisance_types__label, 
-                row.nuisance_types__family, 
-                row.nuisance_types__description
-            )).map(([id, label, family, description]) => ({
-                id, label, family, description
-            }))
+            ]
         }))
     }
 
@@ -164,59 +141,49 @@ export class PgNuisanceTileRepository implements INuisanceTileRepository {
         }))
     }
 
-    async increment(tile: DeltaNuisanceTile): Promise<void> {
+    async increment(weights: IntensityWeights, coordinates: Array<{x: number, y: number, z: number, t: Date, nuisanceTypeId: string}>): Promise<void> {
         await this.con
             .insertInto(PG_NUISANCE_TILE_TABLE_NAME)
-            .values({
-                x: tile.x,
-                y: tile.y,
-                z: tile.z,
-                t: tile.t,
-                nuisanceTypeId: tile.nuisanceTypeId,
-                count: tile.count, 
-                w1: tile.weights[0],
-                w2: tile.weights[1],
-                w3: tile.weights[2],
-                w4: tile.weights[3],
-                w5: tile.weights[4],
-            })
+            .values(coordinates.map((c) => ({
+                ...c,
+                count: weights.reduce((a,b) => a+b, 0), 
+                w1: weights[0],
+                w2: weights[1],
+                w3: weights[2],
+                w4: weights[3],
+                w5: weights[4],
+            })))
             .onConflict((oc) => oc
                 .constraint('nuisance_tile_unique_index')
                 .doUpdateSet(eb => ({
-                    w1: eb('NuisanceTile.w1', '+', tile.weights[0]),
-                    w2: eb('NuisanceTile.w2', '+', tile.weights[1]),
-                    w3: eb('NuisanceTile.w3', '+', tile.weights[2]),
-                    w4: eb('NuisanceTile.w4', '+', tile.weights[3]),
-                    w5: eb('NuisanceTile.w5', '+', tile.weights[4]),
-                    count: eb('NuisanceTile.count', '+', tile.count)
+                    w1: eb('NuisanceTile.w1', '+', weights[0]),
+                    w2: eb('NuisanceTile.w2', '+', weights[1]),
+                    w3: eb('NuisanceTile.w3', '+', weights[2]),
+                    w4: eb('NuisanceTile.w4', '+', weights[3]),
+                    w5: eb('NuisanceTile.w5', '+', weights[4]),
+                    count: eb('NuisanceTile.count', '+', weights.reduce((a,b) => a+b, 0))
                 }))
             )
             .execute();
     }
 
-    async decrement(dt: DeltaNuisanceTile): Promise<void> {
+    async decrement(weights: IntensityWeights, filter: FilterNuisanceTile): Promise<void> {
         await this.con
-            .updateTable(PG_NUISANCE_TILE_TABLE_NAME)
+            .updateTable("NuisanceTile as t0")
             .set((eb) => ({
-                w1: eb('NuisanceTile.w1', '-', dt.weights[0]),
-                w2: eb('NuisanceTile.w2', '-', dt.weights[1]),
-                w3: eb('NuisanceTile.w3', '-', dt.weights[2]),
-                w4: eb('NuisanceTile.w4', '-', dt.weights[3]),
-                w5: eb('NuisanceTile.w5', '-', dt.weights[4]),
-                count: eb('NuisanceTile.count', '-', dt.count)
+                w1: eb('t0.w1', '-', weights[0]),
+                w2: eb('t0.w2', '-', weights[1]),
+                w3: eb('t0.w3', '-', weights[2]),
+                w4: eb('t0.w4', '-', weights[3]),
+                w5: eb('t0.w5', '-', weights[4]),
+                count: eb('t0.count', '-', weights.reduce((a,b) => a+b, 0))
             }))
-            .where((eb)=> eb.and({
-                x: dt.x, 
-                y: dt.y, 
-                z: dt.z, 
-                t: dt.t, 
-                nuisanceTypeId: dt.nuisanceTypeId
-            }))
+            .where(this.filter(filter))
             .execute();
     }
 
 
-    private filter<SqlBool>(filter: FilterNuisanceTile): ExpressionOrFactory<Database & {t0: NuisanceTileTable, t1: NuisanceTypeTable}, "t0" | "t1", SqlBool> {
+    private filter<SqlBool>(filter: FilterNuisanceTile): ExpressionOrFactory<Database & {t0: NuisanceTileTable}, "t0", SqlBool> {
         const map = {
             x: "t0.x",
             y: "t0.y",
@@ -237,12 +204,20 @@ export class PgNuisanceTileRepository implements INuisanceTileRepository {
                     eb('t0.t', '<=', filter.between.to)
                 ])
             }
+            
             if(filter.nuisanceTypeIds && filter.nuisanceTypeIds.length > 0) {
                 w = eb.and([
                     w,
                     eb.or(filter.nuisanceTypeIds.map((id) => eb("t0.nuisanceTypeId", "=", id)))
                 ])
             }
+
+            if(filter.coordinates) {
+                w = eb.and([w, eb.or((filter.coordinates.map((c) => eb.and({
+                    ...c
+                }))))])
+            }
+
             return w
         }
     }

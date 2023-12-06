@@ -1,10 +1,11 @@
 import { useMemo } from "react";
+import { ZodIssue } from "zod";
 
 export type SelectProps = {
     id?: string,
     name?:string, 
     className?: string,
-    fieldErrors?: {[id: string]: string[]},
+    issues?: ZodIssue[],
     label?: string, 
     value?: string,
     rows?: number,
@@ -12,7 +13,7 @@ export type SelectProps = {
 };
 export function Textarea(props: SelectProps) {
 
-    const errors = useMemo<string[]>(() => (props.id && props.fieldErrors?.[props.id]) || [], [props.id, props.fieldErrors])
+    const errors = useMemo<ZodIssue[]>(() => (props.id && props.issues) ? props.issues.filter((i) => i.path.includes(props.id!)) : [], [props.id, props.issues])
     const className = useMemo(() => {
         if(errors.length > 0) {
             return "border-red-600"
@@ -42,7 +43,7 @@ export function Textarea(props: SelectProps) {
             onChange={(e) => props.onValueChanged?.(e.target.value)}>
                 {props.value}
         </textarea>
-        {errors.map((error, i) => <span key={`error_${i}`} className="mt-2 text-sm text-red-500">{error}</span>)}
+        {errors.map((error, i) => <span key={`error_${i}`} className="mt-2 text-sm text-red-500">{error.message}</span>)}
 
     </div>
 }

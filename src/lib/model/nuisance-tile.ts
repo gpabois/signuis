@@ -53,14 +53,14 @@ export interface NuisanceTile {
     weights: IntensityWeights
 }
 
+
+
 export type NuisanceTileAggregationField = "Time"
 
-export interface AggregatedNuisanceTile {
+export interface NuisanceTileSum {
     x: number,
     y: number,
     z: number,
-    t: {from: Date, to: Date},
-    nuisanceTypes: Array<NuisanceType>,
     count: number,
     weights: IntensityWeights
 }
@@ -71,6 +71,8 @@ export type FilterNuisanceTile = Partial<NuisanceTileAttributes> & {
         se: {lat: number, lon: number}
     }
     nuisanceTypeIds?: Array<string>,
-    between?: {from: Date, to: Date}
+    between?: {from: Date, to: Date},
+    coordinates?: Array<{x: number, y: number, z: number, t: Date, nuisanceTypeId?: string}>
 }
+
 

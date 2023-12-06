@@ -21,6 +21,7 @@ export type UpdateReport = PatchReport;
 
 export type FilterReport = Partial<PatchReport> & {
     nuisanceTypeId__in?: Array<string>,
+    id__in?: Array<string>,
     within?: Polygon | Array<Polygon>,
     between?: {from: Date, to: Date}
 };

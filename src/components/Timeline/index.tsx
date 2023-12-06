@@ -1,14 +1,15 @@
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react"
-import { ArrowLeftIcon, ArrowRightIcon, MagnifyingGlassMinusIcon, MagnifyingGlassPlusIcon, Square3Stack3DIcon } from "@heroicons/react/20/solid";
-import { useScale } from "./hooks/useScale";
-import { useInterval } from "./hooks/useInterval";
-import { useTick } from "./hooks/useTick";
+import { ArrowLeftIcon, ArrowRightIcon, ArrowsPointingOutIcon, MagnifyingGlassMinusIcon, MagnifyingGlassPlusIcon, Square3Stack3DIcon } from "@heroicons/react/20/solid";
 import { Ticks } from "./Ticks";
 import { Slider } from "./Slider";
 import { Period } from "./TimelinePeriod";
 import { ScaleInput } from "./ScaleInput";
 import "./style.css"
 import { useTimelineContext } from "./hooks/useContext";
+import { computeInterval } from "./utils";
+import { useScale } from "./hooks/useScale";
+import { useBounds } from "./hooks/useBounds";
+import { DateBounds } from "./model";
 
 enum TimelineMode {
     Default = "default",
@@ -36,37 +37,44 @@ export function Timeline(props: TimelineProps) {
     const container = useRef<HTMLDivElement>(null);
     
     // Geometry-related attributes
-    const [width, setWidth] = useState(0);
-    const [origin, setOrigin] = useState(0);
+    const [width, setWidth]     = useState(0);
+    const [origin, setOrigin]   = useState(0);
     
     const [mode, setMode] = useState<TimelineMode>(TimelineMode.Default);
 
-    // Bounds
-    const now = new Date();
-    const [bounds, setBounds] = useState<{from: Date, to: Date}>({
-        from: props.bounds?.from || new Date(now.getTime() - 24 * 60 * 60 * 1000),
-        to: props.bounds?.to || now
-    })
+    // Value
+    const [value, setValue] = useState(props.value);
+    useEffect(() => setValue(props.value), [props.value]);
+    const updateValue = (value: DateBounds, notify: boolean = true) => {
+        setValue(value);
+        notify && props.onChange?.(value);
+    }
 
-    useEffect(() => setBounds(props.bounds), [props.bounds]);
+    // Bounds
+    const [bounds, setBounds] = useBounds({
+        value: props.bounds,
+        onChanged: props.onBoundsChange
+    })
 
     const updateBounds = ({from, to}: {from?: Date, to?: Date}) => {
         setBounds({
             to: to || bounds.to,
             from: from || bounds.from
         })
-        props.onBoundsChange?.(bounds)
     }
 
     // Scale-related elements
-    const [scale, setScale] = useScale({scale: props.scale, width, bounds});
+    const [scale, setScale] = useScale({scale: props.scale, width, bounds, onChanged: props.onScaleChange});
     const [resolution, _] = useState(props.resolution || 4)
 
     const timelineContext = useTimelineContext({bounds, width, origin})
     
     // Interval
-    const interval = useInterval({bounds});
+    const interval = useMemo(() => computeInterval(bounds), [bounds]);
 
+    const setValueToEntireBounds = () => {
+        updateValue(bounds);
+    }
     const zoomOut = () => {
         const pivot = new Date(bounds.from.getTime() + interval / 2);
         
@@ -94,15 +102,11 @@ export function Timeline(props: TimelineProps) {
     }
 
     function shift(ms: number) {
-        setBounds(({to, from}) => ({
-            to: new Date(to.getTime() + ms),
-            from: new Date(from.getTime() + ms)
-        }))
+        setBounds({
+            to: new Date(bounds.to.getTime() + ms),
+            from: new Date(bounds.from.getTime() + ms)
+        })
     }
-
-    // Recompute scaling to ensure there is not inadequate scaling while changing intervals
-    useEffect(() => props.onScaleChange?.(scale), [scale])
-    //useEffect(() => , [bounds])
 
     // Bind width and origin, so it can be updated if the container's geometry has changed.
     useEffect(() => {
@@ -168,12 +172,12 @@ export function Timeline(props: TimelineProps) {
             />
             <Slider 
                 bounds={bounds}
-                useGeometryBounds={timelineContext.use.geomtryBounds} 
+                useGeometryBounds={timelineContext.use.geometryBounds} 
                 reverse={timelineContext.reverse} 
-                value={props?.value} 
-                onChange={props?.onChange} 
+                value={value} 
+                onChange={updateValue} 
             />
-            {periods.map(({props, key}) => <Period key={key} {...props} useGeometryBounds={timelineContext.use.geomtryBounds} />)}
+            {periods.map(({props, key}) => <Period key={key} {...props} useGeometryBounds={timelineContext.use.geometryBounds} />)}
             <div onMouseDown={(e) => {e.preventDefault(); setMode(TimelineMode.Shift)}} className="absolute w-full h-full inset-0 z-10">
                 {props.loading && <div className="inset-0 loading w-10 bg-slate-600 h-full absolute"></div>}
             </div>
@@ -191,6 +195,7 @@ export function Timeline(props: TimelineProps) {
             <div className="flex-1"></div>
             <div className="flex flex-row items-center">
                 <button className="p-1 bg-gray-100" onClick={(_) => shift(-scale)}><ArrowLeftIcon className="h-4 w-4"/></button>
+                <button className="p-1 bg-gray-100" onClick={(_) => setValueToEntireBounds()}><ArrowsPointingOutIcon className="h-4 w-4"/></button>
                 <button className="p-1 bg-gray-100" onClick={zoomOut}><MagnifyingGlassMinusIcon className="h-4 w-4"/></button>
                 <button className="p-1 bg-gray-100" onClick={zoomIn}><MagnifyingGlassPlusIcon className="h-4 w-4"/></button>
                 <button className="p-1 bg-gray-100" onClick={(_) => shift(scale)}><ArrowRightIcon className="h-4 w-4"/></button>

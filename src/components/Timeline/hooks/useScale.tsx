@@ -1,33 +1,48 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { computeInterval, computeTickCount, computeTickSize, reverseComputeScale, reverseComputeTickCount } from "../utils";
+import { DateBounds } from "../model";
 
 // Minimal tick size : 10 px;
-const TICK_SIZE_MINIMAL_SIZE = 10;
+const MIN_TICK_SIZE = 15;
 
-export function useScale({scale: initialScale, width, bounds: {to, from}}: {width: number, scale: number, bounds: {from: Date, to: Date}}): [number, (scale: number) => void] {
-    const [scale, _setScale] = useState(initialScale);
+export type UseScaleArgs = {
+    scale: number,
+    width: number,
+    bounds: DateBounds,
+    onChanged?: (scale: number) => void
+}
 
-    function controlScale(scale: number): number {
-        if(width == 0) return scale;
+export function useScale(args: UseScaleArgs): [number, (scale: number) => void] {
+    const [scale, _setScale] = useState(args.scale);
 
-        const interval  = computeInterval({from, to});
-        const tickCount = computeTickCount({interval, scale});
-        const tickSize  = computeTickSize({width, count: tickCount});
-
-        // If tick size is below threshold, reverse compute scale so it can fit.
-        if(tickSize < TICK_SIZE_MINIMAL_SIZE) {
-            const idealTickCount = reverseComputeTickCount({width, tickSize: TICK_SIZE_MINIMAL_SIZE});
-            scale = reverseComputeScale({interval, tickCount: idealTickCount});
-        }
+    function computeMinimalScale(scale: number, args: UseScaleArgs) {
+        const interval  = computeInterval(args.bounds);
         
-        return scale
+        // ms per pixels;
+        const mspms = interval / args.width;
+
+        // Ticks per miliseconds
+        return Math.round(MIN_TICK_SIZE * mspms);
     }
 
-    const setScale = (scale: number) => {
-        scale = controlScale(scale)
-        _setScale(scale);
-        return scale;
+    function controlScale(scale: number, args: UseScaleArgs): number {
+        if(args.width == 0) return scale;
+        const minScale = computeMinimalScale(scale, args)
+        return Math.max(scale, minScale);
     }
+
+    const setScale = (newScale: number, notify: boolean = true) => {
+        newScale = controlScale(newScale, args);
+        
+        if(newScale != scale) {
+            _setScale(newScale);
+            notify && args.onChanged?.(newScale);
+        }
+    }
+
+    // Update on value change
+    useEffect(() => setScale(args.scale, false), [args.scale])
+    useEffect(() => setScale(scale, true), [args.bounds, args.width])
 
     return [scale, setScale];
 }

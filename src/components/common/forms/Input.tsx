@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { ZodIssue } from "zod";
 
 export type InputProps = {
     id?: string,
@@ -6,11 +7,11 @@ export type InputProps = {
     className?: string,
     label?: string, 
     value?: string,
-    fieldErrors?: {[id: string]: string[]},
+    issues?: ZodIssue[],
     onValueChanged?: (value: string) => void
 };
 export function Input(props: InputProps) {
-    const errors = useMemo<string[]>(() => (props.id && props.fieldErrors?.[props.id]) || [], [props.id, props.fieldErrors])
+    const errors = useMemo<ZodIssue[]>(() => (props.id && props.issues) ? props.issues.filter((i) => i.path.includes(props.id!)) : [], [props.id, props.issues])
     const className = useMemo(() => {
         if(errors.length > 0) {
             return "border-red-600"
@@ -39,6 +40,6 @@ export function Input(props: InputProps) {
                 dark:border-slate-600
                 dark:text-gray-300 
                 leading-tight focus:outline-none focus:shadow-outline`}/>
-        {errors.map((error, i) => <span key={`error_${i}`} className="mt-2 text-sm text-red-500">{error}</span>)}
+        {errors.map((error, i) => <span key={`error_${i}`} className="mt-2 text-sm text-red-500">{error.message}</span>)}
     </div>
 }

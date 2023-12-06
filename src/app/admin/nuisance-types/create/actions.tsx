@@ -3,11 +3,10 @@
 import { getReportingService } from "@/actions/getReportingService"
 import { CreateNuisanceTypeSchema } from "@/lib/forms";
 import { NuisanceType } from "@/lib/model";
-import { ValidationError } from "@/lib/error";
+import { ValidationError, validation_error } from "@/lib/error";
 import { Result, failed, success } from "@/lib/result";
 import { Maybe } from "@/lib/maybe";
 import { redirect } from "next/navigation";
-
 
 export async function createNuisanceType(prevState: Maybe<Result<NuisanceType, ValidationError>>, formData: FormData): Promise<Maybe<Result<NuisanceType, ValidationError>>> {
     const reporting = await getReportingService();
@@ -19,10 +18,7 @@ export async function createNuisanceType(prevState: Maybe<Result<NuisanceType, V
     });
 
     if(validation.success == false) {
-        return failed({
-            type: "ValidationError",
-            fieldErrors: validation.error.formErrors.fieldErrors
-        });
+        return failed(validation_error(validation.error.issues));
     }
 
     let result = success(await reporting.createNuisanceType(validation.data));

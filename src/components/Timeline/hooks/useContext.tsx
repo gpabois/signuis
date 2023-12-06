@@ -23,6 +23,7 @@ export function useTimelineContext({bounds, width, origin}: {bounds: DateBounds,
         if(!value) return {}
 
         const to = Math.round(value.to.getTime() * ppms);
+        
         return {
             bounds: {
                 from: usePosition(value.from),
@@ -36,5 +37,5 @@ export function useTimelineContext({bounds, width, origin}: {bounds: DateBounds,
         return new Date(bounds.from.getTime() + dt)
     }), [bounds.from])
 
-    return {use: {position: usePosition, geomtryBounds: useGeometryBounds}, reverse}
+    return {use: {position: usePosition, geometryBounds: useGeometryBounds}, reverse}
 }

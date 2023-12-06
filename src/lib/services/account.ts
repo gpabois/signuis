@@ -1,18 +1,21 @@
 import {hash} from '@node-rs/argon2';
 
-import { NewUser, User, PatchUser, UserFilter, SensitiveUser } from "../model";
+import { CreateUser, User, PatchUser, UserFilter, SensitiveUser, RegisterUser } from "../model";
 import { IUserRepository} from "../repositories";
 import { Signals } from "../signals";
-import { Result } from 'postcss';
-import { success } from '../result';
+import { Result, failed, invalid_form, success } from '../result';
 import { Optional } from '../option';
 import { Cursor } from '../utils/cursor';
+import { RegisterSchema } from '../forms';
+import { validation_error } from '../error';
+import { ZodIssueCode } from 'zod';
 
 /** 
  * Account service interface 
  */
 export interface IAccountService {
-    registerUser(newUser: NewUser) : Promise<User>;
+    registerUser(user: RegisterUser): Promise<Result<User>>;
+    createUser(newUser: CreateUser) : Promise<User>;
     patchUser(patch: PatchUser) : Promise<User>;
     deleteUser(id: string): Promise<void>;
     findUserBy(filter: UserFilter) : Promise<Optional<User>> ;
@@ -49,15 +52,61 @@ export class AccountService  implements IAccountService {
     }
 
     /**
+     * Register a new user
+     * @param newUser 
+     * @returns 
+     */
+    async registerUser(args: RegisterUser) : Promise<Result<User>> {
+        const validation = await RegisterSchema
+            .superRefine(
+                async ({name, email}, ctx) => {
+                    const [existingName, existingEmail] = await Promise.all([this.findUserBy({name}), this.findUserBy({email})]);
+                    if(existingEmail) {
+                        ctx.addIssue({
+                            code: ZodIssueCode.custom,
+                            path: ['email'],
+                            message: "Email déjà existant."
+                        })
+                    }
+                    if(existingName) {
+                        ctx.addIssue({
+                            code: ZodIssueCode.custom,
+                            path: ['name'],
+                            message: "Nom déjà existant."
+                        })
+                    }
+                })
+            .safeParseAsync(args);
+        
+        if(!validation.success) {
+            const error = validation.error;
+            return failed(validation_error(error.issues))
+        }
+
+        const insert = {
+            name: validation.data.name,
+            email: validation.data.email,
+            password: await encryptSecret(validation.data.password)
+        };
+        
+        const [id] = await this.users.insert(insert);
+        const sensitiveUser = (await this.users.findOneBy({id}))!;
+        // Remove sensitive informations.
+        const user = removeUserSensitiveInfos(sensitiveUser);
+        this.signals.user_registered.send(this, user);
+        return success(user);
+    }
+
+    /**
      * Create a new user
      * @param newUser 
      * @returns 
      */
-    async registerUser(newUser: NewUser) : Promise<User> {
+    async createUser(newUser: CreateUser) : Promise<User> {
         if(newUser.password)
             newUser.password = await encryptSecret(newUser.password);
         
-        const id = await this.users.insert(newUser);
+        const [id] = await this.users.insert(newUser);
         const sensitiveUser = (await this.users.findOneBy({id}))!;
         // Remove sensitive informations.
         const user = removeUserSensitiveInfos(sensitiveUser);

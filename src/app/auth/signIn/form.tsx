@@ -2,18 +2,20 @@
 
 import { Input } from "@/components/common/forms/Input";
 import { Password } from "@/components/common/forms/Password";
-import { useFormState } from "react-dom";
+import {useFormState } from 'react-dom'
 import { FormButton } from "@/components/common/forms/FormButton";
-import { signIn } from "@/actions/auth/signIn";
-import { Result, hasFailed } from "@/lib/result";
+import { SignInState, signIn } from "@/actions/auth/signIn";
 import { useSearchParams } from "next/navigation";
+import { useResult } from "@/hooks/useResult";
 
 export function SignInForm() {
     const redirectTo = useSearchParams().get("redirectTo");
-    const [state, doSignIn] = useFormState<{result?: Result<void>, redirectTo?: string}>(signIn, {redirectTo});
+    //@ts-ignore
+    const [state, doSignIn] = useFormState<SignInState>(signIn, {redirectTo});
+    const result = useResult<void>(state?.result);
 
     return <form className="space-y-4 md:space-y-6" action={doSignIn}>
-    {hasFailed(state.result) && <span className="text-red-800">{state.result.error.type}</span>}
+    {result?.overallIssues.map((issue) => <span className="text-red-800">{issue.message}</span>)}
     <div>
         <Input label="Nom ou email" name="nameOrEmail"/>
     </div>

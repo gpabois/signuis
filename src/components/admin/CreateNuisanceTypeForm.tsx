@@ -5,7 +5,6 @@ import { Textarea } from "../common/forms/Textarea";
 import {useFormState } from 'react-dom'
 import { FormButton } from "../common/forms/FormButton";
 import { createNuisanceType } from "@/app/admin/nuisance-types/create/actions";
-import { ValidationError, isValidationError } from "@/lib/error";
 import { Result } from "@/lib/result";
 import { useResult } from "@/hooks/useResult";
 import { Maybe } from "@/lib/maybe";
@@ -13,8 +12,8 @@ import { Maybe } from "@/lib/maybe";
 
 export function CreateNuisanceTypeForm(props: {onNuisanceTypeCreated?: (createdNuisanceType: NuisanceType) => void}) {
     //@ts-ignore
-    const [state, formCreation] = useFormState<Maybe<Result<NuisanceType, ValidationError>>>(createNuisanceType, null);
-    const {fieldErrors} = useResult(state)
+    const [state, formCreation] = useFormState<Maybe<Result<NuisanceType>>>(createNuisanceType, null);
+    const result = useResult(state)
     
     return <form action={formCreation}>
         <Input 
@@ -22,14 +21,14 @@ export function CreateNuisanceTypeForm(props: {onNuisanceTypeCreated?: (createdN
             name="label"
             label="Libellé" 
             className="mb-4"
-            fieldErrors={fieldErrors}
+            issues={result?.issues}
         />
         <Select 
             id="family"
             name="family"
             label="Famille" 
             className="mb-4"
-            fieldErrors={fieldErrors}
+            issues={result?.issues}
         >
             {NuisanceTypeFamilies.map(f => <SelectOption value={f.value} label={f.label}></SelectOption>)}
         </Select>
@@ -38,7 +37,7 @@ export function CreateNuisanceTypeForm(props: {onNuisanceTypeCreated?: (createdN
             name="description"
             label="Description" 
             className="mb-4"
-            fieldErrors={fieldErrors}
+            issues={result?.issues}
         />
         <FormButton type="submit">Créer</FormButton>
     </form>

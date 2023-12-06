@@ -5,21 +5,25 @@ export function ScaleInput(props: {value: number, onChanged?: (ms: number) => vo
     
     const [decomposed, setDecomposed] = useState(decomposeTimestamp(props.value))
 
-    useEffect(() => {
-        props.onChanged?.(recomposeTimestamp(decomposed))
-    }, [decomposed])
+    useEffect(() => setDecomposed(decomposeTimestamp(props.value)), [props.value])
 
+    function notifyChange() {
+        props.onChanged?.(recomposeTimestamp(decomposed))
+    }
 
     function setDays(days: number) {
         setDecomposed(d => ({...d, days}))
+        notifyChange()
     }
 
     function setHours(hours: number) {
         setDecomposed(d => ({...d, hours}))
+        notifyChange()
     }
 
     function setMinutes(minutes: number) {
         setDecomposed(d => ({...d, minutes}))
+        notifyChange()
     }
 
     return <div className="flex flex-row align-center space-x-2">

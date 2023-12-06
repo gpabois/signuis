@@ -7,7 +7,7 @@ export interface Signals {
     /**
      * A new report has been created
      */
-    report_created: Signal<Report>,
+    reports_created: Signal<Array<Report>>,
 
     /**
      * A report has been deleted
@@ -42,7 +42,7 @@ export interface Signals {
 
 export function createSignals(): Signals {
     return {
-        report_created:         new Signal<Report>(),
+        reports_created:         new Signal<Array<Report>>(),
         report_deleted:         new Signal<Report>(),
         nuisance_tile_updated:  new Signal<NuisanceTile>(),
         user_registered:        new Signal<User>,

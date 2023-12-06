@@ -3,6 +3,7 @@ import { NuisanceTypeFixtures, ReportFixtures, UserFixtures, getRandomElement } 
 import { NuisanceType } from "@/lib/model";
 import { createShared } from "@/lib/shared";
 import { faker } from "@faker-js/faker";
+import { randomInt } from "crypto";
 
 async function execute() {
     console.log("Generating fixtures...")
@@ -26,15 +27,24 @@ async function execute() {
         users.push(await UserFixtures.ForServices.register({}, shared));
     }
 
-    for(let i = 0; i < 100_000; i++) {
-        await ReportFixtures.ForServices.create({
+    let creates = [];
+    for(let i = 0; i < 200_000; i++) {
+        if(i % 1000 == 0) console.log(i)
+        
+        creates.push(await ReportFixtures.ForServices.generateCreateReportData({
             userId: getRandomElement(users)!.id, 
             nuisanceTypeId: getRandomElement(nuisanceTypes)!.id,
+            intensity: randomInt(1, 5),
             createdAt: faker.date.recent({days: 360})
-        }, shared)
+        }, shared))
+
+        if(creates.length % 1000 === 0) {
+            await shared.services.reporting.createReports(...creates);
+            creates = [];
+        }
     }
 
-
+   await shared.services.reporting.createReports(...creates);
    await destroyDatabaseConnection();
 }
 

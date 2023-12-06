@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { ZodIssue } from "zod";
 
 export type RangeProps = {
     id?: string,
@@ -6,7 +7,7 @@ export type RangeProps = {
     className?: string,
     label?: string, 
     value?: number,
-    fieldErrors?: {[id: string]: string[]},
+    issues: ZodIssue[],
     min?: number,
     max?: number,
     step?: number,
@@ -15,7 +16,7 @@ export type RangeProps = {
 export function Range(props: RangeProps) {
     const [value, setValue] = useState(props.value);
 
-    const errors = useMemo<string[]>(() => (props.id && props.fieldErrors?.[props.id]) || [], [props.id, props.fieldErrors])
+    const errors = useMemo<ZodIssue[]>(() => (props.id && props.issues) ? props.issues.filter((i) => i.path.includes(props.id!)) : [], [props.id, props.issues])
     const className = useMemo(() => {
         if(errors.length > 0) {
             return "border-red-600"
@@ -49,6 +50,6 @@ export function Range(props: RangeProps) {
                 to-red-500
                 dark:bg-gray-700`
             }/>
-        {errors.map((error, i) => <span key={`error_${i}`} className="mt-2 text-sm text-red-500">{error}</span>)}
+        {errors.map((error, i) => <span key={`error_${i}`} className="mt-2 text-sm text-red-500">{error.message}</span>)}
     </div>
 }

@@ -25,22 +25,21 @@ export type SliderProps = {
 export function Slider({value: initialValue, bounds, useGeometryBounds, reverse, onChange}: SliderProps) {
     const [mode, setMode] = useState<SliderMode>(SliderMode.Default);
     const [value, setValue] = useState(initialValue || bounds);
-    const debouncedValue = useDebounce(value, 500);
 
     const {bounds: rectangle} = useGeometryBounds(value);
     const left = useMemo(() => rectangle?.from, [rectangle]);
     const width = useMemo(() =>  rectangle && (rectangle.to - rectangle.from), [rectangle]);
 
-    const updateRange = (newRange: {from?: Date, to?: Date}) => {   
+    const updateRange = (newRange: {from?: Date, to?: Date}, notify: boolean = true) => {   
         setValue((r) => ({
             to: newRange.to || r.to,
             from: newRange.from || r.from
         }))
+        notify && onChange?.(value)
     }
 
     // Notify range change
-    useEffect(() => setValue(initialValue || bounds), [initialValue])
-    useEffect(() => debouncedValue && onChange?.(debouncedValue), [debouncedValue])
+    useEffect(() => updateRange(initialValue || bounds, false), [initialValue])
 
     // Bind controls to slide the range
     useEffect(() => {

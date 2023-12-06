@@ -1,3 +1,5 @@
+import { ZodIssue } from "zod";
+
 export type SignuisError = ValidationError | InternalError | InvalidCredantialsError;
 
 export interface Error {
@@ -35,16 +37,16 @@ export function isInvalidCredentialsError(maybeInvalidCredentialsError: unknown)
 
 export interface ValidationError {
     type: "ValidationError",
-    fieldErrors: {[id: string]: string[]}
+    issues: ZodIssue[]
 }
 
-export function validation_error(fieldErrors: {[id: string]: string[]}): ValidationError {
+export function validation_error(issues: ZodIssue[]): ValidationError {
     return {
         type: "ValidationError",
-        fieldErrors
+        issues
     }
 }
 
 export function isValidationError(maybeValidationError: unknown): maybeValidationError is ValidationError {
-    return isError(maybeValidationError, 'ValidationError') && "fieldErrors" in maybeValidationError;
+    return isError(maybeValidationError, 'ValidationError') && "issues" in maybeValidationError;
 }

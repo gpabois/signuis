@@ -10,7 +10,14 @@ export interface IReportingService {
      * @param report 
      * @return Created report
      */
-    createReport(newReport: CreateReport): Promise<Report>;
+    createReports(...creates: CreateReport[]): Promise<Array<Report>>;
+
+    /**
+     * Add a new entry.
+     * @param report 
+     * @return Created report
+     */
+    createReport(create: CreateReport): Promise<Report>;
 
     /**
      * Remove an entry by its id
@@ -80,19 +87,24 @@ export class ReportingService implements IReportingService {
     }
 
 
-    async createReport(newReport: CreateReport): Promise<Report> {
+    async createReports(...creates: CreateReport[]): Promise<Array<Report>> {
         // Insert a new report
-        const id = await this.reports.insert(newReport);
+        const ids = await this.reports.insert(...creates);
         
-        // Retrieve the new inserted report
-        const report = (await this.reports.findOneBy({id}))!;
+        // Retrieve the new inserted reports
+        const reports = await this.reports.findBy({id__in: ids}, {page: 0, size: -1});
         
         // Send the signal across the application.
-        await this.signals.report_created.send(this, report);
+        await this.signals.reports_created.send(this, reports);
 
-        return report;
+        // Return reports
+        return reports;
     }
 
+    async createReport(create: CreateReport): Promise<Report> {
+        const [report] = await this.createReports(create);
+        return report;
+    }
 
     async deleteReportBy(filter: FilterReport): Promise<void> {
         const reports = await this.reports.findBy(filter, {page: 0, size: -1});
@@ -114,7 +126,7 @@ export class ReportingService implements IReportingService {
     }
 
     async createNuisanceType(newNuisanceType: CreateNuisanceType): Promise<NuisanceType> {
-        const id = await this.nuisanceTypes.insert(newNuisanceType);
+        const [id] = await this.nuisanceTypes.insert(newNuisanceType);
         return (await this.nuisanceTypes.findOneBy({id}))!;
     }
     

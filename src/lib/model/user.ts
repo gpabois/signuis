@@ -16,8 +16,14 @@ export interface UserAttributes extends AdapterUser {
 }   
 
 export type UserId = UserAttributes["id"];
-export type NewUser = Omit<UserAttributes, "id" | "emailVerified" | "role">;
-export type InsertUser  = NewUser;
+export interface RegisterUser {
+    name: string,
+    email: string,
+    password: string,
+    confirmPassword: string
+} 
+export type CreateUser = Omit<UserAttributes, "id" | "emailVerified" | "role">;
+export type InsertUser  = CreateUser;
 export type PatchUser = Patch<UserAttributes>;
 export type UpdateUser = Patch<UserAttributes>
 export type DeleteUserFilter = UserFilter & Omit<UserFilter, "nameOrEmail" & "provider" & "providerAccountId">
