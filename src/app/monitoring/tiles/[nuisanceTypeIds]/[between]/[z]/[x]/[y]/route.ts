@@ -17,7 +17,7 @@ export async function GET(request: NextRequest, {params}: {params: {x: number, y
 
     const canvas = await monitoring.getNuisanceTileImage({
         x: params.x, y: params.y, z: params.z, between, nuisanceTypeIds
-    }, {mimeType, resolution: 4})
+    }, {mimeType, resolution: 2})
     const resp = new NextResponse(canvas.toBuffer(), {
         headers: {
             "Content-type": mimeType

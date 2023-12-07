@@ -157,11 +157,10 @@ export function Monitoring(props: MonitoringProps) {
     }
 
     const queryParams = toQueryParams(stateMap)
-    router.replace(`${pathname}?${queryParams}`)
+    history.pushState(null, "", `${pathname}?${queryParams}`)
   }
 
   const initialState = loadState(Object.fromEntries(searchParams.entries()));
-  console.log(initialState)
   
   // Heatmap
   const heatmapColor = getNuisanceHeatmapColor();
@@ -184,7 +183,7 @@ export function Monitoring(props: MonitoringProps) {
   // Selected nuisances types
   const [selectedNuisanceTypes, setSelectedNuisanceTypes] = useState<Array<NuisanceType>>([])
   const [selectedPeriod, setSelectedPeriod] = useState(initialState.selectedPeriod);
-  const debounceSelectedPeriod = useDebounce(selectedPeriod, 500);
+  const debounceSelectedPeriod = useDebounce(selectedPeriod, 50);
 
   const {data: nuisancesPeriods, handle: handleNuisancePeriods, error: fetchNuisancePeriodsError, loading: fetchingNuisancePeriods} = useAsync<Array<Nuisance>>([]);
   const {data: nuisancesDetails, handle: handleNuisancesDetails, error: fetchNuisancesDetails, loading: fetchingNuisancesDetails} = useAsync<Array<Nuisance>>([]);
