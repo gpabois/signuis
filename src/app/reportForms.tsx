@@ -9,13 +9,9 @@ import { ArrowLeftIcon, ArrowRightIcon, CheckCircleIcon, CheckIcon, MegaphoneIco
 import useSWRMutation from "swr/mutation";
 import createReport from "./actions";
 import { isSuccessful } from "@/lib/result";
+import { Address } from "@/lib/utils/adress";
 
-export async function getNearest(point: Point): Promise<string> {
-    const url = `https://api-adresse.data.gouv.fr/reverse/?lat=${point.coordinates[1]}&lon=${point.coordinates[0]}`
-    const resp = await fetch(url);
-    const result = (await resp.json()) as FeatureCollection
-    return result.features[0].properties?.label || ""
-}
+
 
 export type CreateReportFormProps = {
     report: Partial<CreateReport>,
@@ -31,10 +27,10 @@ export function CreateReportForm(props: CreateReportFormProps) {
     const [report, setReport] = useState(props.report);
     const [nearest, setNearest] = useState("inconnu");
     
-    props.report?.location && getNearest(props.report?.location).then(setNearest);
+    props.report?.location && Address.getNearest(props.report?.location).then(setNearest);
 
     useEffect(() => {
-        props.report?.location && getNearest(props.report?.location).then(setNearest);
+        props.report?.location && Address.getNearest(props.report?.location).then(setNearest);
     }, [props.report?.location])
 
     useEffect(() => {

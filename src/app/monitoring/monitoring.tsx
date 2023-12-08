@@ -20,6 +20,7 @@ import { init } from "next/dist/compiled/webpack/webpack";
 import { ReadonlyURLSearchParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react"
 import { useDebounce, useInterval } from 'usehooks-ts'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const LOCATION_FALLBACK = new LatLng(48.8572207, 2.324604);
 
@@ -97,8 +98,6 @@ export function NuisanceAssesment({period, nuisances, loading}: {period: {from: 
         </tbody>
       </table>
     }
-
-
   </>
 }
 
@@ -133,7 +132,7 @@ export function Monitoring(props: MonitoringProps) {
       m: MonitoringMode.Realtime,
       tb: {from: new Date(Date.now() - 24 * 60 * 60 * 1000), to: new Date(Date.now())},
       sp: {from: new Date(Date.now() - 24 * 60 * 60 * 1000), to: new Date(Date.now())},
-      s: 5 * 60 * 1000
+      s: 30 * 60 * 1000
     }
 
     fromQueryParams(stateMap, params)
@@ -182,20 +181,17 @@ export function Monitoring(props: MonitoringProps) {
 
   // Selected nuisances types
   const [selectedNuisanceTypes, setSelectedNuisanceTypes] = useState<Array<NuisanceType>>([])
-  const [selectedPeriod, setSelectedPeriod] = useState(initialState.selectedPeriod);
+  const [selectedPeriod, setSelectedPeriod] = useState<DateBounds | undefined>(undefined);
   const debounceSelectedPeriod = useDebounce(selectedPeriod, 50);
 
   const {data: nuisancesPeriods, handle: handleNuisancePeriods, error: fetchNuisancePeriodsError, loading: fetchingNuisancePeriods} = useAsync<Array<Nuisance>>([]);
   const {data: nuisancesDetails, handle: handleNuisancesDetails, error: fetchNuisancesDetails, loading: fetchingNuisancesDetails} = useAsync<Array<Nuisance>>([]);
   
+  const focusedPeriod = useMemo(() => debounceSelectedPeriod || timeBounds, [timeBounds, debounceSelectedPeriod])
+
   // Define a scale of 5 mn.
   const [scale, setScale] = useState(initialState.scale);
   const debouncedScale = useDebounce(scale, 500);
-
-  useEffect(() => {
-    saveState({center, timeBounds, selectedPeriod, mode, scale})
-  }, [center, timeBounds, scale, mode, selectedPeriod])
-
 
   // Realtime functions
   const updateRealtimeParameters = function() {
@@ -207,7 +203,7 @@ export function Monitoring(props: MonitoringProps) {
     });
 
     setSelectedPeriod({
-      from: new Date(now.getTime() - 15 * 60 * 1000),
+      from: new Date(now.getTime() - 30 * 60 * 1000),
       to: now
     });
   };
@@ -234,12 +230,12 @@ export function Monitoring(props: MonitoringProps) {
     if(!mapBounds) return;
     
     handleNuisancesDetails(findNuisances({
-      between: selectedPeriod,
+      between: selectedPeriod || timeBounds,
       within: [mapBounds],
       groupBy: {nuisanceType: true}
     }));
 
-  }, [debounceSelectedPeriod, mapBounds, selectedNuisanceTypes]);
+  }, [timeBounds, debounceSelectedPeriod, mapBounds, selectedNuisanceTypes]);
 
   // Update fetched nuisances upon updated of time or map bounds, or selected nuisance types
   useEffect(() => {
@@ -271,14 +267,27 @@ export function Monitoring(props: MonitoringProps) {
   // Generate tile layer url based on the selection of nuisance types, and the time range.
   const tileLayersParams = useMemo(() => ({
     nuisanceTypesIds: selectedNuisanceTypes.length == 0 ? "all" : selectedNuisanceTypes.map(n => n.id).join(","),
-    between: `${selectedPeriod.from.getTime()},${selectedPeriod.to.getTime()}`
-  }), [selectedNuisanceTypes, selectedPeriod])
+    between: `${focusedPeriod.from.getTime()},${focusedPeriod.to.getTime()}`
+  }), [selectedNuisanceTypes, focusedPeriod])
 
   const nuisanceTileLayerUrl = useMemo(() => `/monitoring/tiles/${tileLayersParams.nuisanceTypesIds}/${tileLayersParams.between}/{z}/{x}/{y}`, [tileLayersParams])
 
   return <div className="flex flex-row  h-screen w-screen">
-      <div className="bg-gray-100 w-1/3 shadow z-40 p-2">
-        <NuisanceAssesment period={selectedPeriod} nuisances={nuisancesDetails} loading={fetchingNuisancesDetails}/>
+      <div className="bg-gray-100 w-1/3 shadow z-40 p-2 overflow-scroll">
+          <div className="h-40">
+          <ResponsiveContainer>
+            <LineChart data={
+              nuisancesPeriods
+              .map((np) => ({t: np.period!.from, count: np.count, intensity: Intensity.wilsonScoreLowerBound(np.weights)}))
+              .sort((a, b) => a.t.getTime() - b.t.getTime())
+            }>
+            <CartesianGrid />
+              <XAxis dataKey="t"/>
+              <Line type="monotone" dataKey="count" stroke="#8884d8" activeDot={{ r: 8 }} />
+            </LineChart>
+          </ResponsiveContainer>
+          <NuisanceAssesment period={focusedPeriod} nuisances={nuisancesDetails} loading={fetchingNuisancesDetails}/>
+        </div>
       </div>
       <div id="viewport" className="relative h-full w-full">
         <div className="absolute inset-0 z-20 p-2 w-full h-20 flex flex-row items-center place-content-end space-x-2">

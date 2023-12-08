@@ -12,10 +12,10 @@ export type UseScaleArgs = {
     onChanged?: (scale: number) => void
 }
 
-export function useScale(args: UseScaleArgs): [number, (scale: number) => void] {
+export function useScale(args: UseScaleArgs): [number, (scale: number) => void, () => void] {
     const [scale, _setScale] = useState(args.scale);
 
-    function computeMinimalScale(scale: number, args: UseScaleArgs) {
+    function computeMinimalScale(args: UseScaleArgs) {
         const interval  = computeInterval(args.bounds);
         
         // ms per pixels;
@@ -27,8 +27,12 @@ export function useScale(args: UseScaleArgs): [number, (scale: number) => void] 
 
     function controlScale(scale: number, args: UseScaleArgs): number {
         if(args.width == 0) return scale;
-        const minScale = computeMinimalScale(scale, args)
+        const minScale = computeMinimalScale( args)
         return Math.max(scale, minScale);
+    }
+
+    const autoScale = () => {
+        setScale(computeMinimalScale(args));
     }
 
     const setScale = (newScale: number, notify: boolean = true) => {
@@ -44,5 +48,5 @@ export function useScale(args: UseScaleArgs): [number, (scale: number) => void] 
     useEffect(() => setScale(args.scale, false), [args.scale])
     useEffect(() => setScale(scale, true), [args.bounds, args.width])
 
-    return [scale, setScale];
+    return [scale, setScale, autoScale];
 }

@@ -74,8 +74,12 @@ function Tick({usePosition, value, scale, resolution}: TickProps) {
     const lastTickValue = bounds.to.getTime() - rem;
 
     let ticks: Array<TickProps> = [];
+    
+    // Fix a tick limit to avoid massive number of ticks, crashing the browser.
+    let tickIndex = 0;
 
-    for(let cursor = firstTickValue; cursor <= lastTickValue; cursor = cursor + scale) {
+    for(let cursor = firstTickValue; cursor <= lastTickValue && tickIndex <= 100; cursor = cursor + scale) {
+        tickIndex++;
         ticks.push({
             value: new Date(cursor),
             scale,
@@ -95,7 +99,10 @@ function Tick({usePosition, value, scale, resolution}: TickProps) {
 export function Ticks({usePosition, scale, bounds, resolution}: TicksProps) {
     const [ticks, setTicks] = useState(generateTicks({scale, bounds, usePosition, resolution}))
 
-    useEffect(() => setTicks(generateTicks({scale, bounds, usePosition, resolution})), [bounds, scale, resolution, usePosition])
+    useEffect(() => setTicks(
+        generateTicks({scale, bounds, usePosition, resolution})), 
+        [bounds, scale, resolution, usePosition]
+    )
     return <>
         {ticks.map(props => {
             return <Tick key={`tick-${props.value.getTime()}`} {...props} />
